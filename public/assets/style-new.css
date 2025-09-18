@@ -1,0 +1,576 @@
+.table-notification-list thead tr th {
+    background-color: #008955;
+    font-size: 22px;
+    line-height: 25px;
+    color: #ffffff;
+    font-weight: bold;
+    font-family: "MyriadPro-400";
+    padding: 10px;
+    vertical-align: baseline;
+}
+
+.table-notification-list>tbody>tr:nth-child(2n+1)>td,
+.table-notification-list>tbody>tr:nth-child(2n+1)>th {
+    background-color: #f2fbeb;
+    vertical-align: baseline;
+}
+
+.table-notification-list tbody tr td {
+    font-size: 15px;
+    line-height: 25px;
+    color: #565656;
+    font-family: "MyriadPro-400";
+    padding: 10px;
+    vertical-align: baseline;
+}
+
+button.action-btn {
+    background-color: #008955;
+    padding: 10px 32px;
+    border: none;
+    border-radius: 30px;
+    color: #fff;
+    font-size: 18px;
+    margin: 0px 5px;
+}
+
+.table-notification-list tr td span {
+    margin-left: 15px;
+}
+
+a.action-btn {
+    color: #008955;
+}
+
+td.btn-parent {
+    text-align: center;
+}
+
+@media only screen and (max-width: 1100px) {
+    .btn-parent {
+        /* allows wrapping if screen is very small */
+        /* optional spacing between buttons */
+        white-space: nowrap;
+        /* keeps icon and text on the same line */
+    }
+}
+
+/* dashboaed css  */
+.custom-class {
+    font-size: 30px;
+    color: #008955;
+}
+
+.icon-font-size {
+    font-size: 30px;
+}
+
+
+/* side nav icon size  */
+.icon-font-size {
+    font-size: 22px;
+}
+
+.dropdown-toggle::after {
+    display: none;
+}
+
+.icon-font-size-small {
+    font-size: 5px;
+}
+
+
+
+/* popup css */
+
+.popup__content {
+    max-width: 400px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    color: #565656;
+    padding: 20px;
+    border-radius: 5px;
+    width: 400px;
+    height: 209px;
+    position: absolute;
+    left: 0;
+    right: -248px;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    text-align: center;
+    bottom: 180px;
+}
+
+section.delete-confirmation-popup.delete-user-confirmation-popup {
+    position: relative;
+    display: none;
+
+}
+
+.close.cancel-popup-btnbox {
+    float: inline-end;
+    margin-top: -36px;
+    background-color: #008955;
+    border-radius: 50%;
+    height: 40px;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: -34px;
+    color: #fff;
+}
+
+h2.delete-confirmation-popup-title.delete-user-confirmation-popup-title {
+    font-weight: 800;
+    color: #008955;
+    font-size: 24px;
+}
+
+.popup__content button {
+    background-color: #008955;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 5px;
+    width: 30%;
+    font-weight: 700;
+}
+
+button.delete-confirmation-popup-btn.delete-confirmation-popup-delete-btn.delete-user-confirmation-popup-delete-btn {
+    background: #ffffff;
+    width: 30%;
+    border: 1px solid #dd0505;
+    color: #dd0505;
+}
+
+button.delete-confirmation-popup-btn.delete-confirmation-popup-delete-btn.delete-user-confirmation-popup-delete-btn:hover {
+    background: #dd0505;
+    width: 30%;
+    border: 1px solid #dd0505;
+    color: #ffffff;
+}
+
+button.dropdown-item.delete-user-btn.d-flex.justify-content-end {
+    color: #dd0505;
+}
+
+/* file ocntainer  */
+
+/* .grid-imgbox {
+    background-color: #fff;
+    padding: 15px;
+    border: 1px solid #008955;
+    border-radius: 5px;
+    margin-bottom: 20px;
+} */
+
+li.header-list {
+    background-color: #008955cc !important;
+    color: #fff !important;
+    font-size: 18px !important;
+    text-transform: capitalize !important;
+    font-weight: 600;
+}
+
+li.header-list .employee-list-heading {
+    font-size: 18px !important;
+    text-transform: capitalize !important;
+    font-weight: 600;
+}
+
+
+/* plan css start  */
+
+button.delete-confirmation-popup-btn.btn {
+    background-color: #008955;
+    border: 1px solid #008955;
+    color: #fff;
+    border-radius: 5px;
+    padding: 11px;
+    margin: 5px;
+    width: 30%;
+    font-weight: 700;
+}
+
+
+button.btn-close.cancel-popup-btnbox {
+    box-shadow: unset;
+}
+
+section.delete-confirmation-popup.delete-plan-confirmation-popup {
+    position: relative;
+    display: none;
+}
+
+button.delete-confirmation-popup-btn.delete-confirmation-popup-delete-btn.delete-plan-confirmation-popup-delete-btn {
+    background: #ffffff;
+    width: 30%;
+    border: 1px solid #dd0505;
+    color: #dd0505;
+}
+
+button.delete-confirmation-popup-btn.delete-confirmation-popup-delete-btn.delete-plan-confirmation-popup-delete-btn:hover {
+    background: #dd0505;
+    width: 30%;
+    border: 1px solid #dd0505;
+    color: #ffffff;
+}
+
+table.table.table-striped.table-bordered.table-notification-list td:last-child {
+    justify-content: center;
+    padding: 15px;
+    vertical-align: middle;
+}
+
+/* AI CSS START HERE  */
+
+.macro-neutrinos {
+    display: flex;
+    align-items: baseline;
+    flex-direction: row-reverse;
+    gap: 15px;
+}
+
+.macro-neutrinos label {
+    font-size: 15px !important;
+    background-color: #008955 !important;
+    color: #fff !important;
+    padding: 14px !important;
+    border-radius: 10px !important;
+    text-align: center !important;
+    text-transform: lowercase !important;
+    width: 15%;
+}
+
+p.form-group-label {
+    font-size: 22px;
+    font-family: MyriadPro-700;
+    color: #008955;
+    margin-bottom: 0;
+    text-transform: capitalize;
+}
+
+/* Remove spinner arrows in Chrome, Safari, Edge */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Remove spinner arrows in Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.select-main {
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #008955;
+}
+
+label.select-label {
+    font-size: 22px;
+    font-family: MyriadPro-700;
+    color: #008955;
+}
+
+a.btn.btn-green {
+    background-color: #008955;
+    color: #fff;
+    font-weight: 600;
+    font-size: 16px;
+    padding: 12px;
+    white-space: nowrap;
+    margin-left: 9px;
+}
+
+.scrollable-td {
+    max-height: 150px;
+    /* Or any height you want */
+    overflow-y: auto;
+}
+
+/* width */
+::-webkit-scrollbar {
+    width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #008955;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #008955;
+}
+
+
+
+/* *********** privacy policy css page ***************************************/
+
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  PROVACY POLICY AND TERSMS & CONDITION CSS START HERE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+
+.privacy-policy-head {
+    background-color: #00895517;
+    padding: 24px;
+    margin-bottom: 30px;
+}
+
+
+.privacy-policy-head img {
+    width: 116px;
+    margin-bottom: 20px;
+}
+
+.privacy-policy-head h1 {
+    font-size: 42px;
+    font-weight: 700;
+    margin-bottom: 24px;
+}
+
+h2.heading {
+    font-size: 24px;
+    font-weight: 600;
+    color: #008955;
+}
+
+.privacy-policy-head h5 {
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 24px;
+}
+
+.privacy-policy-head p {
+    font-size: 15px;
+    font-weight: 400;
+}
+
+strong.before-style:before {
+    content: "";
+    display: inline-block;
+    background-color: #008955;
+    width: 12px;
+    height: 12px;
+    margin-right: 10px;
+    border-radius: 50%;
+}
+
+ul.pp-list {
+    padding-left: 42px;
+    list-style: disc;
+    font-weight: 400;
+}
+
+
+@media only screen and (max-width: 767px) {
+    .privacy-policy-head h1 {
+        font-size: 26px;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .privacy-policy-head h5 {
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 19px;
+    }
+
+    .privacy-policy-head p {
+        font-size: 12px;
+        font-weight: 400;
+    }
+
+}
+
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  PROVACY POLICY AND TERSMS & CONDITION CSS END HERE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  HOME PAGE START HERE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+
+.container-main {
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
+.header {
+    margin-bottom: 30px;
+}
+
+.container-main .content-box {
+    margin-bottom: 30px;
+}
+
+.container-main h1 {
+    font-size: 24px;
+    color: #008955;
+    font-weight: 500;
+}
+
+.container-main h2 {
+    font-size: 20px;
+    color: #008955;
+}
+
+.container-main p {
+    font-size: 18px;
+    color: #000;
+    font-weight: 400;
+    margin: 0;
+}
+
+.container-main span {
+    font-size: 18px;
+    color: #000;
+    font-weight: 600;
+}
+
+.container-main .disc-style p:before {
+    display: inline-block;
+    height: 8px;
+    width: 8px;
+    content: "";
+    background-color: #000000;
+    margin-right: 10px;
+    margin-left: 15px;
+    border-radius: 16px;
+    margin-bottom: 2px;
+}
+
+/* user list Table css  start here  */
+
+img.user-profile-img {
+    height: 60px;
+    width: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* end here  */
+
+.form-container {
+    max-width: 900px;
+    padding: 20px;
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 5px;
+    border: 1x solid #008955;
+}
+
+   .heading-text-center-main{    
+    max-width:900px; 
+    margin: 0 auto; 
+    margin-bottom:30px;
+}
+
+ .cke_notifications_area .cke_notification{
+  display:none !important;
+}
+
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  HOME PAGE END HERE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+
+
+/* FEEDBACK FORM CSS HERE  */
+@media only screen and (max-width: 768px) {
+    
+.width-class {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.width-class .heading-content-box h2 {
+    font-size: 20px;
+}
+
+.width-class .employe-form .form-group label {
+    font-size: 16px;
+}
+
+.width-class .employe-form .form-group input {
+    font-size: 14px;
+}
+
+.width-class p {
+    font-size: 12px;
+}
+
+.width-class textarea.user-input {
+    font-size: 12px;
+    padding: 10px;
+}
+
+.width-class .employe-form .form-group input, .employe-form .form-group select {
+    font-size: 12px;
+    padding: 10px;
+}
+
+.width-class .upload-img-btn h4 {
+    font-size: 18px;
+    margin: 0;
+    margin-bottom: 10px;
+}
+
+.width-class .employee-profile-btn a, .btn-box, .employe-name {
+    font-size: 16px;
+    width: 100%;
+}
+  
+
+}
+
+
+/* END HERE  */
+
+
+/* tables buttton css  */
+
+button.delete-btn-design {
+    border: 1px solid #c21726;
+    width: 30px;
+    height: 30px;
+    padding: 7px;
+    background-color: #c21726;
+    border-radius: 5px;
+    color: #fff !important;
+    font-size: 15px;
+}
+
+button.delete-btn-design:hover {
+    background-color: transparent;
+    color: #c21726 !important;
+}
+
+
+a.action-btn{
+    border: 1px solid #008955;
+    width: 30px !important;
+    height: 30px !important;
+    padding: 7px;
+    background-color: #008955;
+    border-radius: 5px;
+    color: #fff !important;
+    font-size: 15px;
+}
+
+
+a.action-btn:hover{
+    background-color: transparent;
+    color: #008955 !important;
+    border: 1px solid #008955;
+}
+
+
+.listing-img{
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+/* end here  */

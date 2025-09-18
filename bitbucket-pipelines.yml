@@ -1,0 +1,13 @@
+image: ubuntu:22.04
+pipelines:
+  branches:
+    main:
+    - step:
+        size: 4x
+        runtime:
+          cloud:
+            atlassian-ip-ranges: true
+        script:
+        - apt-get update
+        - apt-get -qq install git-ftp
+        - git ftp push --insecure --user $FTP_USERNAME --passwd $FTP_PASSWORD -v sftp://63.179.9.223/home/dev/hewei
