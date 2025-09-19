@@ -40,6 +40,7 @@ Route::post('logout', [AuthController::class, 'logout']);
 
 
 
+
 Route::get('get-profile', [AuthController::class, 'getProfile']);
 Route::post('update-profile', [AuthController::class, 'updateProfile']);
 
