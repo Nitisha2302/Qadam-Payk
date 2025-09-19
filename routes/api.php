@@ -24,9 +24,9 @@ use App\Http\Controllers\SubscriptionController;
 Route::middleware('auth:sanctum', 'throttle.auth')->get('/user', function (Request $request) {
     return $request->user();
 });
-// Route::post('signup', [AuthController::class, 'register'])->name('signup');
-// Route::post('login', [AuthController::class, 'login'])->name('api.login');
-// Route::post('verify-otp', [AuthController::class, 'verifyOtp'])->name('verify-otp');
+Route::post('register', [AuthController::class, 'register'])->name('register');
+Route::post('login', [AuthController::class, 'login'])->name('api.login');
+Route::post('verify-otp', [AuthController::class, 'verifyOtp'])->name('verify-otp');
 // Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 // Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
 // Route::post('change-password', [AuthController::class, 'changePassword']);
@@ -34,14 +34,14 @@ Route::middleware('auth:sanctum', 'throttle.auth')->get('/user', function (Reque
 // Route::post('login-via-google', [AuthController::class, 'googleLogin']);
 // Route::post('login-via-facebook', [AuthController::class, 'facebookLogin']);
 // Route::post('login-via-apple', [AuthController::class, 'appleLogin']);
-// Route::post('logout', [AuthController::class, 'logout']);
+Route::post('logout', [AuthController::class, 'logout']);
 // Route::post('store-location', [AuthController::class, 'storeLocation']);
 // Route::post('select-language', [AuthController::class, 'selectLanguage'])->name('select-language');
 
 
 
-// Route::get('get-profile', [HomeController::class, 'getProfile']);
-// Route::post('edit-profile', [HomeController::class, 'editProfile']);
+Route::get('get-profile', [AuthController::class, 'getProfile']);
+Route::post('update-profile', [AuthController::class, 'updateProfile']);
 
 
 Route::get('get-city', [HomeController::class, 'getCity']);

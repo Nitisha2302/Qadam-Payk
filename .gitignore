@@ -3,11 +3,8 @@
 /public/build
 /public/hot
 /public/storage
+/public/assets/identity
 /public/assets/profile_image
-/public/assets/meal-images
-/public/assets/ai_meal_images
-/public/assets/feedback_images
-/public/assets/ai_neutrition_images
 /storage/*.key
 /vendor
 .env
