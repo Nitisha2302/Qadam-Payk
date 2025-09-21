@@ -11,6 +11,8 @@
   <link rel="stylesheet" href="{{ asset('assets/admin/bootstrap/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/style.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/style-new.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   
   @include('admin.css.custom')
 </head>

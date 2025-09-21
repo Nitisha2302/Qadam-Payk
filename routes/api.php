@@ -3,11 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DriverHomeController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\ImageProcessingController;
-use App\Http\Controllers\ChatGPTController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\SubscriptionController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -37,15 +34,23 @@ Route::post('verify-otp', [AuthController::class, 'verifyOtp'])->name('verify-ot
 Route::post('logout', [AuthController::class, 'logout']);
 // Route::post('store-location', [AuthController::class, 'storeLocation']);
 // Route::post('select-language', [AuthController::class, 'selectLanguage'])->name('select-language');
-
-
-
-
 Route::get('get-profile', [AuthController::class, 'getProfile']);
 Route::post('update-profile', [AuthController::class, 'updateProfile']);
+
+
+Route::post('/driver/add-vehicle', [DriverHomeController::class, 'addVehicle']);
+Route::get('/driver/get-vehicles', [DriverHomeController::class, 'getVehicles']);
+Route::post('/driver/edit-vehicle/{id}', [DriverHomeController::class, 'editVehicle']);
+Route::post('/driver/create-ride', [DriverHomeController::class, 'createRide']);
+Route::post('/driver/edit-ride/{ride_id}', [DriverHomeController::class, 'editRide']);
+
+
+
+
 
 
 Route::get('get-city', [HomeController::class, 'getCity']);
 Route::get('/get-car-brands', [HomeController::class, 'getAllBrands'])->name('car-brands');
 Route::get('/get-car-models/{brand}', [HomeController::class, 'getModelsByBrand'])->name('car-models');
 Route::get('/get-car-colors/{model}', [HomeController::class, 'getColorsByModel'])->name('car-colors');
+Route::get('/get-services', [HomeController::class, 'getAllServices']);

@@ -38,7 +38,7 @@
                         </div>
                         </div>
 
-                        <div class="col-md-6 step-field">
+                        <!-- <div class="col-md-6 step-field">
                             <div class="form-group mb-4">
                                 <label for="state">State</label>
                                 <input type="text" id="state" name="state" class="form-control" placeholder="Enter state" value="{{ old('state', $city->state) }}">
@@ -46,7 +46,7 @@
                                     <div class="text-danger error-message">{{ $message }}</div>
                                 @enderror
                         </div>
-                        </div>
+                        </div> -->
 
                         <div class="col-md-6 step-field">
                            <div class="form-group mb-4">

@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\City;
 use App\Models\CarModel; 
-use App\Models\Report;
+use App\Models\Service;
 use Illuminate\Support\Facades\Auth;
 
 class GlobalSearchController extends Controller
@@ -23,12 +23,14 @@ class GlobalSearchController extends Controller
         }
 
         // Determine which page you're on based on the route    
-        if (str_contains($currentRoute, 'all-doctors')) {
+        if (str_contains($currentRoute, 'all-users')) {
             $users = User::where('name', 'like', "%{$searchTerm}%")
+             ->orWhere('email', 'like', "%{$searchTerm}%")
+                ->orWhere('phone_number', 'like', "%{$searchTerm}%")
                 ->paginate(10)
                 ->appends($request->only('search'));
 
-            return view('admin.doctors.userList', [
+            return view('admin.users.usersListing', [
                 'users' => $users,
                 'search_users' => $users,
             ]);
@@ -37,7 +39,6 @@ class GlobalSearchController extends Controller
         // Search Cities
         if (str_contains($currentRoute, 'cities')) {
             $cities = City::where('city_name', 'like', "%{$searchTerm}%")
-                ->orWhere('state', 'like', "%{$searchTerm}%")
                 ->orWhere('country', 'like', "%{$searchTerm}%")
                 ->orderBy('id', 'desc')
                 ->paginate(10)
@@ -53,7 +54,6 @@ class GlobalSearchController extends Controller
         if (str_contains($currentRoute, 'cars')) {
             $cars = CarModel::where('model_name', 'like', "%{$searchTerm}%")
                 ->orWhere('brand', 'like', "%{$searchTerm}%")
-                ->orWhere('color', 'like', "%{$searchTerm}%")
                 ->orderBy('id', 'desc')
                 ->paginate(10)
                 ->appends($request->only('search'));
@@ -61,6 +61,19 @@ class GlobalSearchController extends Controller
             return view('admin.car.carListing', [
                 'cars' => $cars,
                 'search_cars' => $cars, // optional
+            ]);
+        }
+
+
+        if (str_contains($currentRoute, 'services')) {
+            $services = Service::where('service_name', 'like', "%{$searchTerm}%")
+                ->orderBy('id', 'desc')
+                ->paginate(10)
+                ->appends($request->only('search'));
+
+            return view('admin.services.servicesListing', [
+                'services' => $services,
+                'search_services' => $services, // optional
             ]);
         }
 

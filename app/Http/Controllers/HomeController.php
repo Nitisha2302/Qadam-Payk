@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\City; 
 use App\Models\CarModel; 
+use App\Models\Service;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -26,7 +27,8 @@ class HomeController extends Controller
         $brands = CarModel::select('brand')->distinct()->get();
 
         return response()->json([
-            'success' => true,
+            'status' => true,
+            'message' => 'Brand fetched successfully.',
             'data' => $brands
         ]);
     }
@@ -37,13 +39,14 @@ class HomeController extends Controller
 
         if ($models->isEmpty()) {
             return response()->json([
-                'success' => false,
+                'status' => false,
                 'message' => 'No models found for this brand'
             ], 404);
         }
 
         return response()->json([
-            'success' => true,
+            'status' => true,
+             'message' => 'models fetched successfully.',
             'brand' => $brand,
             'data' => $models
         ]);
@@ -56,16 +59,29 @@ class HomeController extends Controller
 
         if ($colors->isEmpty()) {
             return response()->json([
-                'success' => false,
+                'status' => false,
                 'message' => 'No colors found for this model'
             ], 404);
         }
 
         return response()->json([
-            'success' => true,
+            'status' => true,
+            'message' => 'colors fetched successfully.',
             'model' => $model,
             'data' => $colors
         ]);
+    }
+
+    public function getAllServices()
+    {
+        // Get all services with id and service_name
+        $services = Service::select('id', 'service_name')->get();
+
+        return response()->json([
+            'status' => true,
+                        'message' => 'Services fetched successfully.',
+            'data'   => $services, // array of objects [{id:1, service_name:"WiFi"}, ...]
+        ], 200);
     }
 
     

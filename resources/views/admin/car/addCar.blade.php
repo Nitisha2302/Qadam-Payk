@@ -24,8 +24,6 @@
                       enctype="multipart/form-data">
                     @csrf
                     <div class="row">
-
-                    
                         {{-- Brand --}}
                         <div class="col-md-6 step-field">
                             <div class="form-group mb-4">
@@ -51,43 +49,18 @@
                         </div>
 
                         {{-- Color --}}
+
+                        {{-- Seats --}}
                         <div class="col-md-6 step-field">
                             <div class="form-group mb-4">
-                                <label for="color">Color</label>
-                                <input type="text" id="color" name="color" class="form-control" 
-                                       placeholder="Enter car color" value="{{ old('color') }}">
-                                @error('color')
+                                <label for="seats">Total Seats</label>
+                                <input type="number" id="seats" name="seats" class="form-control" 
+                                    placeholder="Enter number of seats" value="{{ old('seats') }}" min="1" step="1">
+                                @error('seats')
                                     <div class="text-danger error-message">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
-
-
-                        {{-- Features (array checkboxes) --}}
-                        <!-- <div class="col-md-12 step-field">
-                            <div class="form-group mb-4">
-                                <label>Features</label><br>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" name="features[]" value="AC">
-                                    <label class="form-check-label">AC</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" name="features[]" value="WiFi">
-                                    <label class="form-check-label">WiFi</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" name="features[]" value="Music System">
-                                    <label class="form-check-label">Music System</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="checkbox" name="features[]" value="GPS">
-                                    <label class="form-check-label">GPS</label>
-                                </div>
-                                @error('features')
-                                    <div class="text-danger error-message">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div> -->
 
                         {{-- Submit --}}
                         <div class="col-md-12">

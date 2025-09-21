@@ -26,7 +26,6 @@
                 <thead>
                     <tr>
                         <th>City</th>
-                        <th>State</th>
                         <th>Country</th>
                         <th>Action</th>
                     </tr>
@@ -35,14 +34,13 @@
                     @forelse($cities as $city)
                         <tr>
                             <td> {{$city->city_name}}</td>
-                                <td> {{$city->state}}</td>
                                 <td>{{$city->country}}</td> 
                             <td>                                            
                                 <div class="d-flex align-items-center gap-2">
                                     <a href="{{ route('dashboard.admin.edit-city', ['id' => $city->id]) }}" class="action-btn">
                                     <i class="fas fa-edit"></i> <span class="edit-span"></span>
                                     </a>
-                                    <button  class="dropdown-item delete-btn-design delete-plan-btn d-flex justify-content-center" data-user-id="{{ $city->id }}" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                                    <button  class="dropdown-item delete-btn-design delete-city-btn d-flex justify-content-center" data-city-id="{{ $city->id }}" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
                                         <i class="fa fa-regular fa-trash"></i>
                                     </button>
                                 </div>
@@ -93,29 +91,6 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- delete-confirmation-popup -->
-    <!-- <section class="delete-confirmation-popup delete-plan-confirmation-popup">
-        <div class="popup__content">
-            <div class="close cancel-popup-btnbox">
-                <i class="fas fa-times"></i>
-            </div>
-            <div class="asign-popup-content">
-            <div class="delete-confirmation-popup-body">
-            
-                <h2 class="delete-confirmation-popup-title delete-user-confirmation-popup-title">Weet je het zeker?</h2>
-                <p class="delete-confirmation-popup-text delete-user-confirmation-popup-text">Wil je dit project echt verwijderen?</p>
-                <div class="delete-confirmation-popup-footer delete-user-confirmation-popup-footer">
-                    <button class="delete-confirmation-popup-btn delete-confirmation-popup-cancel-btn delete-user-confirmation-popup-cancel-btn cancel-popup-btnbox">Annuleren</button>
-                    <button class="delete-confirmation-popup-btn delete-confirmation-popup-delete-btn delete-plan-confirmation-popup-delete-btn" data-user-id="">Wis</button>
-                </div>
-            
-            </div>
-            </div>
-        </div>
-        
-    </section> -->
-
-
-    <!-- Modal -->
         <section class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
@@ -128,7 +103,7 @@
                     </div>
                     <div class="modal-footer border-0 delete-confirmation-popup-footer delete-user-confirmation-popup-footer">
                         <button class="delete-confirmation-popup-btn btn" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
-                        <button class="delete-confirmation-popup-btn btn delete-confirmation-popup-delete-btn delete-plan-confirmation-popup-delete-btn" data-user-id="">Delete</button>
+                        <button class="delete-confirmation-popup-btn btn delete-confirmation-popup-delete-btn delete-city-confirmation-popup-delete-btn" data-city-id="">Delete</button>
                     </div>
                 </div>
             </div>
@@ -136,7 +111,9 @@
     <!-- delete-confirmation-popup-->
 @endsection
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     const csrfToken = "{{ csrf_token() }}";
-     const deletePlanUrl = "{{ url('dashboard/admin/delete-plan') }}"; 
+    const deleteCityUrl = "{{ route('dashboard.admin.deleteCity') }}";
 </script>
+

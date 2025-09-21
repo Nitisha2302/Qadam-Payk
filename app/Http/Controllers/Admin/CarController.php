@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\CarModel; 
+use App\Models\Service; 
 
 
 class CarController extends Controller
@@ -26,9 +27,7 @@ class CarController extends Controller
         $request->validate([
             'car_model' => 'required|string|max:255',
             'brand'     => 'required|string|max:255',
-            'color'     => 'nullable|string|max:100',
-            'features'  => 'nullable|array',
-            'features.*'=> 'string|max:100',
+            'seats'     => 'nullable|integer|min:1',
         ], [
             'car_model.required' => 'Please enter the car model.',
             'car_model.string'   => 'Car model must be valid text.',
@@ -38,20 +37,16 @@ class CarController extends Controller
             'brand.string'       => 'Brand must be valid text.',
             'brand.max'          => 'Brand cannot exceed 255 characters.',
 
-            'color.string'       => 'Color must be valid text.',
-            'color.max'          => 'Color cannot exceed 100 characters.',
+            'seats.integer'      => 'Seats must be a whole number.',
+            'seats.min'          => 'Seats must be at least 1.',
 
-            'features.array'     => 'Features must be an array.',
-            'features.*.string'  => 'Each feature must be valid text.',
-            'features.*.max'     => 'Each feature cannot exceed 100 characters.',
         ]);
 
         // Store the car
         CarModel::create([
             'model_name'     => $request->car_model,
             'brand'    => $request->brand,
-            'color'    => $request->color,
-            'features' => $request->features ? json_encode($request->features) : "N/A",
+            'seats'      => $request->seats,
         ]);
 
         // Redirect back with success
@@ -73,32 +68,126 @@ class CarController extends Controller
         $request->validate([
             'model_name' => 'required|string|max:255',
             'brand'      => 'nullable|string|max:255',
-            'color'      => 'nullable|string|max:255',
-            // 'features'   => 'nullable|array', // features stored as array (checkboxes)
-            // 'features.*' => 'string|max:255',
+            'seats'     => 'nullable|integer|min:1',
         ], [
             'model_name.required' => 'Please enter the car model.',
             'model_name.string'   => 'Car model must be valid text.',
             'model_name.max'      => 'Car model cannot exceed 255 characters.',
             'brand.string'        => 'Car brand must be valid text.',
             'brand.max'           => 'Car brand cannot exceed 255 characters.',
-            'color.string'        => 'Car color must be valid text.',
-            'color.max'           => 'Car color cannot exceed 255 characters.',
-            // 'features.array'      => 'Features must be an array.',
-            // 'features.*.string'   => 'Each feature must be valid text.',
-            // 'features.*.max'      => 'Each feature cannot exceed 255 characters.',
+             'seats.integer'      => 'Seats must be a whole number.',
+            'seats.min'          => 'Seats must be at least 1.',
+
         ]);
 
         // Update car
         $car->update([
             'model_name' => $request->model_name,
             'brand'      => $request->brand,
-            'color'      => $request->color,
-            // 'features'   => $request->features ? json_encode($request->features) : null,
+            'seats'      => $request->seats,
         ]);
 
         return redirect()->route('dashboard.admin.all-cars')
                         ->with('success', 'Car updated successfully!');
+    }
+
+
+    public function deleteCar(Request $request)
+    {
+        $request->validate([
+            'car_id' => 'required|exists:car_models,id',
+        ]);
+
+        $Car = CarModel::find($request->car_id);
+
+        if ($Car) {
+            $Car->delete();
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Car not found']);
+    }
+
+
+    public function servicesList() {
+        // Fetch cities (latest first, 5 per page)
+        $services = Service::orderBy('id', 'desc')->paginate(10);
+        // Return Blade view with cities data
+        return view('admin.services.servicesListing', compact('services'));
+    }
+
+    public function addService(){
+      return view('admin.services.addService');
+    }
+
+     public function storeService(Request $request)
+    {
+        // Validation with custom error messages
+        $request->validate([
+            'service_name' => 'required|string|max:255',
+        ], [
+            'service_name.required' => 'Please enter the service name.',
+            'service_name.string'   => 'Srvice name must be valid text.',
+            'service_name.max'      => 'Service name cannot exceed 255 characters.',
+        ]);
+
+        // Store the car
+        Service::create([
+            'service_name'     => $request->service_name,
+        ]);
+
+        // Redirect back with success
+        return redirect()->route('dashboard.admin.all-services')
+                        ->with('success', 'Service added successfully!');
+    }
+
+
+    public function editService($id)
+    {
+        $service = Service::findOrFail($id);
+        return view('admin.services.editService', compact('service'));
+    }
+
+
+    public function updateService(Request $request, $id)
+    {
+        // Validate input with custom messages
+        $request->validate([
+            'service_name' => 'required|string|max:255',
+        ], [
+            'service_name.required' => 'Please enter the service name.',
+            'service_name.string'   => 'Service name must be valid text.',
+            'service_name.max'      => 'Service name cannot exceed 255 characters.',
+        ]);
+
+        // Find the service
+        $service = Service::findOrFail($id);
+
+        // Update service
+        $service->update([
+            'service_name' => $request->service_name,
+        ]);
+
+        // Redirect with success message
+        return redirect()->route('dashboard.admin.all-services')
+                        ->with('success', 'Service updated successfully!');
+    }
+
+
+    public function deleteService(Request $request)
+    {
+        $request->validate([
+            'service_id' => 'required|exists:services,id',
+        ]);
+
+        $service = Service::find($request->service_id);
+
+        if ($service) {
+            $service->delete();
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'service not found']);
     }
 
 

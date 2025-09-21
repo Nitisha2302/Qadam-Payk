@@ -24,15 +24,11 @@ class CityController extends Controller
         // Validation with custom error messages
         $request->validate([
             'city_name' => 'required|string|max:255',
-            'state'     => 'nullable|string|max:255',
             'country'   => 'nullable|string|max:255',
         ], [
             'city_name.required' => 'Please enter the city name.',
             'city_name.string'   => 'City name must be a valid text.',
             'city_name.max'      => 'City name cannot exceed 255 characters.',
-
-            'state.string'       => 'State must be a valid text.',
-            'state.max'          => 'State cannot exceed 255 characters.',
 
             'country.string'     => 'Country must be a valid text.',
             'country.max'        => 'Country cannot exceed 255 characters.',
@@ -41,7 +37,6 @@ class CityController extends Controller
         // Create city
         City::create([
             'city_name' => $request->city_name,
-            'state'     => $request->state,
             'country'   => $request->country,
         ]);
 
@@ -62,26 +57,39 @@ class CityController extends Controller
 
         $request->validate([
             'city_name' => 'required|string|max:255',
-            'state'     => 'nullable|string|max:255',
             'country'   => 'nullable|string|max:255',
         ], [
             'city_name.required' => 'Please enter the city name.',
             'city_name.string'   => 'City name must be a valid text.',
             'city_name.max'      => 'City name cannot exceed 255 characters.',
-            'state.string'       => 'State must be a valid text.',
-            'state.max'          => 'State cannot exceed 255 characters.',
             'country.string'     => 'Country must be a valid text.',
             'country.max'        => 'Country cannot exceed 255 characters.',
         ]);
 
         $city->update([
             'city_name' => $request->city_name,
-            'state'     => $request->state,
             'country'   => $request->country,
         ]);
 
         return redirect()->route('dashboard.admin.all-cities')
                         ->with('success', 'City updated successfully!');
+    }
+
+
+    public function deleteCity(Request $request)
+    {
+        $request->validate([
+            'city_id' => 'required|exists:cities,id',
+        ]);
+
+        $City = City::find($request->city_id);
+
+        if ($City) {
+            $City->delete();
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'City not found']);
     }
 
 

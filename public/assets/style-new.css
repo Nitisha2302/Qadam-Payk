@@ -155,6 +155,51 @@ button.dropdown-item.delete-user-btn.d-flex.justify-content-end {
     color: #dd0505;
 }
 
+
+button.delete-confirmation-popup-btn.delete-confirmation-popup-delete-btn.delete-city-confirmation-popup-delete-btn {
+    background: #ffffff;
+    width: 30%;
+    border: 1px solid #dd0505;
+    color: #dd0505;
+}
+
+button.delete-confirmation-popup-btn.delete-confirmation-popup-delete-btn.delete-city-confirmation-popup-delete-btn:hover {
+    background: #dd0505;
+    width: 30%;
+    border: 1px solid #dd0505;
+    color: #ffffff;
+}
+
+
+button.delete-confirmation-popup-btn.delete-confirmation-popup-delete-btn.delete-car-confirmation-popup-delete-btn {
+    background: #ffffff;
+    width: 30%;
+    border: 1px solid #dd0505;
+    color: #dd0505;
+}
+
+button.delete-confirmation-popup-btn.delete-confirmation-popup-delete-btn.delete-car-confirmation-popup-delete-btn:hover {
+    background: #dd0505;
+    width: 30%;
+    border: 1px solid #dd0505;
+    color: #ffffff;
+}
+
+
+button.delete-confirmation-popup-btn.delete-confirmation-popup-delete-btn.delete-service-confirmation-popup-delete-btn {
+    background: #ffffff;
+    width: 30%;
+    border: 1px solid #dd0505;
+    color: #dd0505;
+}
+
+button.delete-confirmation-popup-btn.delete-confirmation-popup-delete-btn.delete-service-confirmation-popup-delete-btn:hover {
+    background: #dd0505;
+    width: 30%;
+    border: 1px solid #dd0505;
+    color: #ffffff;
+}
+
 /* file ocntainer  */
 
 /* .grid-imgbox {

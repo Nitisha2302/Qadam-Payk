@@ -7,10 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class CarModel extends Model
 {
     protected $fillable = [
-        'model_name', 'brand', 'color', 'features'
+        'model_name', 'brand', 'color', 'seats'
     ];
 
-    protected $casts = [
-        'features' => 'array',
-    ];
 }

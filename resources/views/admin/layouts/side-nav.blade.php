@@ -19,14 +19,14 @@
                 </a>
             </li>
     
-            <!-- <li class="">
-                <a href="">
+            <li class="@if (Route::currentRouteName() == 'dashboard.admin.all-users') active @endif">
+                <a href="{{ route('dashboard.admin.all-users') }}">
                     <span class="d-flex gap-3 align-items-end">
-                        <i class="fa fa-user icon-font-size"></i>
+                        <i class="fa fa-users icon-font-size"></i>
                         <span class="nav-content-menu">Users</span>
                     </span>
                 </a>
-            </li> -->
+            </li>
 
             <li class="@if (Route::currentRouteName() == 'dashboard.admin.all-cities') active @endif">
                 <a href="{{ route('dashboard.admin.all-cities') }}">
@@ -42,6 +42,16 @@
                     <span class="d-flex gap-3 align-items-end">
                         <i class="fas fa-car icon-font-size"></i>
                         <span class="nav-content-menu">Car Model</span>
+                    </span>
+                </a>
+            </li>
+
+            
+            <li class="@if (Route::currentRouteName() == 'dashboard.admin.all-services') active @endif">
+                <a href="{{ route('dashboard.admin.all-services') }}">
+                    <span class="d-flex gap-3 align-items-end">
+                        <i class="fas fa-car icon-font-size"></i>
+                        <span class="nav-content-menu">Services</span>
                     </span>
                 </a>
             </li>

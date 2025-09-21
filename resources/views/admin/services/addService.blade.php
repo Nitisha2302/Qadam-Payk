@@ -8,7 +8,7 @@
 
         <section class="project-doorbox">
             <div class="heading-content-box">
-                <h2>Add City</h2>
+                <h2>Add Service</h2>
 
                 <div class="alert alert-success" role="alert" id="success-message" style="display: none;">
                     {{ session('success') }}
@@ -24,34 +24,14 @@
             </div>
             <div id="notificationMessage" class="alert d-none" role="alert"></div>
              <div class="project-ongoing-box">
-                <form class="employe-form" action="{{ route('dashboard.admin.store-city') }}" method="POST"  enctype="multipart/form-data">
+                <form class="employe-form" action="{{ route('dashboard.admin.store-service') }}" method="POST"  enctype="multipart/form-data">
                     @csrf
                     <div class="row">
                         <div class="col-md-6 step-field">
                             <div class="form-group mb-4">
-                                <label for="city_name">City Name</label>
-                                <input type="text" id="city_name" name="city_name" class="form-control" placeholder="Enter city name" value="{{ old('city_name') }}">
-                                @error('city_name')
-                                    <div class="text-danger error-message">{{ $message }}</div>
-                                @enderror
-                        </div>
-                        </div>
-
-                        <!-- <div class="col-md-6 step-field">
-                            <div class="form-group mb-4">
-                                <label for="state">State</label>
-                                <input type="text" id="state" name="state" class="form-control" placeholder="Enter state" value="{{ old('state') }}">
-                                @error('state')
-                                    <div class="text-danger error-message">{{ $message }}</div>
-                                @enderror
-                        </div>
-                        </div> -->
-
-                        <div class="col-md-6 step-field">
-                           <div class="form-group mb-4">
-                                <label for="country">Country</label>
-                                <input type="text" id="country" name="country" class="form-control" placeholder="Enter country" value="{{ old('country') }}">
-                                @error('country')
+                                <label for="service_name">Service Name</label>
+                                <input type="text" id="service_name" name="service_name" class="form-control" placeholder="Enter service name" value="{{ old('service_name') }}">
+                                @error('service_name')
                                     <div class="text-danger error-message">{{ $message }}</div>
                                 @enderror
                             </div>
