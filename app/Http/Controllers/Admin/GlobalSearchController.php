@@ -23,18 +23,36 @@ class GlobalSearchController extends Controller
         }
 
         // Determine which page you're on based on the route    
-        if (str_contains($currentRoute, 'all-users')) {
-            $users = User::where('name', 'like', "%{$searchTerm}%")
-             ->orWhere('email', 'like', "%{$searchTerm}%")
-                ->orWhere('phone_number', 'like', "%{$searchTerm}%")
+        // if (str_contains($currentRoute, 'all-drivers')) {
+        //     $users = User::where('name', 'like', "%{$searchTerm}%")
+        //      ->orWhere('email', 'like', "%{$searchTerm}%")
+        //         ->orWhere('phone_number', 'like', "%{$searchTerm}%")
+        //         ->paginate(10)
+        //         ->appends($request->only('search'));
+
+        //     return view('admin.users.driversListing', [
+        //         'users' => $users,
+        //         'search_users' => $users,
+        //     ]);
+        // }
+
+
+        if (str_contains($currentRoute, 'all-drivers')) {
+            $users = User::whereHas('rides') // ✅ only drivers
+                ->where(function ($query) use ($searchTerm) {
+                    $query->where('name', 'like', "%{$searchTerm}%")
+                        ->orWhere('email', 'like', "%{$searchTerm}%")
+                        ->orWhere('phone_number', 'like', "%{$searchTerm}%");
+                })
                 ->paginate(10)
                 ->appends($request->only('search'));
 
-            return view('admin.users.usersListing', [
+            return view('admin.users.driversListing', [
                 'users' => $users,
                 'search_users' => $users,
             ]);
         }
+
 
         // Search Cities
         if (str_contains($currentRoute, 'cities')) {
