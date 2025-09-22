@@ -117,6 +117,13 @@ return [
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
+
+        'denied_requests' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/denied_requests.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 30,
+        ],
     ],
 
 ];
