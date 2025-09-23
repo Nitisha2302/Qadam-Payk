@@ -5,6 +5,7 @@
 /public/storage
 /public/assets/identity
 /public/assets/profile_image
+/public/assets/services_images
 /storage/*.key
 /vendor
 .env
