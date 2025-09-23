@@ -12,6 +12,9 @@ Route::fallback(function () {
     return response()->view('404', [], 404);
 });
 Route::get('/', [AdminAuthController::class, 'showLoginForm'])->name('login');
+Route::get('/login', function () {
+    return redirect('/');
+})->name('login.redirect');
 Route::post('login', [AdminAuthController::class, 'login'])->name('login.submit');
 Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
 Route::get('/forgot-password', [AdminAuthController::class, 'forgotPassword'])->name('forgot-password');
