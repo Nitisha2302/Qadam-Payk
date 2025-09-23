@@ -40,4 +40,16 @@ class User extends Authenticatable
         'vehicle_type',   // car, bike, van (for parcel)
     ];
 
+    public function rides()
+    {
+        // A driver can have many rides they created
+        return $this->hasMany(Ride::class, 'user_id');
+    }
+
+    // public function rideBookings()
+    // {
+    //     // A passenger can have many bookings
+    //     return $this->hasMany(RideBooking::class, 'user_id');
+    // }
+
 }

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Vehicle;
 use App\Models\Ride;
+use Carbon\Carbon;
 
 class DriverHomeController extends Controller
 {
@@ -305,6 +306,66 @@ class DriverHomeController extends Controller
     }
 
 
+    public function searchRides(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'pickup_location' => 'nullable|string|max:255',
+            'destination'     => 'nullable|string|max:255',
+            'ride_date'       => 'nullable|string', // accept as string
+            'number_of_seats' => 'nullable|integer|min:1',
+        ], [
+            'pickup_location.string' => 'Pickup location must be a valid string.',
+            'pickup_location.max'    => 'Pickup location must not exceed 255 characters.',
+            'destination.string'     => 'Destination must be a valid string.',
+            'destination.max'        => 'Destination must not exceed 255 characters.',
+            'number_of_seats.integer'=> 'Number of seats must be a valid number.',
+            'number_of_seats.min'    => 'Number of seats must be at least 1.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        $query = \App\Models\Ride::query();
+
+        if ($request->pickup_location) {
+            $query->where('pickup_location', 'like', '%'.$request->pickup_location.'%');
+        }
+
+        if ($request->destination) {
+            $query->where('destination', 'like', '%'.$request->destination.'%');
+        }
+
+        if ($request->ride_date) {
+            try {
+                // Convert DD-MM-YYYY → YYYY-MM-DD
+                $rideDate = Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d');
+                $query->whereDate('ride_date', $rideDate);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Invalid ride_date format. Please use DD-MM-YYYY.',
+                ], 422);
+            }
+        }
+
+        if ($request->number_of_seats) {
+            $query->where('number_of_seats', '>=', $request->number_of_seats);
+        }
+
+        $rides = $query->orderBy('ride_date', 'asc')
+                    ->orderBy('ride_time', 'asc')
+                    ->get();
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Rides found successfully.',
+            'data'    => $rides,
+        ], 200);
+    }
 
 
 

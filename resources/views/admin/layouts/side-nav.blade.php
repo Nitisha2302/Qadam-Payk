@@ -19,11 +19,11 @@
                 </a>
             </li>
     
-            <li class="@if (Route::currentRouteName() == 'dashboard.admin.all-users') active @endif">
-                <a href="{{ route('dashboard.admin.all-users') }}">
+            <li class="@if (Route::currentRouteName() == 'dashboard.admin.all-drivers') active @endif">
+                <a href="{{ route('dashboard.admin.all-drivers') }}">
                     <span class="d-flex gap-3 align-items-end">
                         <i class="fa fa-users icon-font-size"></i>
-                        <span class="nav-content-menu">Users</span>
+                        <span class="nav-content-menu">Drivers</span>
                     </span>
                 </a>
             </li>

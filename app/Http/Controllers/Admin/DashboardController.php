@@ -19,13 +19,24 @@ class DashboardController extends Controller
         $userCount    = $baseQuery->count();
         $cityCount    = City::count();
 
-        // Users by ID verification status (exclude admin)
-        $pendingCount  = (clone $baseQuery)->where('id_verified', 0)->count();
-        $verifiedCount = (clone $baseQuery)->where('id_verified', 1)->count();
-        $rejectedCount = (clone $baseQuery)->where('id_verified', 2)->count();
+
+        $driversQuery = User::where(function ($query) {
+            $query->where('role', '!=', 1)
+                ->orWhereNull('role');
+        })
+        ->whereHas('rides'); // Only drivers who have rides
+
+        $driversCount = $driversQuery->count();
+
+        // Drivers by ID verification status
+        $pendingDrivers  = (clone $driversQuery)->where('id_verified', 0)->count();
+        $verifiedDrivers = (clone $driversQuery)->where('id_verified', 1)->count();
+        $rejectedDrivers = (clone $driversQuery)->where('id_verified', 2)->count();
+
+    
 
         return view('admin.dashboard', compact(
-            'userCount', 'cityCount', 'pendingCount', 'verifiedCount', 'rejectedCount'
+            'userCount', 'cityCount', 'pendingDrivers', 'verifiedDrivers', 'rejectedDrivers','driversCount'
         ));
     }
 

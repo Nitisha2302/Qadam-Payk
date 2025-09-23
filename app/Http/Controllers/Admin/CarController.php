@@ -120,26 +120,63 @@ class CarController extends Controller
       return view('admin.services.addService');
     }
 
-     public function storeService(Request $request)
+    // public function storeService(Request $request)
+    // {
+    //     // Validation with custom error messages
+    //     $request->validate([
+    //         'service_name' => 'required|string|max:255',
+    //     ], [
+    //         'service_name.required' => 'Please enter the service name.',
+    //         'service_name.string'   => 'Srvice name must be valid text.',
+    //         'service_name.max'      => 'Service name cannot exceed 255 characters.',
+    //     ]);
+
+    //     // Store the car
+    //     Service::create([
+    //         'service_name'     => $request->service_name,
+    //     ]);
+
+    //     // Redirect back with success
+    //     return redirect()->route('dashboard.admin.all-services')
+    //                     ->with('success', 'Service added successfully!');
+    // }
+
+    // with images 
+
+    public function storeService(Request $request)
     {
-        // Validation with custom error messages
         $request->validate([
-            'service_name' => 'required|string|max:255',
+            'service_name'  => 'required|string|max:255',
+            'image' => 'required|file|mimes:jpeg,jpg,png|max:4096',
         ], [
-            'service_name.required' => 'Please enter the service name.',
-            'service_name.string'   => 'Srvice name must be valid text.',
-            'service_name.max'      => 'Service name cannot exceed 255 characters.',
+            'service_name.required'  => 'Please enter the service name.',
+            'service_name.string'    => 'Service name must be valid text.',
+            'service_name.max'       => 'Service name cannot exceed 255 characters.',
+            'image.required' => 'Please upload an image.',
+            'image.file'     => 'Image must be a valid file.',
+            'image.mimes'    => 'Only JPEG and PNG images are allowed.',
+            'image.max'      => 'Image must not exceed 4MB.',
         ]);
 
-        // Store the car
+        // Handle image upload
+        $imageName = null;
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $imageName = time().'_'.$file->getClientOriginalName();
+            $file->move(public_path('assets/services_images'), $imageName);
+        }
+
         Service::create([
-            'service_name'     => $request->service_name,
+            'service_name'  => $request->service_name,
+            'service_image' => $imageName,
         ]);
 
-        // Redirect back with success
-        return redirect()->route('dashboard.admin.all-services')
-                        ->with('success', 'Service added successfully!');
+        return response()->json([
+            'redirect' => route('dashboard.admin.all-services'),
+            'message' => 'Service added successfully!'
+        ]);
     }
+
 
 
     public function editService($id)
@@ -149,29 +186,61 @@ class CarController extends Controller
     }
 
 
+    // public function updateService(Request $request, $id)
+    // {
+    //     // Validate input with custom messages
+    //     $request->validate([
+    //         'service_name' => 'required|string|max:255',
+    //     ], [
+    //         'service_name.required' => 'Please enter the service name.',
+    //         'service_name.string'   => 'Service name must be valid text.',
+    //         'service_name.max'      => 'Service name cannot exceed 255 characters.',
+    //     ]);
+
+    //     // Find the service
+    //     $service = Service::findOrFail($id);
+
+    //     // Update service
+    //     $service->update([
+    //         'service_name' => $request->service_name,
+    //     ]);
+
+    //     // Redirect with success message
+    //     return redirect()->route('dashboard.admin.all-services')
+    //                     ->with('success', 'Service updated successfully!');
+    // }
+    
     public function updateService(Request $request, $id)
-    {
-        // Validate input with custom messages
-        $request->validate([
-            'service_name' => 'required|string|max:255',
-        ], [
-            'service_name.required' => 'Please enter the service name.',
-            'service_name.string'   => 'Service name must be valid text.',
-            'service_name.max'      => 'Service name cannot exceed 255 characters.',
-        ]);
+{
+    $request->validate([
+        'service_name' => 'required|string|max:255',
+        'image' => 'nullable|file|mimes:jpeg,jpg,png|max:4096',
+    ], [
+        'service_name.required' => 'Please enter the service name.',
+        'service_name.string'   => 'Service name must be valid text.',
+        'service_name.max'      => 'Service name cannot exceed 255 characters.',
+        'image.file'            => 'Image must be a valid file.',
+        'image.mimes'           => 'Only JPEG and PNG images are allowed.',
+        'image.max'             => 'Image must not exceed 4MB.',
+    ]);
 
-        // Find the service
-        $service = Service::findOrFail($id);
+    $service = Service::findOrFail($id);
 
-        // Update service
-        $service->update([
-            'service_name' => $request->service_name,
-        ]);
-
-        // Redirect with success message
-        return redirect()->route('dashboard.admin.all-services')
-                        ->with('success', 'Service updated successfully!');
+    if($request->hasFile('image')){
+        $file = $request->file('image');
+        $imageName = $file->getClientOriginalName();
+        $file->move(public_path('assets/services_images'), $imageName);
+        $service->service_image = $imageName;
     }
+
+    $service->service_name = $request->service_name;
+    $service->save();
+
+    return response()->json([
+        'redirect' => route('dashboard.admin.all-services'),
+        'message' => 'Service updated successfully!'
+    ]);
+}
 
 
     public function deleteService(Request $request)

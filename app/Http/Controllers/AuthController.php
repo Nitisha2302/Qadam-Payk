@@ -10,9 +10,11 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;  // ← Correct
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
+
 
     // public function register(Request $request)
     // {
@@ -20,7 +22,6 @@ class AuthController extends Controller
     //     $validator = Validator::make($request->all(), [
     //         'phone_number' => 'required|digits:11',
     //         'otp'          => 'required|digits:6',
-    //         'role'         => 'required|string',
     //         'device_type'  => 'nullable|string|max:255',
     //         'device_id'    => 'nullable|string|max:255',
     //         'device_token'    => 'nullable|string|max:255',
@@ -29,7 +30,6 @@ class AuthController extends Controller
     //         'phone_number.digits'   => 'Phone number must be 11 digits.',
     //         'otp.required'          => 'OTP is required.',
     //         'otp.digits'            => 'OTP must be 6 digits.',
-    //         'role.required'         => 'Role is required.',
     //     ]);
 
     //     // Return first validation error only
@@ -41,14 +41,13 @@ class AuthController extends Controller
     //     }
 
     //     // Check if user with same phone number and role already exists
-    //     $existingUser = User::where('phone_number', $request->phone_number)
-    //                         ->where('role', $request->role)
-    //                         ->first();
+    //     $existingUser = User::where('phone_number', $request->phone_number)->first();
+
 
     //     if ($existingUser) {
     //         return response()->json([
     //             'status'  => false,
-    //             'message' => 'This phone number is already registered for the given role.',
+    //             'message' => 'This phone number is already registered.',
     //         ], 201);
     //     }
 
@@ -57,7 +56,6 @@ class AuthController extends Controller
     //         'phone_number'    => $request->phone_number,
     //         'otp'             => $request->otp,
     //         'otp_sent_at'     => now(),
-    //         'role'            => $request->role,
     //         'is_phone_verify' => false,
     //         'device_type'     => $request->device_type,
     //         'device_token'    => $request->device_token,
@@ -73,204 +71,12 @@ class AuthController extends Controller
     //             'otp'            => $user->otp, 
     //             'otp_sent_at'    => $user->otp_sent_at,
     //             'is_phone_verify'=> $user->is_phone_verify,
-    //             'role'           => $user->role,
     //             'device_type'    => $user->device_type,
     //             'device_token'   => $user->device_token,
     //             'device_id'      => $user->device_id,
     //         ],
     //     ], 200);
     // }
-
-
-    // public function verifyOtp(Request $request)
-    // {
-    //     // Validation
-    //     $validator = Validator::make($request->all(), [
-    //         'phone_number' => 'required|digits:11',
-    //         'otp'          => 'required|digits:6',
-    //         'role'         => 'required|string',
-    //     ], [
-    //         'phone_number.required' => 'Phone number is required.',
-    //         'phone_number.digits'   => 'Phone number must be 11 digits.',
-    //         'otp.required'          => 'OTP is required.',
-    //         'otp.digits'            => 'OTP must be 6 digits.',
-    //         'role.required'         => 'Role is required.',
-    //     ]);
-
-    //     // Return first validation error only
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => $validator->errors()->first(),
-    //         ], 201);
-    //     }
-
-    //     // Find user by phone number and role
-    //     $user = User::where('phone_number', $request->phone_number)
-    //                 ->where('role', $request->role)
-    //                 ->first();
-
-    //     if (!$user) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => 'User not found for the given role.',
-    //         ], 401);
-    //     }
-
-    //     // Check OTP and expiry (valid for 5 mins)
-    //     $otpValidTime = now()->subMinutes(10);
-    //     if ($user->otp !== $request->otp || $user->otp_sent_at < $otpValidTime) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => 'Invalid or expired OTP.',
-    //         ], 201);
-    //     }
-
-    //     // Mark phone as verified and generate API token
-    //     $user->is_phone_verify = true;
-    //     $user->api_token = Str::random(60);
-    //     $user->otp = null;
-    //     $user->otp_sent_at = null;
-    //     $user->save();
-
-    //     return response()->json([
-    //         'status' => true,
-    //         'message' => 'OTP verified successfully. You are now logged in.',
-    //         'data' => [
-    //             'user_id'        => $user->id,
-    //             'phone_number'   => $user->phone_number,
-    //             'role'           => $user->role,
-    //             'is_phone_verify'=> $user->is_phone_verify,
-    //             'device_type'    => $user->device_type,
-    //             'device_token'   => $user->device_token,
-    //             'device_id'      => $user->device_id,
-    //             'api_token'      => $user->api_token,
-    //         ],
-    //     ], 200);
-    // }
-
-    // public function login(Request $request)
-    // {
-    //     // Validate input
-    //     $validator = Validator::make($request->all(), [
-    //         'phone_number' => 'required|digits:11',
-    //         'role'         => 'required|string',
-    //         'otp'          => 'required|digits:6',
-    //         'device_type'  => 'nullable|string|max:255',
-    //         'device_id'    => 'nullable|string|max:255',
-    //         'device_token'    => 'nullable|string|max:255',
-    //     ], [
-    //         'phone_number.required' => 'Phone number is required.',
-    //         'phone_number.digits'   => 'Phone number must be 11 digits.',
-    //         'otp.required'          => 'OTP is required.',
-    //         'otp.digits'            => 'OTP must be 6 digits.',
-    //         'role.required'         => 'Role is required.',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => $validator->errors()->first(),
-    //         ], 201);
-    //     }
-
-    //     // Find or create user
-    //     $user = User::firstOrCreate(
-    //         [
-    //             'phone_number' => $request->phone_number,
-    //             'role' => $request->role
-    //         ],
-    //         [
-    //             'is_phone_verify' => false,
-    //         ]
-    //     );
-
-    //     // Generate or update OTP
-    //     $user->otp         = $request->otp ?? rand(100000, 999999);
-    //     $user->otp_sent_at = now();
-    //     $user->device_type = $request->device_type;
-    //     $user->device_id   = $request->device_id;
-    //     $user->device_token = $request->device_token;
-    //     $user->save();
-
-    //     return response()->json([
-    //         'status'  => true,
-    //         'message' => 'OTP sent successfully. Please verify OTP to complete login..',
-    //         'data'    => [
-    //             'user_id'      => $user->id,
-    //             'phone_number' => $user->phone_number,
-    //             'role'         => $user->role,
-    //             'otp'          => $user->otp, // ⚠️ For testing only
-    //             'otp_sent_at'  => $user->otp_sent_at,
-    //         ],
-    //     ], 200);
-    // }
-
-
-    // without role 
-
-
-    public function register(Request $request)
-    {
-        // Validate input
-        $validator = Validator::make($request->all(), [
-            'phone_number' => 'required|digits:11',
-            'otp'          => 'required|digits:6',
-            'device_type'  => 'nullable|string|max:255',
-            'device_id'    => 'nullable|string|max:255',
-            'device_token'    => 'nullable|string|max:255',
-        ], [
-            'phone_number.required' => 'Phone number is required.',
-            'phone_number.digits'   => 'Phone number must be 11 digits.',
-            'otp.required'          => 'OTP is required.',
-            'otp.digits'            => 'OTP must be 6 digits.',
-        ]);
-
-        // Return first validation error only
-        if ($validator->fails()) {
-            return response()->json([
-                'status'  => false,
-                'message' => $validator->errors()->first(),
-            ], 201);
-        }
-
-        // Check if user with same phone number and role already exists
-        $existingUser = User::where('phone_number', $request->phone_number)->first();
-
-
-        if ($existingUser) {
-            return response()->json([
-                'status'  => false,
-                'message' => 'This phone number is already registered.',
-            ], 201);
-        }
-
-        // Create new user
-        $user = User::create([
-            'phone_number'    => $request->phone_number,
-            'otp'             => $request->otp,
-            'otp_sent_at'     => now(),
-            'is_phone_verify' => false,
-            'device_type'     => $request->device_type,
-            'device_token'    => $request->device_token,
-            'device_id'       => $request->device_id,
-        ]);
-
-        return response()->json([
-            'status'  => true,
-            'message' => 'Registration successful. Please verify OTP to continue.',
-            'data'    => [
-                'user_id'        => $user->id,
-                'phone_number'   => $user->phone_number,
-                'otp'            => $user->otp, 
-                'otp_sent_at'    => $user->otp_sent_at,
-                'is_phone_verify'=> $user->is_phone_verify,
-                'device_type'    => $user->device_type,
-                'device_token'   => $user->device_token,
-                'device_id'      => $user->device_id,
-            ],
-        ], 200);
-    }
 
 
     public function verifyOtp(Request $request)
@@ -341,14 +147,12 @@ class AuthController extends Controller
         // Validate input
         $validator = Validator::make($request->all(), [
             'phone_number' => 'required|digits:11',
-            'otp'          => 'required|digits:6',
             'device_type'  => 'nullable|string|max:255',
             'device_id'    => 'nullable|string|max:255',
             'device_token'    => 'nullable|string|max:255',
         ], [
             'phone_number.required' => 'Phone number is required.',
             'phone_number.digits'   => 'Phone number must be 11 digits.',
-            'otp.required'          => 'OTP is required.',
             'otp.digits'            => 'OTP must be 6 digits.',
         ]);
 
@@ -357,6 +161,14 @@ class AuthController extends Controller
                 'status'  => false,
                 'message' => $validator->errors()->first(),
             ], 201);
+        }
+
+        // Generate a secure random 6-digit OTP
+        try {
+            $otp = random_int(100000, 999999);
+        } catch (\Exception $e) {
+            // Fallback if random_int fails (very unlikely)
+            $otp = mt_rand(100000, 999999);
         }
 
         // Find or create user
@@ -369,8 +181,13 @@ class AuthController extends Controller
             ]
         );
 
+        // Decide message based on new or existing
+        $message = $user->wasRecentlyCreated
+            ? 'OTP sent successfully. Please verify OTP to complete registration.'
+            : 'OTP sent successfully. Please verify OTP to complete login.';
+
         // Generate or update OTP
-        $user->otp         = $request->otp ?? rand(100000, 999999);
+        $user->otp         = $otp;
         $user->otp_sent_at = now();
         $user->device_type = $request->device_type;
         $user->device_id   = $request->device_id;
@@ -379,12 +196,13 @@ class AuthController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'OTP sent successfully. Please verify OTP to complete login..',
+            'message' => $message,
             'data'    => [
                 'user_id'      => $user->id,
                 'phone_number' => $user->phone_number,
                 'otp'          => $user->otp, // ⚠️ For testing only
                 'otp_sent_at'  => $user->otp_sent_at,
+                'is_phone_verify'  => $user->is_phone_verify,
             ],
         ], 200);
     }
@@ -766,24 +584,18 @@ class AuthController extends Controller
         // Validate request
             $validator = Validator::make($request->all(), [
             'name'          => 'required|string|max:255',
-            'email'         => 'required|email|max:255|unique:users,email,' . $user->id,
-            // 'phone_number'  => 'required|digits:11|unique:users,phone_number,' . $user->id,
-            'profile_image'         => 'required|file|mimes:jpeg,png,jpg|max:4096', // profile image
-            // 'government_id' => 'required|file|mimes:jpeg,png,jpg,pdf|max:4096', // government ID
+           'dob'           => 'nullable|string',
+            'gender'        => 'nullable|in:male,female,other',
+            'profile_image'         => 'nullable|file|mimes:jpeg,png,jpg|max:4096', // profile image
              'government_id' => 'required|array', // must be an array
             'government_id.*' => 'file|mimes:jpeg,png,jpg,pdf|max:4096',
         ], [
             'name.required'         => 'Name is required.',
             'name.string'           => 'Name must be a valid string.',
             'name.max'              => 'Name must not exceed 255 characters.',
-            'email.required'        => 'Email is required.',
-            'email.email'           => 'Email must be a valid email address.',
-            'email.max'             => 'Email must not exceed 255 characters.',
-            'email.unique'          => 'This email is already taken.',
-            // 'phone_number.required' => 'Phone number is required.',
-            // 'phone_number.digits'   => 'Phone number must be exactly 11 digits.',
-            // 'phone_number.unique'   => 'This phone number is already taken.',
-            'image.required'        => 'Profile image is required.',
+            'dob.date'              => 'Date of birth must be a valid date (YYYY-MM-DD).',
+            'gender.in'             => 'Gender must be male, female, or other.',
+            // 'image.required'        => 'Profile image is required.',
             'image.file'            => 'Profile image must be a file.',
             'image.mimes'           => 'Profile image must be a file of type: jpeg, png, jpg.',
             'image.max'             => 'Profile image must not exceed 4MB.',
@@ -809,28 +621,7 @@ class AuthController extends Controller
             $file->move(public_path('assets/profile_image/'), $user->profile_image);
         }
 
-        // ---- Handle single Government ID ----
-        // if ($request->hasFile('government_id')) {
-        //     $file = $request->file('government_id');
-        //     $extension = $file->getClientOriginalExtension();
-
-        //     // Take only the first 5 digits of the phone number
-        //     $shortPhone = substr($user->phone_number, 0, 5);
-
-        //     // Create a safe filename: {userID}_{slugified_name}_{first5digits}_certificate.extension
-        //     $certificateName = $user->id . '_' 
-        //                     . Str::slug($user->name) . '_' 
-        //                     . $shortPhone 
-        //                     . '_certificate.' . $extension;
-
-        //     // Move file to identity folder
-        //     $file->move(public_path('assets/identity/'), $certificateName);
-
-        //     // Save filename in database
-        //     $user->government_id = $certificateName;
-        // }
-
-          // ---- Handle multiple Government IDs ----
+        // ---- Handle multiple Government IDs ----
         $uploadedFiles = [];
         if ($request->hasFile('government_id')) {
             foreach ($request->file('government_id') as $file) {
@@ -852,8 +643,19 @@ class AuthController extends Controller
 
         // ---- Update other fields ----
         $user->name         = $request->name;
-        $user->email        = $request->email;
-        // $user->phone_number = $request->phone_number;
+        $user->gender = $request->gender;
+
+        // Convert DD-MM-YYYY → YYYY-MM-DD before saving
+        if ($request->dob) {
+            try {
+                $user->dob = Carbon::createFromFormat('d-m-Y', $request->dob)->format('Y-m-d');
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Invalid date format. Use DD-MM-YYYY.',
+                ], 422);
+            }
+        }
         $user->save();
 
         return response()->json([

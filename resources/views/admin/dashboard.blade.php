@@ -39,50 +39,88 @@
                     </div>
 		        </div>
 
-                <!-- Pending Users -->
+
                 <div class="col-xl-3 col-sm-6 info-card mb-20">
                     <div class="card d-flex shadow">
-                        <div class="card-body card-icon__left d-flex align-items-center gap-3">
+                        <div class="card-body card-icon__left  d-flex align-items-center gap-3">
                             <div class="card-icon">
-                                <i class="fas fa-hourglass-half icon-font-size text-warning"></i>
+                              <i class="fa fa-users icon-font-size"></i>
                             </div>
-                            <div class="card-title m-0"> 
-                                {{ $pendingCount }}
-                                <div class="card-subtitle">Pending Verification</div>
+                            <div class="card-title m-0">
+                                   {{ $driversCount}}
+                                <div class="card-subtitle">
+                                    Total Drivers
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+		        </div>
+
+
+                <div class="col-xl-3 col-sm-6 info-card mb-20">
+                    <div class="card d-flex shadow">
+                        <div class="card-body card-icon__left  d-flex align-items-center gap-3">
+                            <div class="card-icon">
+                              <i class="fa fa-users icon-font-size"></i>
+                            </div>
+                            <div class="card-title m-0">
+                                   0
+                                <div class="card-subtitle">
+                                    Total Passengers
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+		        </div>
+
+
+                <div class="row mt-4">
+                 <!-- Pending Users -->
+                    <div class="col-xl-3 col-sm-6 info-card mb-20">
+                        <div class="card d-flex shadow">
+                            <div class="card-body card-icon__left d-flex align-items-center gap-3">
+                                <div class="card-icon">
+                                    <i class="fas fa-hourglass-half icon-font-size text-warning"></i>
+                                </div>
+                                <div class="card-title m-0"> 
+                                    {{ $pendingDrivers }}
+                                    <div class="card-subtitle">Pending Verification</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Verified Users -->
+                    <div class="col-xl-3 col-sm-6 info-card mb-20">
+                        <div class="card d-flex shadow">
+                            <div class="card-body card-icon__left d-flex align-items-center gap-3">
+                                <div class="card-icon">
+                                    <i class="fas fa-check-circle icon-font-size text-success"></i>
+                                </div>
+                                <div class="card-title m-0">
+                                    {{ $verifiedDrivers }}
+                                    <div class="card-subtitle">Verified Drivers</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rejected Users -->
+                    <div class="col-xl-3 col-sm-6 info-card mb-20">
+                        <div class="card d-flex shadow">
+                            <div class="card-body card-icon__left d-flex align-items-center gap-3">
+                                <div class="card-icon">
+                                    <i class="fas fa-times-circle icon-font-size text-danger"></i>
+                                </div>
+                                <div class="card-title m-0">
+                                    {{ $rejectedDrivers }}
+                                    <div class="card-subtitle">Rejected Drivers</div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                 <!-- Verified Users -->
-                <div class="col-xl-3 col-sm-6 info-card mb-20">
-                    <div class="card d-flex shadow">
-                        <div class="card-body card-icon__left d-flex align-items-center gap-3">
-                            <div class="card-icon">
-                                <i class="fas fa-check-circle icon-font-size text-success"></i>
-                            </div>
-                            <div class="card-title m-0">
-                                {{ $verifiedCount }}
-                                <div class="card-subtitle">Verified Users</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Rejected Users -->
-                <div class="col-xl-3 col-sm-6 info-card mb-20">
-                    <div class="card d-flex shadow">
-                        <div class="card-body card-icon__left d-flex align-items-center gap-3">
-                            <div class="card-icon">
-                                <i class="fas fa-times-circle icon-font-size text-danger"></i>
-                            </div>
-                            <div class="card-title m-0">
-                                {{ $rejectedCount }}
-                                <div class="card-subtitle">Rejected Users</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Second Row: Cities -->
                 <div class="row mt-4">
@@ -103,16 +141,23 @@
                     </div>
                 </div>
 
-
                 <div class="row mt-4">
                     <div class="col-12">
                         <div class="card shadow p-3">
-                            <h4>User Verification Status</h4>
-                            <canvas id="userVerificationChart" height="150"></canvas>
+                            <h4>Total Users, Drivers & Passengers</h4>
+                            <canvas id="totalsChart" height="150"></canvas>
                         </div>
                     </div>
                 </div>
 
+                 <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card shadow p-3">
+                            <h4>Drivers Verification Status</h4>
+                            <canvas id="userVerificationChart" height="150"></canvas>
+                        </div>
+                    </div>
+                </div>
 
 	        </div>
         </div>
@@ -125,15 +170,16 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
-    const ctx = document.getElementById('userVerificationChart').getContext('2d');
 
-    new Chart(ctx, {
+    // Existing chart
+    const ctx1 = document.getElementById('userVerificationChart').getContext('2d');
+    new Chart(ctx1, {
         type: 'bar',
         data: {
             labels: ['Pending', 'Verified', 'Rejected'],
             datasets: [{
-                label: 'Users',
-                data: {!! json_encode([$pendingCount, $verifiedCount, $rejectedCount]) !!},
+                label: 'Drivers',
+                data: {!! json_encode([$pendingDrivers, $verifiedDrivers, $rejectedDrivers]) !!},
                 backgroundColor: [
                     'rgba(255, 193, 7, 0.7)',   // warning yellow
                     'rgba(40, 167, 69, 0.7)',   // success green
@@ -158,8 +204,45 @@ $(document).ready(function() {
             }
         }
     });
+
+    // New chart for Total Users & Passengers
+   const ctx = document.getElementById('totalsChart').getContext('2d');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Users', 'Drivers', 'Passengers'],
+            datasets: [{
+                label: 'Count',
+                data: {!! json_encode([$userCount, $driversCount, 0]) !!}, // Replace 0 with $passengersCount if available
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.7)',   // blue for Users
+                    'rgba(40, 167, 69, 0.7)',    // green for Drivers
+                    'rgba(255, 99, 132, 0.7)'    // red/pink for Passengers
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(40, 167, 69, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: true }
+            },
+            scales: {
+                y: { beginAtZero: true, precision: 0 }
+            }
+        }
+    });
+
 });
 </script>
+
 
 
 
