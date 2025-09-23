@@ -44,6 +44,8 @@ Route::post('/driver/edit-vehicle/{id}', [DriverHomeController::class, 'editVehi
 Route::post('/driver/create-ride', [DriverHomeController::class, 'createRide']);
 Route::post('/driver/edit-ride/{ride_id}', [DriverHomeController::class, 'editRide']);
 
+ Route::get('/search-rides', [DriverHomeController::class, 'searchRides']);
+
 
 
 

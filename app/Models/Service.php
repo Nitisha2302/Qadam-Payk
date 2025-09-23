@@ -11,6 +11,7 @@ class Service extends Model
 
     // Fillable fields
     protected $fillable = [
+        'service_image',
         'service_name',
     ];
 
