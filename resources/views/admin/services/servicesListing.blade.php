@@ -25,7 +25,7 @@
            <table class="table table-striped table-bordered table-notification-list">
                 <thead>
                     <tr>
-                        <th>S.No.</th>
+                        <th>Icon</th>
                         <th>Services</th>
                         <th>Action</th>
                     </tr>
@@ -33,7 +33,11 @@
                 <tbody>
                     @forelse($services as $service)
                         <tr>
-                             <td>{{ $loop->iteration }}</td>
+                            <td>
+                            <img class="listing-img" 
+                                src="{{ $service->service_image ? asset('assets/services_images/' . $service->service_image) : asset('assets/profile_image/default_user_profile.jpg') }}" 
+                                alt="user-img" width="80">
+                           </td>
                             <td> {{$service->service_name}}</td> 
                             <td>                                            
                                 <div class="d-flex align-items-center gap-2">

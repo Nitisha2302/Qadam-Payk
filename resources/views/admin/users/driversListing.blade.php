@@ -5,7 +5,7 @@
     <section class="project-doorbox">
        <div class="ai-training-data-wrapper d-flex align-items-baseline justify-content-between">
            <div class="heading-content-box">
-                <h2>All Users</h2>
+                <h2>All Drivers</h2>
                 <div id="successMessage" class="alert alert-success d-none"></div>
                 @if (session('success'))
                     <div class="alert alert-success" role="alert" id="success-message">
@@ -114,7 +114,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="userModalLabel" style="font-weight:800;color:#86c349;font-size:24px;">
-          User Details
+          Driver Details
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -145,7 +145,7 @@
                         <button type="button" class="btn-close cancel-popup-btnbox" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body delete-confirmation-popup-body ">
-                            <p class="delete-confirmation-popup-text delete-user-confirmation-popup-text">Do you really want to delete this city?</p>
+                            <p class="delete-confirmation-popup-text delete-user-confirmation-popup-text">Do you really want to delete this driver?</p>
                     </div>
                     <div class="modal-footer border-0 delete-confirmation-popup-footer delete-user-confirmation-popup-footer">
                         <button class="delete-confirmation-popup-btn btn" data-bs-dismiss="modal" aria-label="Close">Cancel</button>

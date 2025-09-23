@@ -294,7 +294,7 @@ $(document).on('click', '.reject-user-btn', function () {
 
 $(document).ready(function(){
     
-    // js for the view user details 
+    // js for the view driver details 
 
     $(document).on('click', '.view-user-details', function() {
         var payload = $(this).attr('data-user');
@@ -305,7 +305,7 @@ $(document).ready(function(){
         }
 
         // update modal title and fields
-        $('#userModalLabel').text('user Details - ' + (user.name || '-'));
+        $('#userModalLabel').text('Driver Details - ' + (user.name || '-'));
         $('#modal-name').text(user.name ?? '-');
         $('#modal-email').text(user.email ?? '-');
         $('#modal-phone_number').text(user.phone_number ?? '-');
