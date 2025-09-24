@@ -570,104 +570,194 @@ class AuthController extends Controller
     }
 
 
-    public function updateProfile(Request $request)
-    {
-        $user = Auth::guard('api')->user();
+    // public function updateProfile(Request $request)
+    // {
+    //     $user = Auth::guard('api')->user();
 
-        if (!$user) {
-            return response()->json([
-                'status'  => false,
-                'message' => 'User not authenticated.',
-            ], 401);
-        }
+    //     if (!$user) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => 'User not authenticated.',
+    //         ], 401);
+    //     }
 
-        // Validate request
-            $validator = Validator::make($request->all(), [
-            'name'          => 'required|string|max:255',
-           'dob'           => 'nullable|string',
-            'gender'        => 'nullable|in:male,female,other',
-            'profile_image'         => 'nullable|file|mimes:jpeg,png,jpg|max:4096', // profile image
-             'government_id' => 'required|array', // must be an array
-            'government_id.*' => 'file|mimes:jpeg,png,jpg,pdf|max:4096',
-        ], [
-            'name.required'         => 'Name is required.',
-            'name.string'           => 'Name must be a valid string.',
-            'name.max'              => 'Name must not exceed 255 characters.',
-            'dob.date'              => 'Date of birth must be a valid date (YYYY-MM-DD).',
-            'gender.in'             => 'Gender must be male, female, or other.',
-            // 'image.required'        => 'Profile image is required.',
-            'image.file'            => 'Profile image must be a file.',
-            'image.mimes'           => 'Profile image must be a file of type: jpeg, png, jpg.',
-            'image.max'             => 'Profile image must not exceed 4MB.',
-            'government_id.required'=> 'Government ID is required.',
-            'government_id.array'   => 'Government ID must be an array of files.',
-            'government_id.file'    => 'Government ID must be a file.',
-            'government_id.mimes'   => 'Government ID must be a file of type: jpeg, png, jpg, pdf.',
-            'government_id.max'     => 'Each government ID must not exceed 4MB.',
-        ]);
-
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status'  => false,
-                'message' => $validator->errors()->first(),
-            ], 201);
-        }
-
-        // ---- Handle Profile Image (keep original name) ----
-        if ($request->hasFile('profile_image')) {
-            $file = $request->file('profile_image');
-            $user->image = $file->getClientOriginalName();
-            $file->move(public_path('assets/profile_image/'), $user->profile_image);
-        }
-
-        // ---- Handle multiple Government IDs ----
-        $uploadedFiles = [];
-        if ($request->hasFile('government_id')) {
-            foreach ($request->file('government_id') as $file) {
-                $extension = $file->getClientOriginalExtension();
-                $shortPhone = substr($user->phone_number, 0, 5);
-                $certificateName = $user->id . '_' 
-                                . Str::slug($user->name) . '_' 
-                                . $shortPhone . '_' 
-                                . Str::random(5) 
-                                . '_certificate.' . $extension;
-
-                $file->move(public_path('assets/identity/'), $certificateName);
-                $uploadedFiles[] = $certificateName;
-            }
-
-            $user->government_id = json_encode($uploadedFiles); // store as JSON
-        }
+    //     // Validate request
+    //         $validator = Validator::make($request->all(), [
+    //         'name'          => 'required|string|max:255',
+    //        'dob'           => 'nullable|string',
+    //         'gender'        => 'nullable|in:male,female,other',
+    //         'profile_image'         => 'nullable|file|mimes:jpeg,png,jpg|max:4096', // profile image
+    //          'government_id' => 'required|array', // must be an array
+    //         'government_id.*' => 'file|mimes:jpeg,png,jpg,pdf|max:4096',
+    //     ], [
+    //         'name.required'         => 'Name is required.',
+    //         'name.string'           => 'Name must be a valid string.',
+    //         'name.max'              => 'Name must not exceed 255 characters.',
+    //         'dob.date'              => 'Date of birth must be a valid date (YYYY-MM-DD).',
+    //         'gender.in'             => 'Gender must be male, female, or other.',
+    //         // 'image.required'        => 'Profile image is required.',
+    //         'profile_image.file'            => 'Profile image must be a file.',
+    //         'profile_image.mimes'           => 'Profile image must be a file of type: jpeg, png, jpg.',
+    //         'profile_image.max'             => 'Profile image must not exceed 4MB.',
+    //         'government_id.required'=> 'Government ID is required.',
+    //         'government_id.array'   => 'Government ID must be an array of files.',
+    //         'government_id.file'    => 'Government ID must be a file.',
+    //         'government_id.mimes'   => 'Government ID must be a file of type: jpeg, png, jpg, pdf.',
+    //         'government_id.max'     => 'Each government ID must not exceed 4MB.',
+    //     ]);
 
 
-        // ---- Update other fields ----
-        $user->name         = $request->name;
-        $user->gender = $request->gender;
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => $validator->errors()->first(),
+    //         ], 201);
+    //     }
 
-        // Convert DD-MM-YYYY → YYYY-MM-DD before saving
-        if ($request->dob) {
-            try {
-                $user->dob = Carbon::createFromFormat('d-m-Y', $request->dob)->format('Y-m-d');
-            } catch (\Exception $e) {
-                return response()->json([
-                    'status'  => false,
-                    'message' => 'Invalid date format. Use DD-MM-YYYY.',
-                ], 422);
-            }
-        }
-        $user->save();
+    //     // ---- Handle Profile Image (keep original name) ----
+    //     if ($request->hasFile('profile_image')) {
+    //         $file = $request->file('profile_image');
+    //         $user->image = $file->getClientOriginalName();
+    //         $file->move(public_path('assets/profile_image/'), $user->profile_image);
+    //     }
 
+    //     // ---- Handle multiple Government IDs ----
+    //     $uploadedFiles = [];
+    //     if ($request->hasFile('government_id')) {
+    //         foreach ($request->file('government_id') as $file) {
+    //             $extension = $file->getClientOriginalExtension();
+    //             $shortPhone = substr($user->phone_number, 0, 5);
+    //             $certificateName = $user->id . '_' 
+    //                             . Str::slug($user->name) . '_' 
+    //                             . $shortPhone . '_' 
+    //                             . Str::random(5) 
+    //                             . '_certificate.' . $extension;
+
+    //             $file->move(public_path('assets/identity/'), $certificateName);
+    //             $uploadedFiles[] = $certificateName;
+    //         }
+
+    //         $user->government_id = json_encode($uploadedFiles); // store as JSON
+    //     }
+
+
+    //     // ---- Update other fields ----
+    //     $user->name         = $request->name;
+    //     $user->gender = $request->gender;
+
+    //     // Convert DD-MM-YYYY → YYYY-MM-DD before saving
+    //     if ($request->dob) {
+    //         try {
+    //             $user->dob = Carbon::createFromFormat('d-m-Y', $request->dob)->format('Y-m-d');
+    //         } catch (\Exception $e) {
+    //             return response()->json([
+    //                 'status'  => false,
+    //                 'message' => 'Invalid date format. Use DD-MM-YYYY.',
+    //             ], 422);
+    //         }
+    //     }
+    //     $user->save();
+
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => 'Profile updated successfully.',
+    //         'data'    => $user,
+    //     ], 200);
+    // }
+
+
+
+
+public function updateProfile(Request $request)
+{
+    $user = Auth::guard('api')->user();
+
+    if (!$user) {
         return response()->json([
-            'status'  => true,
-            'message' => 'Profile updated successfully.',
-            'data'    => $user,
-        ], 200);
+            'status'  => false,
+            'message' => 'User not authenticated.',
+        ], 401);
     }
 
+    // Validate request
+    $validator = Validator::make($request->all(), [
+        'name'            => 'required|string|max:255',
+        'dob'             => 'nullable|string',
+        'gender'          => 'nullable|in:male,female,other',
+        'profile_image'   => 'nullable|file|mimes:jpeg,png,jpg|max:4096',
+        'government_id'   => 'required|array',
+        'government_id.*' => 'file|mimes:jpeg,png,jpg,pdf|max:4096',
+    ], [
+        'name.required'              => 'Name is required.',
+        'name.string'                => 'Name must be a valid string.',
+        'name.max'                   => 'Name must not exceed 255 characters.',
+        'gender.in'                  => 'Gender must be male, female, or other.',
+        'profile_image.file'         => 'Profile image must be a file.',
+        'profile_image.mimes'        => 'Profile image must be jpeg, png, or jpg.',
+        'profile_image.max'          => 'Profile image must not exceed 4MB.',
+        'government_id.required'     => 'Government ID is required.',
+        'government_id.array'        => 'Government ID must be an array.',
+        'government_id.*.file'       => 'Each government ID must be a file.',
+        'government_id.*.mimes'      => 'Each government ID must be jpeg, png, jpg, or pdf.',
+        'government_id.*.max'        => 'Each government ID must not exceed 4MB.',
+    ]);
 
+    if ($validator->fails()) {
+        return response()->json([
+            'status'  => false,
+            'message' => $validator->errors()->first(),
+        ], 422);
+    }
 
+    // ---- Handle Profile Image ----
+    if ($request->hasFile('profile_image')) {
+        $file = $request->file('profile_image');
+        $filename = time() . '_' . $file->getClientOriginalName();
+        $file->move(public_path('assets/profile_image/'), $filename);
+        $user->image = $filename;
+    }
 
+    // ---- Handle multiple Government IDs ----
+    $uploadedFiles = [];
+    if ($request->hasFile('government_id')) {
+        foreach ($request->file('government_id') as $file) {
+            $extension = $file->getClientOriginalExtension();
+            $shortPhone = substr($user->phone_number, 0, 5);
+            $certificateName = $user->id . '_' 
+                             . Str::slug($user->name) . '_' 
+                             . $shortPhone . '_' 
+                             . Str::random(5) 
+                             . '_certificate.' . $extension;
+
+            $file->move(public_path('assets/identity/'), $certificateName);
+            $uploadedFiles[] = $certificateName;
+        }
+        $user->government_id = json_encode($uploadedFiles);
+    }
+
+    // ---- Update other fields ----
+    $user->name   = $request->name;
+    $user->gender = $request->gender;
+
+    if ($request->dob) {
+        try {
+            $user->dob = Carbon::createFromFormat('d-m-Y', $request->dob)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Invalid date format. Use DD-MM-YYYY.',
+            ], 422);
+        }
+    }
+
+    $user->save();
+
+    return response()->json([
+        'status'  => true,
+        'message' => 'Profile updated successfully.',
+        'data'    => $user,
+    ], 200);
+}
 
 
 
