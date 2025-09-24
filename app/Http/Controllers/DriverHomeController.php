@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\Ride;
 use Carbon\Carbon;
@@ -94,7 +95,7 @@ class DriverHomeController extends Controller
         ], 200);
     }
 
-    public function editVehicle(Request $request, $id)
+    public function editVehicle(Request $request)
     {
         $user = Auth::guard('api')->user();
         if (!$user) {
@@ -104,21 +105,15 @@ class DriverHomeController extends Controller
             ], 401);
         }
 
-        $vehicle = Vehicle::where('id', $id)->where('user_id', $user->id)->first();
-        if (!$vehicle) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Vehicle not found or not owned by this user.',
-            ], 404);
-        }
-
         // ✅ All fields required except image
         $validator = Validator::make($request->all(), [
+            'vehicle_id'    => 'required|exists:vehicles,id',
             'brand'         => 'required|string|max:255',
             'model'         => 'required|string|max:255',
-            'number_plate'  => 'required|string|unique:vehicles,number_plate,' . $vehicle->id,
+            'number_plate'  => 'required|string|unique:vehicles,number_plate,' . $request->vehicle_id,
             'vehicle_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ], [
+            'vehicle_id.required'    => 'Vehicle ID is required.',
             'brand.required'        => 'Vehicle brand is required.',
             'model.required'        => 'Vehicle model is required.',
             'number_plate.required' => 'Number plate is required.',
@@ -131,6 +126,18 @@ class DriverHomeController extends Controller
                 'message' => $validator->errors()->first(),
             ], 201);
         }
+
+        // ✅ Use vehicle_id consistently
+            $vehicle = Vehicle::where('id', $request->vehicle_id)
+                            ->where('user_id', $user->id)
+                            ->first();
+
+            if (!$vehicle) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Vehicle not found or not owned by this user.',
+                ], 201);
+            }
 
         // ✅ Handle file upload if new image provided
         if ($request->hasFile('vehicle_image')) {
@@ -225,7 +232,7 @@ class DriverHomeController extends Controller
     }
 
 
-    public function editRide(Request $request, $ride_id)
+    public function editRide(Request $request)
     {
         $user = Auth::guard('api')->user();
 
@@ -236,20 +243,9 @@ class DriverHomeController extends Controller
             ], 401);
         }
 
-        // Find ride and make sure it belongs to this user
-        $ride = Ride::where('id', $ride_id)
-                    ->where('user_id', $user->id)
-                    ->first();
-
-        if (!$ride) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Ride not found or not authorized.',
-            ], 404);
-        }
-
         // ✅ Validation with custom messages
         $validator = Validator::make($request->all(), [
+            'ride_id'         => 'required|exists:rides,id',
             'vehicle_id'      => 'required|exists:vehicles,id',
             'pickup_location' => 'required|string|max:255',
             'destination'     => 'required|string|max:255',
@@ -278,6 +274,8 @@ class DriverHomeController extends Controller
             'services.*.string'        => 'Each service must be a string.',
         ]);
 
+        
+
         if ($validator->fails()) {
             return response()->json([
                 'status'  => false,
@@ -285,9 +283,21 @@ class DriverHomeController extends Controller
             ], 201);
         }
 
+        // ✅ Find ride
+        $ride = Ride::where('id', $request->ride_id)
+                    ->where('user_id', $user->id)
+                    ->first();
+
+        if (!$ride) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Ride not found or not authorized.',
+            ], 201);
+        }
+
         // ✅ Update ride
         $ride->update([
-            'vehicle_id'     => $request->vehicle_id,
+            'vehicle_id'      => $request->vehicle_id,
             'pickup_location'=> $request->pickup_location,
             'destination'    => $request->destination,
             'number_of_seats'=> $request->number_of_seats,
@@ -311,15 +321,22 @@ class DriverHomeController extends Controller
         $validator = Validator::make($request->all(), [
             'pickup_location' => 'nullable|string|max:255',
             'destination'     => 'nullable|string|max:255',
-            'ride_date'       => 'nullable|string', // accept as string
+            'ride_date'       => 'nullable|date_format:d-m-Y|after_or_equal:today',
             'number_of_seats' => 'nullable|integer|min:1',
+            'services'        => 'nullable|array',   // optional
+            'services.*'      => 'string|max:50',
         ], [
             'pickup_location.string' => 'Pickup location must be a valid string.',
             'pickup_location.max'    => 'Pickup location must not exceed 255 characters.',
             'destination.string'     => 'Destination must be a valid string.',
             'destination.max'        => 'Destination must not exceed 255 characters.',
+              'ride_date.date_format'  => 'Ride date must be in DD-MM-YYYY format.',
+            'ride_date.after_or_equal' => 'Ride date must be today or a future date.',
             'number_of_seats.integer'=> 'Number of seats must be a valid number.',
             'number_of_seats.min'    => 'Number of seats must be at least 1.',
+                'services.array'           => 'Services must be an array.',
+            'services.*.string'        => 'Each service must be a string.',
+            'services.*.max'           => 'Each service cannot exceed 50 characters.',
         ]);
 
         if ($validator->fails()) {
@@ -356,16 +373,262 @@ class DriverHomeController extends Controller
             $query->where('number_of_seats', '>=', $request->number_of_seats);
         }
 
+        // Optional: Filter by services if provided
+        if ($request->services && is_array($request->services)) {
+            foreach ($request->services as $service) {
+                $query->whereJsonContains('services', $service);
+            }
+        }
+
         $rides = $query->orderBy('ride_date', 'asc')
                     ->orderBy('ride_time', 'asc')
                     ->get();
 
+        $ridesData = $rides->map(function ($ride) use ($request) {
+        $vehicle = Vehicle::find($ride->vehicle_id);
+        $driver  = $vehicle ? User::find($vehicle->user_id) : null;
+
+        // Calculate total price based on requested seats
+        $totalPrice = $request->number_of_seats 
+                    ? $ride->price * $request->number_of_seats 
+                    : $ride->price;
+
+            return [
+                'ride_id'          => $ride->id,
+                'pickup_location'  => $ride->pickup_location,
+                'destination'      => $ride->destination,
+                'number_of_seats'  => $ride->number_of_seats,
+               'price'            => $totalPrice,
+                'ride_date'        => $ride->ride_date,
+                'ride_time'        => $ride->ride_time,
+                'services'         => $ride->services,
+                'accept_parcel'    => $ride->accept_parcel,
+
+                // Vehicle fields
+                'vehicle_id'       => $vehicle->id ?? null,
+                'brand'            => $vehicle->brand ?? null,
+                'model'            => $vehicle->model ?? null,
+                'vehicle_image'    => $vehicle->vehicle_image ?? null,
+                'vehicle_type'     => $vehicle->vehicle_type ?? null,
+                'number_plate'     => $vehicle->number_plate ?? null,
+
+                // Driver fields
+                'driver_id'        => $driver->id ?? null,
+                'driver_name'      => $driver->name ?? null,
+                'driver_image'     => $driver->image ?? null,
+                'driver_status'    => $driver ? ($driver->id_verified ? 'verified' : 'not verified') : null,
+                // 'driver_rating'    => $driver->rating ?? null,
+                 'driver_rating'    => '3',
+            ];
+        });
+
         return response()->json([
             'status'  => true,
             'message' => 'Rides found successfully.',
-            'data'    => $rides,
+            'data'    => $ridesData,
         ], 200);
     }
+
+
+    public function searchParcelRides(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'pickup_location' => 'nullable|string|max:255',
+            'destination'     => 'nullable|string|max:255',
+            'ride_date'       => 'nullable|date_format:d-m-Y|after_or_equal:today',
+            'number_of_seats' => 'nullable|integer|min:1',
+            'services'        => 'nullable|array',   // optional
+            'services.*'      => 'string|max:50',
+        ], [
+            'pickup_location.string' => 'Pickup location must be a valid string.',
+            'pickup_location.max'    => 'Pickup location must not exceed 255 characters.',
+            'destination.string'     => 'Destination must be a valid string.',
+            'destination.max'        => 'Destination must not exceed 255 characters.',
+              'ride_date.date_format'  => 'Ride date must be in DD-MM-YYYY format.',
+            'ride_date.after_or_equal' => 'Ride date must be today or a future date.',
+            'number_of_seats.integer'=> 'Number of seats must be a valid number.',
+            'number_of_seats.min'    => 'Number of seats must be at least 1.',
+                'services.array'           => 'Services must be an array.',
+            'services.*.string'        => 'Each service must be a string.',
+            'services.*.max'           => 'Each service cannot exceed 50 characters.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => false,
+                'message' => $validator->errors()->first(),
+            ], 201);
+        }
+
+        $query = \App\Models\Ride::query();
+
+        // ✅ Only rides that accept parcels
+        $query->where('accept_parcel', 1);
+
+        if ($request->pickup_location) {
+            $query->where('pickup_location', 'like', '%'.$request->pickup_location.'%');
+        }
+
+        if ($request->destination) {
+            $query->where('destination', 'like', '%'.$request->destination.'%');
+        }
+
+        if ($request->ride_date) {
+            try {
+                $rideDate = Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d');
+                $query->whereDate('ride_date', $rideDate);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Invalid ride_date format. Please use DD-MM-YYYY.',
+                ], 201);
+            }
+        }
+
+        if ($request->number_of_seats) {
+            $query->where('number_of_seats', '>=', $request->number_of_seats);
+        }
+
+        // Optional: Filter by services if provided
+        if ($request->services && is_array($request->services)) {
+            foreach ($request->services as $service) {
+                $query->whereJsonContains('services', $service);
+            }
+        }
+
+        $rides = $query->orderBy('ride_date', 'asc')
+                    ->orderBy('ride_time', 'asc')
+                    ->get();
+
+
+        $ridesData = $rides->map(function ($ride) use ($request) {
+        $vehicle = Vehicle::find($ride->vehicle_id);
+        $driver  = $vehicle ? User::find($vehicle->user_id) : null;
+
+            // Calculate total price based on requested seats
+            $totalPrice = $request->number_of_seats 
+                        ? $ride->price * $request->number_of_seats 
+                        : $ride->price;
+
+            return [
+                'ride_id'          => $ride->id,
+                'pickup_location'  => $ride->pickup_location,
+                'destination'      => $ride->destination,
+                'number_of_seats'  => $ride->number_of_seats,
+                'price'            => $totalPrice,
+                'ride_date'        => $ride->ride_date,
+                'ride_time'        => $ride->ride_time,
+                'services'         => $ride->services,
+                'accept_parcel'    => $ride->accept_parcel,
+
+                // Vehicle
+                'vehicle_id'       => $vehicle->id ?? null,
+                'brand'            => $vehicle->brand ?? null,
+                'model'            => $vehicle->model ?? null,
+                'vehicle_image'    => $vehicle->vehicle_image ?? null,
+                'vehicle_type'     => $vehicle->vehicle_type ?? null,
+                'number_plate'     => $vehicle->number_plate ?? null,
+
+                // Driver
+                'driver_id'        => $driver->id ?? null,
+                'driver_name'      => $driver->name ?? null,
+                'driver_image'     => $driver->image ?? null,
+                'driver_status'    => $driver ? ($driver->id_verified ? 'verified' : 'not verified') : null,
+                'driver_rating'    => '3',
+            ];
+        });
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Parcel rides found successfully.',
+            'data'    => $ridesData,
+        ], 200);
+    }
+
+    public function driverDetails(Request $request)
+    {
+        $userId = $request->query('user_id');
+
+        $validator = Validator::make(['user_id' => $userId], [
+            'user_id' => 'required|integer|exists:users,id',
+        ], [
+            'user_id.required' => 'User ID is required.',
+            'user_id.integer'  => 'User ID must be a valid integer.',
+            'user_id.exists'   => 'Driver not found.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => false,
+                'message' => $validator->errors()->first(),
+            ], 201);
+        }
+
+        $driver = User::find($userId);
+        $vehicle = Vehicle::where('user_id', $driver->id)->first();
+
+        // Base driver & vehicle info
+        $responseData = [
+            'driver_id'      => $driver->id,
+            'name'           => $driver->name,
+            'image'          => $driver->image,
+            'phone_number'   => $driver->phone_number,
+            'dob'            => $driver->dob,
+            'gender'         => $driver->gender,
+            'vehicle_id'     => $vehicle->id ?? null,
+            'brand'          => $vehicle->brand ?? null,
+            'model'          => $vehicle->model ?? null,
+            'vehicle_image'  => $vehicle->vehicle_image ?? null,
+            'vehicle_type'   => $vehicle->vehicle_type ?? null,
+            'number_plate'   => $vehicle->number_plate ?? null,
+        ];
+
+        // Fetch rides for this driver and merge directly
+        $rides = Ride::where('vehicle_id', $vehicle->id ?? 0)
+                    ->orderBy('ride_date', 'asc')
+                    ->orderBy('ride_time', 'asc')
+                    ->get();
+
+        foreach ($rides as $ride) {
+            $rideData = [
+                'ride_id'          => $ride->id,
+                'pickup_location'  => $ride->pickup_location,
+                'destination'      => $ride->destination,
+                'number_of_seats'  => $ride->number_of_seats,
+                'price'            => $ride->price * $ride->number_of_seats,
+                'ride_date'        => $ride->ride_date,
+                'ride_time'        => $ride->ride_time,
+                'services'         => $ride->services,
+                'accept_parcel'    => $ride->accept_parcel,
+                'vehicle_id'       => $vehicle->id ?? null,
+                'brand'            => $vehicle->brand ?? null,
+                'model'            => $vehicle->model ?? null,
+                'vehicle_image'    => $vehicle->vehicle_image ?? null,
+                'vehicle_type'     => $vehicle->vehicle_type ?? null,
+                'number_plate'     => $vehicle->number_plate ?? null,
+                'driver_id'        => $driver->id,
+                'driver_status'    => $driver->id_verified ,
+                'driver_rating'    => '3',
+                'phone_number'     => $driver->phone_number,
+                'id_verified'      => $driver->id_verified,
+            ];
+
+            // Merge ride data into the same responseData
+            $responseData = array_merge($responseData, $rideData);
+        }
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Driver details fetched successfully.',
+            'data'    => $responseData,
+        ], 200);
+    }
+
+
+
+
+
+
 
 
 

@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const fileInput = document.getElementById('fileInput1');
         const imagePreview = document.getElementById('imagePreview1');
         const file = fileInput.files[0];
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml'];
 
         imagePreview.innerHTML = '';
         document.querySelector('.error-message')?.remove();
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const fileInput = document.getElementById('fileInputEdit');
         const preview = document.getElementById('imagePreviewEdit');
         const file = fileInput.files[0];
-        const allowedTypes = ['image/jpeg','image/jpg','image/png'];
+        const allowedTypes = ['image/jpeg','image/jpg','image/png', 'image/svg+xml'];
 
         preview.innerHTML = '';
         document.querySelector('.error-message')?.remove();

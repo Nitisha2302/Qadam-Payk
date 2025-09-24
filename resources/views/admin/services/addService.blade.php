@@ -34,7 +34,7 @@
                                 <div class="d-flex align-items-center">
                                     <label class="upload-btn" style="cursor:pointer;">
                                     Upload
-                                        <input type="file" id="fileInput1" class="d-none" name="image" accept=".jpeg, .jpg, .png" onchange="previewImage()">
+                                        <input type="file" id="fileInput1" class="d-none" name="image" accept="image/*" onchange="previewImage()">
                                     </label>
                                     @error('image')
                                         <div class="text-danger error-message">{{ $message }}</div>
