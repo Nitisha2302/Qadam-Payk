@@ -603,7 +603,7 @@ class AuthController extends Controller
             'government_id.array'   => 'Government ID must be an array of files.',
             'government_id.file'    => 'Government ID must be a file.',
             'government_id.mimes'   => 'Government ID must be a file of type: jpeg, png, jpg, pdf.',
-            'government_id.max'     => 'Government ID must not exceed 4MB.',
+            'government_id.max'     => 'Each government ID must not exceed 4MB.',
         ]);
 
 

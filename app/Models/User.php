@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
+
 
 class User extends Authenticatable
 {
@@ -51,5 +53,11 @@ class User extends Authenticatable
     //     // A passenger can have many bookings
     //     return $this->hasMany(RideBooking::class, 'user_id');
     // }
+
+        // ✅ Accessor to format DOB
+    public function getDobAttribute($value)
+    {
+        return $value ? Carbon::parse($value)->format('d-m-Y') : null;
+    }
 
 }

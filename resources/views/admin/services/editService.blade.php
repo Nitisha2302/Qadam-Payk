@@ -33,7 +33,7 @@
                                 <h4>Icon Image:</h4>
                                 <label class="upload-btn" style="cursor:pointer;">
                                     Upload
-                                    <input type="file" id="fileInputEdit" class="d-none" name="image" accept=".jpeg,.jpg,.png" onchange="previewEditImage()">
+                                    <input type="file" id="fileInputEdit" class="d-none" name="image" aaccept="image/*" onchange="previewEditImage()">
                                 </label>
                                 @error('image')
                                     <div class="text-danger error-message">{{ $message }}</div>

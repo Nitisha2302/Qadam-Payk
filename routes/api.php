@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DriverHomeController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\BookingController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -40,11 +42,17 @@ Route::post('update-profile', [AuthController::class, 'updateProfile']);
 
 Route::post('/driver/add-vehicle', [DriverHomeController::class, 'addVehicle']);
 Route::get('/driver/get-vehicles', [DriverHomeController::class, 'getVehicles']);
-Route::post('/driver/edit-vehicle/{id}', [DriverHomeController::class, 'editVehicle']);
+Route::post('/driver/edit-vehicle', [DriverHomeController::class, 'editVehicle']);
 Route::post('/driver/create-ride', [DriverHomeController::class, 'createRide']);
-Route::post('/driver/edit-ride/{ride_id}', [DriverHomeController::class, 'editRide']);
+Route::post('/driver/edit-ride', [DriverHomeController::class, 'editRide']);
+Route::get('/driver-details', [DriverHomeController::class, 'driverDetails']);
 
  Route::get('/search-rides', [DriverHomeController::class, 'searchRides']);
+ Route::get('/search-parcel-rides', [DriverHomeController::class, 'searchParcelRides']);
+
+
+Route::post('/book-ride', [BookingController::class, 'bookRide'])->name('book.ride');
+
 
 
 

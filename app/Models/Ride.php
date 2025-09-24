@@ -37,10 +37,15 @@ class Ride extends Model
     {
         return $this->belongsTo(Vehicle::class);
     }
+
+    public function rideBookings()
+    {
+        return $this->hasMany(RideBooking::class);
+    }
     protected $casts = [
     'services' => 'array',   // 👈 this tells Laravel to store/retrieve JSON
     'accept_parcel' => 'boolean',
     'ride_date' => 'date',
     'ride_time' => 'datetime:H:i',
-];
+  ];
 }
