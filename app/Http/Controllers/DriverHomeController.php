@@ -39,6 +39,7 @@ class DriverHomeController extends Controller
             'number_plate.required' => 'Number plate is required.',
             'number_plate.unique'   => 'This number plate is already registered.',
             'vehicle_image.image'   => 'Vehicle image must be an image file.',
+             'vehicle_image.mimes'   => 'Vehicle image must be a file of type: jpg, jpeg, png.',
         ]);
 
         if ($validator->fails()) {
@@ -183,8 +184,18 @@ class DriverHomeController extends Controller
             'ride_date'       => 'required|date|after_or_equal:today',
             'ride_time'       => 'required|date_format:H:i',
             'accept_parcel'   => 'nullable|boolean',
-            'services'        => 'nullable|array',
-            'services.*'      => 'string|max:100',
+            'services'        => ['nullable', 'array', function($attribute, $value, $fail) {
+                // Reject associative arrays
+                if (array_values($value) !== $value) {
+                    $fail('Services must be a simple array of strings, not key-value pairs.');
+                }
+                // Optional: ensure all elements are strings
+                foreach ($value as $item) {
+                    if (!is_string($item)) {
+                        $fail('Each service must be a string.');
+                    }
+                }
+            }],
         ], [
             'vehicle_id.required'      => 'Vehicle ID is required.',
             'vehicle_id.exists'        => 'The selected vehicle is invalid.',
@@ -200,7 +211,6 @@ class DriverHomeController extends Controller
             'ride_time.date_format'    => 'Ride time must be in the format HH:MM.',
             'accept_parcel.boolean'    => 'Accept parcel must be true or false.',
             'services.array'           => 'Services must be an array.',
-            'services.*.string'        => 'Each service must be a string.',
         ]);
 
         if ($validator->fails()) {
@@ -209,6 +219,7 @@ class DriverHomeController extends Controller
                 'message' => $validator->errors()->first(),
             ], 201);
         }
+        
 
         // ✅ Create Ride (services auto cast to JSON in DB)
         $ride = Ride::create([
@@ -254,8 +265,18 @@ class DriverHomeController extends Controller
             'ride_date'       => 'required|date|after_or_equal:today',
             'ride_time'       => 'required|date_format:H:i',
             'accept_parcel'   => 'nullable|boolean',
-            'services'        => 'nullable|array',
-            'services.*'      => 'string|max:100',
+            'services'        => ['nullable', 'array', function($attribute, $value, $fail) {
+                // Reject associative arrays
+                if (array_values($value) !== $value) {
+                    $fail('Services must be a simple array of strings, not key-value pairs.');
+                }
+                // Ensure all elements are strings
+                foreach ($value as $item) {
+                    if (!is_string($item)) {
+                        $fail('Each service must be a string.');
+                    }
+                }
+            }],
         ], [
             'vehicle_id.required'      => 'Vehicle ID is required.',
             'vehicle_id.exists'        => 'The selected vehicle is invalid.',
@@ -271,7 +292,6 @@ class DriverHomeController extends Controller
             'ride_time.date_format'    => 'Ride time must be in the format HH:MM.',
             'accept_parcel.boolean'    => 'Accept parcel must be true or false.',
             'services.array'           => 'Services must be an array.',
-            'services.*.string'        => 'Each service must be a string.',
         ]);
 
         
@@ -334,7 +354,7 @@ class DriverHomeController extends Controller
             'ride_date.after_or_equal' => 'Ride date must be today or a future date.',
             'number_of_seats.integer'=> 'Number of seats must be a valid number.',
             'number_of_seats.min'    => 'Number of seats must be at least 1.',
-                'services.array'           => 'Services must be an array.',
+            'services.array'           => 'Services must be an array.',
             'services.*.string'        => 'Each service must be a string.',
             'services.*.max'           => 'Each service cannot exceed 50 characters.',
         ]);
@@ -345,6 +365,9 @@ class DriverHomeController extends Controller
                 'message' => $validator->errors()->first(),
             ], 422);
         }
+
+        // ✅ Default seats = 1 if not provided
+       $numberOfSeats = $request->number_of_seats ?? 1;
 
         $query = \App\Models\Ride::query();
 
@@ -369,9 +392,8 @@ class DriverHomeController extends Controller
             }
         }
 
-        if ($request->number_of_seats) {
-            $query->where('number_of_seats', '>=', $request->number_of_seats);
-        }
+        // ✅ Always apply seat filter
+        $query->where('number_of_seats', '>=', $numberOfSeats);
 
         // Optional: Filter by services if provided
         if ($request->services && is_array($request->services)) {
@@ -459,11 +481,13 @@ class DriverHomeController extends Controller
                 'message' => $validator->errors()->first(),
             ], 201);
         }
+         // ✅ Default seats = 1 if not provided
+        $numberOfSeats = $request->number_of_seats ?? 1;
 
         $query = \App\Models\Ride::query();
 
         // ✅ Only rides that accept parcels
-        $query->where('accept_parcel', 1);
+        // $query->where('accept_parcel', 1);
 
         if ($request->pickup_location) {
             $query->where('pickup_location', 'like', '%'.$request->pickup_location.'%');
@@ -485,9 +509,9 @@ class DriverHomeController extends Controller
             }
         }
 
-        if ($request->number_of_seats) {
-            $query->where('number_of_seats', '>=', $request->number_of_seats);
-        }
+   
+        // ✅ Always apply seat filter
+        $query->where('number_of_seats', '>=', $numberOfSeats);
 
         // Optional: Filter by services if provided
         if ($request->services && is_array($request->services)) {

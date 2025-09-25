@@ -685,7 +685,7 @@ public function updateProfile(Request $request)
         'dob'             => 'nullable|string',
         'gender'          => 'nullable|in:male,female,other',
         'profile_image'   => 'nullable|file|mimes:jpeg,png,jpg|max:4096',
-        'government_id'   => 'required|array',
+        'government_id'   => 'nullable|array',
         'government_id.*' => 'file|mimes:jpeg,png,jpg,pdf|max:4096',
     ], [
         'name.required'              => 'Name is required.',

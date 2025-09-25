@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Ride extends Model
 {
@@ -48,4 +49,20 @@ class Ride extends Model
     'ride_date' => 'date',
     'ride_time' => 'datetime:H:i',
   ];
+
+   // ✅ Format ride_date as d-m-Y
+    public function getRideDateAttribute($value)
+    {
+        return $value
+            ? Carbon::parse($value)->format('d-m-Y')
+            : null;
+    }
+
+    // ✅ Format ride_time as H:i
+    public function getRideTimeAttribute($value)
+    {
+        return $value
+            ? Carbon::parse($value)->format('H:i')
+            : null;
+    }
 }
