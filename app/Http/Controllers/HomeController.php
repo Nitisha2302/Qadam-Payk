@@ -75,7 +75,7 @@ class HomeController extends Controller
     public function getAllServices()
     {
         // Get all services with id and service_name
-        $services = Service::select('id', 'service_name')->get();
+        $services = Service::select('id', 'service_name','service_image')->get();
 
         return response()->json([
             'status' => true,
