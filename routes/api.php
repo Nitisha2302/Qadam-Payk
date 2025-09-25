@@ -6,7 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DriverHomeController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\BookingController;
-
+use App\Http\Controllers\PassengerRequestController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -52,6 +52,19 @@ Route::get('/driver-details', [DriverHomeController::class, 'driverDetails']);
 
 
 Route::post('/book-ride', [BookingController::class, 'bookRide'])->name('book.ride');
+// Route::post('store-passenger-request', [PassengerRequestController::class, 'createRequest']);
+Route::get('get-current-passenger-requests', [PassengerRequestController::class, 'listCurrentPassengerRequests']);
+Route::post('/store-ride-request', [PassengerRequestController::class, 'createRideRequest']);
+Route::post('/store-parcel-request', [PassengerRequestController::class, 'createParcelRequest']);
+Route::get('all-ride-requests', [PassengerRequestController::class, 'getAllRideRequests']);
+Route::get('all-parcel-requests', [PassengerRequestController::class, 'getAllParcelRequests']);
+
+// Driver accepts a request
+Route::post('/driver/accept-request', [PassengerRequestController::class, 'acceptRequest']);
+
+// Passenger confirms a request
+Route::post('/passenger/confirm-request', [PassengerRequestController::class, 'confirmRequest']);
+
 
 
 
