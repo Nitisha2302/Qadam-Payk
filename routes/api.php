@@ -52,7 +52,7 @@ Route::get('/driver-details', [DriverHomeController::class, 'driverDetails']);
 
 
 Route::post('/book-ride', [BookingController::class, 'bookRideOrParcel'])->name('book.ride');
-Route::post('/get-drivers-booking', [BookingController::class, 'getDriverBookings'])->name('get-drivers-booking');
+Route::get('/get-drivers-booking', [BookingController::class, 'getDriverBookings'])->name('get-drivers-booking');
 Route::post('/confirm-booking', [BookingController::class, 'confirmBooking'])->name('confirm-booking');
 
 // Route::post('store-passenger-request', [PassengerRequestController::class, 'createRequest']);
