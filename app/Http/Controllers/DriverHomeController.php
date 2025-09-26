@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\Ride;
+use App\Models\Service;
 use Carbon\Carbon;
 
 class DriverHomeController extends Controller
@@ -184,18 +185,8 @@ class DriverHomeController extends Controller
             'ride_date'       => 'required|date|after_or_equal:today',
             'ride_time'       => 'required|date_format:H:i',
             'accept_parcel'   => 'nullable|boolean',
-            'services'        => ['nullable', 'array', function($attribute, $value, $fail) {
-                // Reject associative arrays
-                if (array_values($value) !== $value) {
-                    $fail('Services must be a simple array of strings, not key-value pairs.');
-                }
-                // Optional: ensure all elements are strings
-                foreach ($value as $item) {
-                    if (!is_string($item)) {
-                        $fail('Each service must be a string.');
-                    }
-                }
-            }],
+            'services'        => 'nullable|array',
+            'services.*'      => 'exists:services,id', 
         ], [
             'vehicle_id.required'      => 'Vehicle ID is required.',
             'vehicle_id.exists'        => 'The selected vehicle is invalid.',
@@ -210,7 +201,7 @@ class DriverHomeController extends Controller
             'ride_time.required'       => 'Ride time is required.',
             'ride_time.date_format'    => 'Ride time must be in the format HH:MM.',
             'accept_parcel.boolean'    => 'Accept parcel must be true or false.',
-            'services.array'           => 'Services must be an array.',
+             'services.*.exists' => 'One or more selected services are invalid.',
         ]);
 
         if ($validator->fails()) {
@@ -234,6 +225,11 @@ class DriverHomeController extends Controller
            'accept_parcel'  => $request->accept_parcel ?? false,
             'services'       => $request->services,
         ]);
+
+             // ✅ Replace IDs with details before response
+         $ride->services = Service::whereIn('id', $request->services ?? [])
+                            ->get(['id','service_name','service_image']);
+
 
         return response()->json([
             'status'  => true,
@@ -265,18 +261,7 @@ class DriverHomeController extends Controller
             'ride_date'       => 'required|date|after_or_equal:today',
             'ride_time'       => 'required|date_format:H:i',
             'accept_parcel'   => 'nullable|boolean',
-            'services'        => ['nullable', 'array', function($attribute, $value, $fail) {
-                // Reject associative arrays
-                if (array_values($value) !== $value) {
-                    $fail('Services must be a simple array of strings, not key-value pairs.');
-                }
-                // Ensure all elements are strings
-                foreach ($value as $item) {
-                    if (!is_string($item)) {
-                        $fail('Each service must be a string.');
-                    }
-                }
-            }],
+         'services'        => ['nullable', 'array'],
         ], [
             'vehicle_id.required'      => 'Vehicle ID is required.',
             'vehicle_id.exists'        => 'The selected vehicle is invalid.',
@@ -315,18 +300,23 @@ class DriverHomeController extends Controller
             ], 201);
         }
 
-        // ✅ Update ride
+  
+         // ✅ Update ride (store only IDs for services)
         $ride->update([
             'vehicle_id'      => $request->vehicle_id,
-            'pickup_location'=> $request->pickup_location,
-            'destination'    => $request->destination,
-            'number_of_seats'=> $request->number_of_seats,
-            'price'          => $request->price,
-            'ride_date'      => $request->ride_date,
-            'ride_time'      => $request->ride_time,
-            'accept_parcel'  => $request->accept_parcel ?? false,
-            'services'       => $request->services,
+            'pickup_location' => $request->pickup_location,
+            'destination'     => $request->destination,
+            'number_of_seats' => $request->number_of_seats,
+            'price'           => $request->price,
+            'ride_date'       => $request->ride_date,
+            'ride_time'       => $request->ride_time,
+            'accept_parcel'   => $request->accept_parcel ?? false,
+            'services'        => $request->services,
         ]);
+
+        // ✅ Expand services only for response
+        $ride->services = Service::whereIn('id', $request->services ?? [])
+                            ->get(['id','service_name','service_image']);
 
         return response()->json([
             'status'  => true,
@@ -410,6 +400,8 @@ class DriverHomeController extends Controller
         $vehicle = Vehicle::find($ride->vehicle_id);
         $driver  = $vehicle ? User::find($vehicle->user_id) : null;
 
+    
+
         // Calculate total price based on requested seats
         $totalPrice = $request->number_of_seats 
                     ? $ride->price * $request->number_of_seats 
@@ -423,7 +415,7 @@ class DriverHomeController extends Controller
                'price'            => $totalPrice,
                 'ride_date'        => $ride->ride_date,
                 'ride_time'        => $ride->ride_time,
-                'services'         => $ride->services,
+                'services'         =>  $ride->services_details,
                 'accept_parcel'    => $ride->accept_parcel,
 
                 // Vehicle fields
@@ -542,7 +534,7 @@ class DriverHomeController extends Controller
                 'price'            => $totalPrice,
                 'ride_date'        => $ride->ride_date,
                 'ride_time'        => $ride->ride_time,
-                'services'         => $ride->services,
+                'services'         => $ride->services_details,
                 'accept_parcel'    => $ride->accept_parcel,
 
                 // Vehicle
@@ -622,7 +614,7 @@ class DriverHomeController extends Controller
                 'price'            => $ride->price * $ride->number_of_seats,
                 'ride_date'        => $ride->ride_date,
                 'ride_time'        => $ride->ride_time,
-                'services'         => $ride->services,
+                'services'         => $ride->services_details,
                 'accept_parcel'    => $ride->accept_parcel,
                 'vehicle_id'       => $vehicle->id ?? null,
                 'brand'            => $vehicle->brand ?? null,

@@ -50,6 +50,14 @@ class Ride extends Model
     'ride_time' => 'datetime:H:i',
   ];
 
+      // ✅ Accessor for expanded service details
+    public function getServicesDetailsAttribute()
+    {
+        // returns collection of services (id, name, image)
+        return Service::whereIn('id', $this->services ?? [])
+                      ->get(['id', 'service_name', 'service_image']);
+    }
+
    // ✅ Format ride_date as d-m-Y
     public function getRideDateAttribute($value)
     {
@@ -64,5 +72,10 @@ class Ride extends Model
         return $value
             ? Carbon::parse($value)->format('H:i')
             : null;
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(RideBooking::class, 'ride_id');
     }
 }

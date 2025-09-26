@@ -122,7 +122,7 @@ class PassengerRequestController extends Controller
             // 'ride_time' => 'required|date_format:H:i', // uncomment if needed
             'number_of_seats' => 'nullable|integer|min:1',
             'services' => 'nullable|array',
-            'services.*' => 'string|max:50',
+            'services.*'      => 'exists:services,id', // validate IDs exist
         ], [
             'pickup_location.required' => 'Pickup location is required.',
             'pickup_location.string' => 'Pickup location must be a string.',
@@ -145,7 +145,7 @@ class PassengerRequestController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['status'=>false,'message'=>$validator->errors()->first()],422);
+            return response()->json(['status'=>false,'message'=>$validator->errors()->first()],201);
         }
 
         $data = $request->only(['pickup_location','destination','ride_date','number_of_seats','services']);
@@ -156,11 +156,21 @@ class PassengerRequestController extends Controller
         $data['services'] = $data['services'] ?? [];
 
         $requestModel = PassengerRequest::create($data);
-
         return response()->json([
-            'status'=>true,
-            'message'=>'Ride request created successfully',
-            'data'=>$requestModel
+            'status'  => true,
+            'message' => 'Ride request created successfully',
+            'data'    => [
+                'id'              => $requestModel->id,
+                'pickup_location' => $requestModel->pickup_location,
+                'destination'     => $requestModel->destination,
+                'ride_date'       => $requestModel->ride_date,
+                'number_of_seats' => $requestModel->number_of_seats,
+                'services'        => $requestModel->services_details, // ✅ full service objects
+                'user_id'         => $requestModel->user_id,
+                'type'            => $requestModel->type,
+                'created_at'      => $requestModel->created_at,
+                'updated_at'      => $requestModel->updated_at,
+            ]
         ], 200);
     }
 
@@ -202,7 +212,7 @@ class PassengerRequestController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['status'=>false,'message'=>$validator->errors()->first()],422);
+            return response()->json(['status'=>false,'message'=>$validator->errors()->first()],201);
         }
 
         $data = $request->only([
@@ -232,7 +242,7 @@ class PassengerRequestController extends Controller
         return response()->json([
             'status'=>true,
             'message'=>'Parcel request created successfully',
-            'data'=>$requestModel
+            'data'=> $requestModel,
         ], 200);
     }
 
@@ -248,10 +258,19 @@ class PassengerRequestController extends Controller
             ], 401);
         }
 
-        $requests = PassengerRequest::where('user_id', $user->id)
-            ->orderBy('ride_date', 'asc')
-            ->get();
+        // $requests = PassengerRequest::where('user_id', $user->id)
+        //     ->orderBy('ride_date', 'asc')
+        //     ->get();
 
+      $requests = PassengerRequest::where('user_id', $user->id)
+        ->orderBy('ride_date', 'asc')
+        ->get()
+        ->map(function ($requestModel) {
+            $data = $requestModel->toArray();
+            // overwrite 'services' with expanded details
+            $data['services'] = $requestModel->services_details;
+            return $data;
+        });
         return response()->json([
             'status' => true,
             'message' => 'Passenger requests retrieved successfully',
@@ -324,8 +343,8 @@ class PassengerRequestController extends Controller
 
 
 
-   // Get all ride requests (type = 0) with user info merged
-    public function getAllRideRequests(Request $request)
+     // Get all ride requests (type = 0) with user info merged 
+   public function getAllRideRequests(Request $request)
     {
         // ✅ Read filters from query parameters
         $pickup_location = $request->query('pickup_location');
@@ -356,7 +375,7 @@ class PassengerRequestController extends Controller
             return response()->json([
                 'status'  => false,
                 'message' => $validator->errors()->first(),
-            ], 422);
+            ], 201);
         }
 
         $query = PassengerRequest::with('user')
@@ -401,7 +420,7 @@ class PassengerRequestController extends Controller
             'status'  => true,
             'message' => 'Ride requests retrieved successfully.',
             'data'    => $ridesData,
-        ]);
+        ],200);
     }
 
 
@@ -437,7 +456,7 @@ class PassengerRequestController extends Controller
             return response()->json([
                 'status'  => false,
                 'message' => $validator->errors()->first(),
-            ], 422);
+            ], 201);
         }
 
         $query = PassengerRequest::with('user')
@@ -482,7 +501,7 @@ class PassengerRequestController extends Controller
             'status'  => true,
             'message' => 'Parcel requests retrieved successfully.',
             'data'    => $parcelsData,
-        ]);
+        ],200);
     }
 
 
@@ -496,7 +515,7 @@ class PassengerRequestController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['status'=>false,'message'=>$validator->errors()->first()],422);
+            return response()->json(['status'=>false,'message'=>$validator->errors()->first()],201);
         }
 
         $requestModel = PassengerRequest::find($request->request_id);
@@ -520,7 +539,7 @@ class PassengerRequestController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['status'=>false,'message'=>$validator->errors()->first()],422);
+            return response()->json(['status'=>false,'message'=>$validator->errors()->first()],201);
         }
 
         $requestModel = PassengerRequest::where('id', $request->request_id)

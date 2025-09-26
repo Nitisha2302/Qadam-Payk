@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class RideBooking extends Model
 {
     protected $fillable = [
-        'ride_id', 'user_id', 'seats_booked', 'price', 'services', 'status'
+        'ride_id', 'user_id', 'seats_booked', 'price', 'services', 'status','type'
     ];
 
     protected $casts = [
@@ -23,4 +23,15 @@ class RideBooking extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    // RideBooking.php
+    public function getServicesDetailsAttribute()
+    {
+        // return full service details for the stored IDs
+        return \App\Models\Service::whereIn('id', $this->services ?? [])
+                                ->get(['id', 'service_name', 'service_image']);
+    }
+
+
+    
 }
