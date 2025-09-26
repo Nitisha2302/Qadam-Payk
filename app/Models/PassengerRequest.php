@@ -52,4 +52,11 @@ class PassengerRequest extends Model
             ? Carbon::parse($value)->format('H:i')
             : null;
     }
+
+     // ✅ Accessor to get full service details
+    public function getServicesDetailsAttribute()
+    {
+        return Service::whereIn('id', $this->services ?? [])
+                      ->get(['id', 'service_name', 'service_image']);
+    }
 }

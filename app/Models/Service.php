@@ -17,4 +17,18 @@ class Service extends Model
 
     // Optional: if you want to customize table name (default is 'services')
     // protected $table = 'services';
+    // Accessor: replace service IDs with details
+    protected $casts = [
+        'services' => 'array', // stored as JSON
+    ];
+    public function getServicesAttribute($value)
+    {
+        $ids = json_decode($value, true);
+
+        if (empty($ids) || !is_array($ids)) {
+            return [];
+        }
+
+        return Service::whereIn('id', $ids)->get(['id','service_name','service_image']);
+    }
 }
