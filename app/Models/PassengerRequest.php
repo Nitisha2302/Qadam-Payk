@@ -25,6 +25,8 @@ class PassengerRequest extends Model
         'services',
         'driver_id',
         'status',
+        'budget',
+        'preferred_time',
     ];
 
     protected $casts = [
@@ -59,4 +61,39 @@ class PassengerRequest extends Model
         return Service::whereIn('id', $this->services ?? [])
                       ->get(['id', 'service_name', 'service_image']);
     }
+
+    // Driver relationship
+    public function driver()
+    {
+        return $this->belongsTo(User::class, 'driver_id');
+    }
+
+   // Vehicle relationship (through the driver)
+    public function vehicle()
+    {
+        return $this->hasOneThrough(
+            Vehicle::class,    // The model you want
+            User::class,       // The intermediate model (driver)
+            'id',              // Foreign key on the User (driver) table
+            'user_id',         // Foreign key on Vehicle table
+            'driver_id',       // Local key on PassengerRequest (driver_id)
+            'id'               // Local key on User table
+        );
+    }
+
+    // public function interests()
+    // {
+    //     return $this->hasMany(PassengerRequestDriverInterest::class);
+    // }
+
+    public function interests()
+    {
+        return $this->hasMany(PassengerRequestDriverInterest::class, 'passenger_request_id');
+    }
+
+
+
+
+
+
 }

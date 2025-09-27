@@ -328,6 +328,15 @@ class DriverHomeController extends Controller
 
     public function searchRides(Request $request)
     {
+        $user = Auth::guard('api')->user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not authenticated.',
+            ], 401);
+        }
+
         $validator = Validator::make($request->all(), [
             'pickup_location' => 'nullable|string|max:255',
             'destination'     => 'nullable|string|max:255',
@@ -360,6 +369,9 @@ class DriverHomeController extends Controller
        $numberOfSeats = $request->number_of_seats ?? 1;
 
         $query = \App\Models\Ride::query();
+
+        // ❌ Exclude rides created by authenticated user
+        $query->where('user_id', '!=', $user->id);
 
         if ($request->pickup_location) {
             $query->where('pickup_location', 'like', '%'.$request->pickup_location.'%');
@@ -446,6 +458,13 @@ class DriverHomeController extends Controller
 
     public function searchParcelRides(Request $request)
     {
+        $user = Auth::guard('api')->user();
+        if (!$user) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'User not authenticated'
+            ], 401);
+        }
         $validator = Validator::make($request->all(), [
             'pickup_location' => 'nullable|string|max:255',
             'destination'     => 'nullable|string|max:255',
@@ -480,6 +499,8 @@ class DriverHomeController extends Controller
 
         // ✅ Only rides that accept parcels
         $query->where('accept_parcel', 1);
+        // ❌ Exclude rides created by authenticated user
+        $query->where('user_id', '!=', $user->id);
 
         if ($request->pickup_location) {
             $query->where('pickup_location', 'like', '%'.$request->pickup_location.'%');

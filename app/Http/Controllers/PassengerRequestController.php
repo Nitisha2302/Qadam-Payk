@@ -7,10 +7,13 @@ use App\Models\PassengerRequest;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+   use App\Models\RideBooking;
+use Illuminate\Support\Facades\DB;
 
 class PassengerRequestController extends Controller
 {
     // Create a ride or parcel request commomn
+
     // public function createRequest(Request $request)
     // {
     //     // ✅ Get authenticated user
@@ -123,6 +126,8 @@ class PassengerRequestController extends Controller
             'number_of_seats' => 'nullable|integer|min:1',
             'services' => 'nullable|array',
             'services.*'      => 'exists:services,id', // validate IDs exist
+                'budget' => 'nullable|numeric|min:0',
+            'preferred_time' => 'nullable|date_format:H:i',
         ], [
             'pickup_location.required' => 'Pickup location is required.',
             'pickup_location.string' => 'Pickup location must be a string.',
@@ -142,13 +147,17 @@ class PassengerRequestController extends Controller
             'services.array' => 'Services must be an array.',
             'services.*.string' => 'Each service must be a string.',
             'services.*.max' => 'Each service cannot exceed 50 characters.',
+
+            'budget.numeric' => 'Budget must be a valid number.',
+            'budget.min' => 'Budget must be at least 0.',
+            'preferred_time.date_format' => 'Preferred time must be in HH:MM format.',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['status'=>false,'message'=>$validator->errors()->first()],201);
         }
 
-        $data = $request->only(['pickup_location','destination','ride_date','number_of_seats','services']);
+        $data = $request->only(['pickup_location','destination','ride_date','number_of_seats','services','budget','preferred_time']);
         $data['user_id'] = $user->id;
         $data['type'] = 0;
         $data['ride_date'] = Carbon::createFromFormat('d-m-Y', $data['ride_date'])->format('Y-m-d');
@@ -166,6 +175,8 @@ class PassengerRequestController extends Controller
                 'ride_date'       => $requestModel->ride_date,
                 'number_of_seats' => $requestModel->number_of_seats,
                 'services'        => $requestModel->services_details, // ✅ full service objects
+                'budget'          => $requestModel->budget,
+                'preferred_time'  => $requestModel->preferred_time,
                 'user_id'         => $requestModel->user_id,
                 'type'            => $requestModel->type,
                 'created_at'      => $requestModel->created_at,
@@ -193,6 +204,8 @@ class PassengerRequestController extends Controller
             'drop_contact_no' => 'required|string|max:20',
             'parcel_details' => 'required|string',
             'parcel_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'budget' => 'nullable|numeric|min:0',
+            'preferred_time' => 'nullable|date_format:H:i',
         ], [
             'pickup_location.required' => 'Pickup location is required.',
             'destination.required' => 'Destination is required.',
@@ -209,6 +222,9 @@ class PassengerRequestController extends Controller
             'parcel_images.*.image' => 'Each file must be an image.',
             'parcel_images.*.mimes' => 'Image must be jpeg, png, jpg, or gif.',
             'parcel_images.*.max' => 'Each image may not exceed 2MB.',
+             'budget.numeric' => 'Budget must be a valid number.',
+            'budget.min' => 'Budget must be at least 0.',
+            'preferred_time.date_format' => 'Preferred time must be in HH:MM format.',
         ]);
 
         if ($validator->fails()) {
@@ -217,7 +233,7 @@ class PassengerRequestController extends Controller
 
         $data = $request->only([
             'pickup_location','destination','ride_date','ride_time',
-            'pickup_contact_name','pickup_contact_no','drop_contact_name','drop_contact_no','parcel_details'
+            'pickup_contact_name','pickup_contact_no','drop_contact_name','drop_contact_no','parcel_details','budget','preferred_time'
         ]);
 
         $data['user_id'] = $user->id;
@@ -246,105 +262,8 @@ class PassengerRequestController extends Controller
         ], 200);
     }
 
-
-    // List all requests of the current passenger
-    public function listCurrentPassengerRequests(Request $request)
-    {
-        $user = Auth::guard('api')->user();
-        if (!$user) {
-            return response()->json([
-                'status' => false,
-                'message' => 'User not authenticated'
-            ], 401);
-        }
-
-        // $requests = PassengerRequest::where('user_id', $user->id)
-        //     ->orderBy('ride_date', 'asc')
-        //     ->get();
-
-      $requests = PassengerRequest::where('user_id', $user->id)
-        ->orderBy('ride_date', 'asc')
-        ->get()
-        ->map(function ($requestModel) {
-            $data = $requestModel->toArray();
-            // overwrite 'services' with expanded details
-            $data['services'] = $requestModel->services_details;
-            return $data;
-        });
-        return response()->json([
-            'status' => true,
-            'message' => 'Passenger requests retrieved successfully',
-            'data' => $requests
-        ], 200);
-    }
-
-
-    // // Get all ride requests (type = 0) with user info merged
-    // public function getAllRideRequests()
-    // {
-    //     $rides = PassengerRequest::with('user')
-    //         ->where('type', 0)
-    //         ->where('status', 'pending')
-    //         ->orderBy('ride_date', 'asc')
-    //         ->get();
-
-    //     $rides = $rides->map(function ($ride) {
-    //         if ($ride->user) {
-    //             $userData = $ride->user->only([
-    //                 'id','image','name','phone_number','is_phone_verify','email','role','dob','gender',
-    //                 'government_id','id_verified','apple_token','facebook_token','google_token','is_social',
-    //                 'device_type','device_id','device_token','api_token','vehicle_number','vehicle_type',
-    //                 'created_at','updated_at'
-    //             ]);
-    //             $ride = $ride->toArray();
-    //             unset($ride['user']); // remove nested user
-    //             return array_merge($ride, $userData);
-    //         }
-    //         return $ride;
-    //     });
-
-    //     return response()->json([
-    //         'status' => true,
-    //         'message' => 'All ride requests retrieved successfully',
-    //         'data' => $rides
-    //     ]);
-    // }
-
-    // // Get all parcel requests (type = 1) with user info merged
-    // public function getAllParcelRequests()
-    // {
-    //     $parcels = PassengerRequest::with('user')
-    //         ->where('type', 1)
-    //         ->where('status', 'pending')
-    //         ->orderBy('ride_date', 'asc')
-    //         ->get();
-
-    //     $parcels = $parcels->map(function ($parcel) {
-    //         if ($parcel->user) {
-    //             $userData = $parcel->user->only([
-    //                 'id','image','name','phone_number','is_phone_verify','email','role','dob','gender',
-    //                 'government_id','id_verified','apple_token','facebook_token','google_token','is_social',
-    //                 'device_type','device_id','device_token','api_token','vehicle_number','vehicle_type',
-    //                 'created_at','updated_at'
-    //             ]);
-    //             $parcel = $parcel->toArray();
-    //             unset($parcel['user']); // remove nested user
-    //             return array_merge($parcel, $userData);
-    //         }
-    //         return $parcel;
-    //     });
-
-    //     return response()->json([
-    //         'status' => true,
-    //         'message' => 'All parcel requests retrieved successfully',
-    //         'data' => $parcels
-    //     ]);
-    // }
-
-
-
-     // Get all ride requests (type = 0) with user info merged 
-   public function getAllRideRequests(Request $request)
+    // Get all ride requests (type = 0) with user info merged 
+    public function getAllRideRequests(Request $request)
     {
         // ✅ Read filters from query parameters
         $pickup_location = $request->query('pickup_location');
@@ -400,21 +319,37 @@ class PassengerRequestController extends Controller
                     ->orderBy('ride_time', 'asc')
                     ->get();
 
-        // ✅ Merge user info
         $ridesData = $rides->map(function ($ride) {
+            $rideArray = [
+                'id'              => $ride->id,
+                'pickup_location' => $ride->pickup_location,
+                'destination'     => $ride->destination,
+                'ride_date'       => $ride->ride_date,
+                'number_of_seats' => $ride->number_of_seats,
+                'services'        => $ride->services_details,
+                'budget'          => $ride->budget,
+                'preferred_time'  => $ride->preferred_time,
+                'type'            => $ride->type,
+                'status'          => $ride->status,
+                'created_at'      => $ride->created_at,
+                'updated_at'      => $ride->updated_at,
+                'user_id'         => $ride->user_id, // keep user_id
+            ];
+
+            // Merge user fields directly into ride array
             if ($ride->user) {
                 $userData = $ride->user->only([
-                    'id','image','name','phone_number','is_phone_verify','email','role','dob','gender',
-                    'government_id','id_verified','apple_token','facebook_token','google_token','is_social',
-                    'device_type','device_id','device_token','api_token','vehicle_number','vehicle_type',
-                    'created_at','updated_at'
+                    'image','name','phone_number','is_phone_verify','email',
+                    'role','dob','gender','government_id','id_verified',
+                    'vehicle_number','vehicle_type'
                 ]);
-                $rideArr = $ride->toArray();
-                unset($rideArr['user']);
-                return array_merge($rideArr, $userData);
+                $rideArray = array_merge($rideArray, $userData);
             }
-            return $ride;
+
+            return $rideArray;
         });
+
+
 
         return response()->json([
             'status'  => true,
@@ -481,21 +416,36 @@ class PassengerRequestController extends Controller
                         ->orderBy('ride_time', 'asc')
                         ->get();
 
-        // ✅ Merge user info
-        $parcelsData = $parcels->map(function ($parcel) {
+           $parcelsData = $parcels->map(function ($parcel) {
+            $parcelArray = [
+                'id'              => $parcel->id,
+                'pickup_location' => $parcel->pickup_location,
+                'destination'     => $parcel->destination,
+                'ride_date'       => $parcel->ride_date,
+                'number_of_seats' => $parcel->number_of_seats,
+                'services'        => $parcel->services_details,
+                'budget'          => $parcel->budget,
+                'preferred_time'  => $parcel->preferred_time,
+                'type'            => $parcel->type,
+                'status'          => $parcel->status,
+                'created_at'      => $parcel->created_at,
+                'updated_at'      => $parcel->updated_at,
+                'user_id'         => $parcel->user_id, // keep user_id
+            ];
+
+            // Merge user fields directly into ride array
             if ($parcel->user) {
                 $userData = $parcel->user->only([
-                    'id','image','name','phone_number','is_phone_verify','email','role','dob','gender',
-                    'government_id','id_verified','apple_token','facebook_token','google_token','is_social',
-                    'device_type','device_id','device_token','api_token','vehicle_number','vehicle_type',
-                    'created_at','updated_at'
+                    'image','name','phone_number','is_phone_verify','email',
+                    'role','dob','gender','government_id','id_verified',
+                    'vehicle_number','vehicle_type'
                 ]);
-                $parcelArr = $parcel->toArray();
-                unset($parcelArr['user']);
-                return array_merge($parcelArr, $userData);
+                $parcelArray = array_merge($parcelArray, $userData);
             }
-            return $parcel;
+
+            return $parcelArray;
         });
+
 
         return response()->json([
             'status'  => true,
@@ -505,11 +455,214 @@ class PassengerRequestController extends Controller
     }
 
 
+    // List all requests of the current passenger
+    public function listCurrentPassengerRequests(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not authenticated'
+            ], 401);
+        }
+
+        // $requests = PassengerRequest::where('user_id', $user->id)
+        //     ->orderBy('ride_date', 'asc')
+        //     ->get();
+
+      $requests = PassengerRequest::where('user_id', $user->id)
+        ->orderBy('ride_date', 'asc')
+        ->get()
+        ->map(function ($requestModel) {
+            $data = $requestModel->toArray();
+            // overwrite 'services' with expanded details
+            $data['services'] = $requestModel->services_details;
+            return $data;
+        });
+        return response()->json([
+            'status' => true,
+            'message' => 'Passenger requests retrieved successfully',
+            'data' => $requests
+        ], 200);
+    }
+
+
+
+
   
     // Driver accepts a passenger request
-    public function acceptRequest(Request $request)
+    // public function updateRequestInterestStatus(Request $request)
+    // {
+    //     $driver = Auth::guard('api')->user();
+
+    //           if (!$driver) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'User not authenticated'
+    //         ], 401);
+    //     }
+
+    //     $validator = Validator::make($request->all(), [
+    //         'request_id' => 'required|exists:passenger_requests,id',
+    //     ], [
+    //         'request_id.required' => 'The request ID is required.',
+    //         'request_id.exists'   => 'This request does not exist.',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => $validator->errors()->first()
+    //         ], 201);
+    //     }
+
+    //     $requestModel = PassengerRequest::find($request->request_id);
+    //     if($requestModel->status != 'pending'){
+    //         return response()->json(['status'=>false,'message'=>'Request already interested or confirmed'],400);
+    //     }
+
+    //     $requestModel->driver_id = $driver->id;
+    //     $requestModel->status = 'interested';
+    //     $requestModel->save();
+
+    //     // Merge user and vehicle details at the top level
+    //     $responseData = [
+    //         'id'              => $requestModel->id,
+    //         'pickup_location' => $requestModel->pickup_location,
+    //         'destination'     => $requestModel->destination,
+    //         'ride_date'       => $requestModel->ride_date,
+    //         'number_of_seats' => $requestModel->number_of_seats,
+    //         'services'        => $requestModel->services_details,
+    //         'budget'          => $requestModel->budget,
+    //         'preferred_time'  => $requestModel->preferred_time,
+    //         'user_id'         => $requestModel->user_id,
+    //         'type'            => $requestModel->type,
+    //         'status'          => $requestModel->status,
+    //         'driver_id'       => $requestModel->driver_id,
+    //         'created_at'      => $requestModel->created_at,
+    //         'updated_at'      => $requestModel->updated_at,
+    //     ];
+
+    //     if ($requestModel->user) {
+    //         $userData = $requestModel->user->only([
+    //             'id', 'name', 'phone_number', 'image', 'is_phone_verify', 'email',
+    //             'role', 'dob', 'gender', 'government_id', 'id_verified',
+    //         ]);
+
+    //         // Merge vehicle details if exists
+    //         if ($requestModel->user->vehicle) {
+    //             $vehicleData = $requestModel->user->vehicle->only([
+    //                 'id', 'user_id', 'brand', 'model', 'number_plate', 'vehicle_image', 'vehicle_type'
+    //             ]);
+    //             $userData['vehicle'] = $vehicleData;
+    //         }
+
+    //         $responseData = array_merge($responseData, $userData);
+    //     }
+
+    //     return response()->json(['status'=>true,'message'=>'Driver is  interested in your request successfully','data'=>$responseData]);
+    // }
+
+    // public function updateRequestConfirmStatus(Request $request)
+    // {
+    //     $passenger = Auth::guard('api')->user();
+    //     if (!$passenger) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'User not authenticated'
+    //         ], 401);
+    //     }
+
+    //     $validator = Validator::make($request->all(), [
+    //         'request_id' => 'required|exists:passenger_requests,id',
+    //     ], [
+    //         'request_id.required' => 'The request ID is required.',
+    //         'request_id.exists'   => 'This request does not exist.',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => $validator->errors()->first()
+    //         ], 201);
+    //     }
+
+    //     $requestModel = PassengerRequest::where('id', $request->request_id)
+    //         ->where('user_id', $passenger->id)
+    //         ->where('status', 'interested')
+    //         ->first();
+
+    //     if(!$requestModel){
+    //         return response()->json(['status'=>false,'message'=>'Request not interested yet or already confirmed'],400);
+    //     }
+
+    //     DB::transaction(function() use ($requestModel, $passenger) {
+    //         // Update request status
+    //         $requestModel->status = 'confirmed';
+    //         $requestModel->save();
+
+    //         // Create booking entry (driver is user_id here)
+    //         RideBooking::create([
+    //             // 'ride_id'       => $requestModel->id, // passenger_request id
+    //             'type'          => $requestModel->type,
+    //             'user_id'       => $requestModel->driver_id, // driver ID
+    //             'seats_booked'  => $requestModel->number_of_seats,
+    //             'price'         => $requestModel->budget,
+    //             'services'      => json_encode($requestModel->services ?? []),
+    //             'status'        => 'confirmed',
+    //             'active_status' => 1,
+    //         ]);
+    //     });
+
+    //     // Prepare response
+    //     $responseData = [
+    //         'id'              => $requestModel->id,
+    //         'pickup_location' => $requestModel->pickup_location,
+    //         'destination'     => $requestModel->destination,
+    //         'ride_date'       => $requestModel->ride_date,
+    //         'number_of_seats' => $requestModel->number_of_seats,
+    //         'services'        => $requestModel->services_details,
+    //         'budget'          => $requestModel->budget,
+    //         'preferred_time'  => $requestModel->preferred_time,
+    //         'user_id'         => $requestModel->user_id,
+    //         'type'            => $requestModel->type,
+    //         'status'          => $requestModel->status,
+    //         'driver_id'       => $requestModel->driver_id,
+    //         'created_at'      => $requestModel->created_at,
+    //         'updated_at'      => $requestModel->updated_at,
+    //     ];
+
+    //     if ($requestModel->user) {
+    //         $userData = $requestModel->user->only([
+    //             'id', 'name', 'phone_number', 'image', 'is_phone_verify', 'email',
+    //             'role', 'dob', 'gender', 'government_id', 'id_verified',
+    //         ]);
+
+    //         if ($requestModel->user->vehicle) {
+    //             $vehicleData = $requestModel->user->vehicle->only([
+    //                 'id', 'user_id', 'brand', 'model', 'number_plate', 'vehicle_image', 'vehicle_type'
+    //             ]);
+    //             $userData['vehicle'] = $vehicleData;
+    //         }
+
+    //         $responseData = array_merge($responseData, $userData);
+    //     }
+
+    //     return response()->json([
+    //         'status'=>true,
+    //         'message'=>'Request confirmed successfully',
+    //         'data'=>$responseData
+    //     ]);
+    // }
+
+
+    public function updateRequestInterestStatus(Request $request)
     {
         $driver = Auth::guard('api')->user();
+        if (!$driver) {
+            return response()->json(['status'=>false,'message'=>'User not authenticated'],401);
+        }
+
         $validator = Validator::make($request->all(), [
             'request_id' => 'required|exists:passenger_requests,id',
         ]);
@@ -519,43 +672,169 @@ class PassengerRequestController extends Controller
         }
 
         $requestModel = PassengerRequest::find($request->request_id);
-        if($requestModel->status != 'pending'){
-            return response()->json(['status'=>false,'message'=>'Request already accepted or confirmed'],400);
+
+        $alreadyInterested = $requestModel->interests()->where('driver_id', $driver->id)->exists();
+        if ($alreadyInterested) {
+            return response()->json(['status'=>false,'message'=>'You already expressed interest'],201);
         }
 
-        $requestModel->driver_id = $driver->id;
-        $requestModel->status = 'accepted';
-        $requestModel->save();
+        $requestModel->interests()->create([
+            'driver_id' => $driver->id,
+        ]);
 
-        return response()->json(['status'=>true,'message'=>'Request accepted successfully','data'=>$requestModel]);
+        return response()->json(['status'=>true,'message'=>'Driver expressed interest successfully'],200);
     }
 
-    // Passenger confirms a request after driver accepts
-    public function confirmRequest(Request $request)
+
+    public function getInterestedDrivers($request_id)
+    {
+        $requestModel = PassengerRequest::with(['interests.driver.vehicle'])->find($request_id);
+
+        if (!$requestModel) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Request not found.'
+            ], 404);
+        }
+
+        // Ride details array
+        $rideDetails = [
+            'ride_id'         => $requestModel->id,
+            'pickup_location' => $requestModel->pickup_location,
+            'destination'     => $requestModel->destination,
+            'ride_date'       => $requestModel->ride_date,
+            'ride_time'       => $requestModel->ride_time,
+            'number_of_seats' => $requestModel->number_of_seats,
+            'services'        => $requestModel->services_details,
+            'budget'          => $requestModel->budget,
+            'preferred_time'  => $requestModel->preferred_time,
+            'user_id'         => $requestModel->user_id,
+            'status'          => $requestModel->status,
+        ];
+
+        // Merge ride + driver + vehicle
+    $data = $requestModel->interests->map(function ($interest) use ($rideDetails) {
+            $driver = $interest->driver;
+            if (!$driver) return null;
+
+            // Convert driver to array
+            $driverData = $driver->toArray();
+
+            // Remove nested vehicle to avoid duplicate
+            unset($driverData['vehicle']);
+
+            // Vehicle info separately
+            $vehicleData = $driver->vehicle ? $driver->vehicle->toArray() : [];
+
+            // Merge ride + driver + vehicle
+            return array_merge($rideDetails, $driverData, $vehicleData);
+        })
+        ->filter()
+        ->unique('id')
+        ->values();
+    
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Interested drivers with ride details fetched successfully.',
+            'data'    => $data
+        ], 200);
+    }
+
+
+    public function confirmDriverByPassenger(Request $request)
     {
         $passenger = Auth::guard('api')->user();
+        if (!$passenger) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You must be logged in as a passenger to confirm a driver.'
+            ], 401);
+        }
+
         $validator = Validator::make($request->all(), [
             'request_id' => 'required|exists:passenger_requests,id',
+            'driver_id'  => 'required|exists:users,id',
+            'status'     => 'required|in:confirmed,declined',
+        ], [
+            'request_id.required' => 'The request ID is required.',
+            'request_id.exists'   => 'The specified ride request does not exist.',
+            'driver_id.required'  => 'You must select a driver to confirm.',
+            'driver_id.exists'    => 'The selected driver does not exist.',
+            'status.required'     => 'Status is required.',
+            'status.in'           => 'Status must be either confirmed or declined.',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['status'=>false,'message'=>$validator->errors()->first()],201);
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first()
+            ], 201);
         }
 
-        $requestModel = PassengerRequest::where('id', $request->request_id)
+        $requestModel = PassengerRequest::with('interests')
+            ->where('id', $request->request_id)
             ->where('user_id', $passenger->id)
-            ->where('status', 'accepted')
             ->first();
 
-        if(!$requestModel){
-            return response()->json(['status'=>false,'message'=>'Request not accepted yet or already confirmed'],400);
+        if (!$requestModel) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Ride request not found or does not belong to you.'
+            ], 201);
         }
 
-        $requestModel->status = 'confirmed';
-        $requestModel->save();
+        $driverInterest = $requestModel->interests()
+            ->where('driver_id', $request->driver_id)
+            ->first();
 
-        return response()->json(['status'=>true,'message'=>'Request confirmed successfully','data'=>$requestModel]);
+        if (!$driverInterest) {
+            return response()->json([
+                'status' => false,
+                'message' => 'The driver you selected did not express interest in this ride.'
+            ], 201);
+        }
+
+        if ($request->status === 'declined') {
+            // Delete the interest if declined
+            $driverInterest->delete();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Driver interest has been declined and removed successfully.'
+            ], 200);
+        }
+       // If confirmed, create booking, update request, and remove all other interests
+        DB::transaction(function () use ($requestModel, $request) {
+            $requestModel->driver_id = $request->driver_id;
+            $requestModel->status = 'confirmed';
+            $requestModel->save();
+
+            RideBooking::create([
+                'type' => $requestModel->type,
+                'user_id' => $request->driver_id,
+                'seats_booked' => $requestModel->number_of_seats,
+                'price' => $requestModel->budget,
+                'services' => json_encode($requestModel->services ?? []),
+                'status' => 'confirmed',
+            ]);
+                    // Delete all other driver interests for this request
+            $requestModel->interests()
+                ->where('driver_id', '!=', $request->driver_id)
+                ->delete();
+        });
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Driver confirmed successfully and booking has been created.'
+        ],200);
     }
+
+
+
+
+
+
 
 
 

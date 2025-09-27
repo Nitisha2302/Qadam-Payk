@@ -48,6 +48,11 @@ class User extends Authenticatable
         return $this->hasMany(Ride::class, 'user_id');
     }
 
+    public function vehicle()
+    {
+        return $this->hasOne(Vehicle::class, 'user_id');
+    }
+
     // public function rideBookings()
     // {
     //     // A passenger can have many bookings
