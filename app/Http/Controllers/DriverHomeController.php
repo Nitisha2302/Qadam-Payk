@@ -479,7 +479,7 @@ class DriverHomeController extends Controller
         $query = \App\Models\Ride::query();
 
         // ✅ Only rides that accept parcels
-        // $query->where('accept_parcel', 1);
+        $query->where('accept_parcel', 1);
 
         if ($request->pickup_location) {
             $query->where('pickup_location', 'like', '%'.$request->pickup_location.'%');

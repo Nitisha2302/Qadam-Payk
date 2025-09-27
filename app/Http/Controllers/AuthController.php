@@ -83,11 +83,12 @@ class AuthController extends Controller
     {
         // Validation
         $validator = Validator::make($request->all(), [
-            'phone_number' => 'required|digits:11',
+            'phone_number' => 'required|digits_between:8,15',
             'otp'          => 'required|digits:6',
+            'fcm_token'    => 'nullable|string|max:255',
         ], [
             'phone_number.required' => 'Phone number is required.',
-            'phone_number.digits'   => 'Phone number must be 11 digits.',
+             'phone_number.digits_between' => 'Phone number must be between 8 and 15 digits.',
             'otp.required'          => 'OTP is required.',
             'otp.digits'            => 'OTP must be 6 digits.',
         ]);
@@ -125,6 +126,7 @@ class AuthController extends Controller
         $user->api_token = Str::random(60);
         $user->otp = null;
         $user->otp_sent_at = null;
+        $user->device_token = $request->fcm_token;
         $user->save();
 
         return response()->json([
@@ -142,17 +144,204 @@ class AuthController extends Controller
         ], 200);
     }
 
+    // public function login(Request $request)
+    // {
+    //     // Validate input
+    //     $validator = Validator::make($request->all(), [
+    //         'phone_number' => 'required|digits_between:8,15',
+    //         'device_type'  => 'nullable|string|max:255',
+    //         'device_id'    => 'nullable|string|max:255',
+    //         'device_token'    => 'nullable|string|max:255',
+    //     ], [
+    //         'phone_number.required' => 'Phone number is required.',
+    //          'phone_number.digits_between' => 'Phone number must be between 8 and 15 digits.',
+    //         'otp.digits'            => 'OTP must be 6 digits.',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => $validator->errors()->first(),
+    //         ], 201);
+    //     }
+
+    //     // Generate a secure random 6-digit OTP
+    //     try {
+    //         $otp = random_int(100000, 999999);
+    //     } catch (\Exception $e) {
+    //         // Fallback if random_int fails (very unlikely)
+    //         $otp = mt_rand(100000, 999999);
+    //     }
+
+    //     // Find or create user
+    //     $user = User::firstOrCreate(
+    //         [
+    //             'phone_number' => $request->phone_number,
+    //         ],
+    //         [
+    //             'is_phone_verify' => false,
+    //         ]
+    //     );
+
+    //     // Decide message based on new or existing
+    //     $message = $user->wasRecentlyCreated
+    //         ? 'OTP sent successfully. Please verify OTP to complete registration.'
+    //         : 'OTP sent successfully. Please verify OTP to complete login.';
+
+    //     // Generate or update OTP
+    //     $user->otp         = $otp;
+    //     $user->otp_sent_at = now();
+    //     $user->device_type = $request->device_type;
+    //     $user->device_id   = $request->device_id;
+    //     $user->device_token = $request->device_token;
+    //     $user->save();
+
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => $message,
+    //         'data'    => [
+    //             'user_id'      => $user->id,
+    //             'phone_number' => $user->phone_number,
+    //             'otp'          => $user->otp, // ⚠️ For testing only
+    //             'otp_sent_at'  => $user->otp_sent_at,
+    //             'is_phone_verify'  => $user->is_phone_verify,
+    //         ],
+    //     ], 200);
+    // }
+
+
+    // with sms api  corererct for live
+    
+    // public function login(Request $request)
+    // {
+    //     // Validate input
+    //     $validator = Validator::make($request->all(), [
+    //         'phone_number' => 'required|digits_between:8,15',
+    //         'device_type'  => 'nullable|string|max:255',
+    //         'device_id'    => 'nullable|string|max:255',
+    //         'fcm_token'    => 'nullable|string|max:255',
+    //     ], [
+    //         'phone_number.required' => 'Phone number is required.',
+    //          'phone_number.digits_between' => 'Phone number must be between 8 and 15 digits.',
+    //         'otp.digits'            => 'OTP must be 6 digits.',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => $validator->errors()->first(),
+    //         ], 201);
+    //     }
+
+    //     // Generate a secure random 6-digit OTP
+    //     try {
+    //         $otp = random_int(100000, 999999);
+    //     } catch (\Exception $e) {
+    //         // Fallback if random_int fails (very unlikely)
+    //         $otp = mt_rand(100000, 999999);
+    //     }
+
+    //     // Find or create user
+    //     $user = User::firstOrCreate(
+    //         [
+    //             'phone_number' => $request->phone_number,
+    //         ],
+    //         [
+    //             'is_phone_verify' => false,
+    //         ]
+    //     );
+
+    //     // Decide message based on new or existing
+    //     $message = $user->wasRecentlyCreated
+    //         ? 'OTP sent successfully. Please verify OTP to complete registration.'
+    //         : 'OTP sent successfully. Please verify OTP to complete login.';
+
+    //     // Generate or update OTP
+    //     $user->otp         = $otp;
+    //     $user->otp_sent_at = now();
+    //     $user->device_type = $request->device_type;
+    //     $user->device_id   = $request->device_id;
+    //     $user->device_token = $request->fcm_token;
+    //     $user->save();
+
+    //     // ------------------------------
+    //     // 🔹 Send SMS via OsonSMS
+    //     // ------------------------------
+    //     $login   = env('OSONSMS_LOGIN');       // your OsonSMS login
+    //     $from    = env('OSONSMS_FROM');        // sender ID
+    //     $apiKey  = env('OSONSMS_API_KEY');     // pass_salt_hash
+    //     $txnId   = 'otp_' . time();
+    //     $phone   = $request->phone_number;
+
+    //     // $msg = "Confirmation Code: {$otp}\nThis is the password to login to the QadamPayk. The code is valid for 5 minutes. Don't tell anyone the code.";
+  
+    //     // $msg = "Confirmation Code: {$otp}\nThis is the password to login to the QadamPayk. The code is valid for 5 minutes. Don't tell anyone the code.";
+
+    //     $msg = "Рамзӣ тасдиқ: {$otp}\nИн рамзӣ воридшавӣ ба QadamPayk аст. Рамз барои 5 дақиқа эътибор дорад. Рамзро ба касе надиҳед.";
+
+    //     // ✅ Use helper function
+    //     $input   = "$txnId;$login;$from;$phone;$apiKey";
+    //     $strHash = $this->generateSha256Hex($input);
+
+    //     // Call OsonSMS API
+    //     $smsResponse = Http::get('https://api.osonsms.com/sendsms_v1.php', [
+    //         'login'        => $login,
+    //         'from'         => $from,
+    //         'phone_number' => $phone,
+    //         'msg'          => $msg,
+    //         'txn_id'       => $txnId,
+    //         'str_hash'     => $strHash,
+    //     ]);
+
+    //     // Log request/response
+    //     Log::info('OsonSMS Request: ', [
+    //         'phone' => $phone,
+    //         'msg'   => $msg,
+    //         'txn'   => $txnId,
+    //         'hash'  => $strHash
+    //     ]);
+    //     Log::info('OsonSMS Response: ' . $smsResponse->body());
+
+    //     // If SMS failed
+    //     $smsData = $smsResponse->json();
+    //     if (!isset($smsData['status']) || strtolower($smsData['status']) !== 'ok') {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => 'Failed to send OTP. Please try again.',
+    //             'sms'     => $smsData, // optional for debugging
+    //         ], 201);
+    //     }
+
+
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => $message,
+    //         'data'    => [
+    //             'user_id'      => $user->id,
+    //             'phone_number' => $user->phone_number,
+    //             'otp'          => $user->otp, // ⚠️ For testing only
+    //             'otp_sent_at'  => $user->otp_sent_at,
+    //             'is_phone_verify'  => $user->is_phone_verify,
+    //         ],
+    //     ], 200);
+    // }
+
+
+    // with conditional for test 
+
+
+  
     public function login(Request $request)
     {
         // Validate input
         $validator = Validator::make($request->all(), [
-            'phone_number' => 'required|digits:11',
+            'phone_number' => 'required|digits_between:8,15',
             'device_type'  => 'nullable|string|max:255',
             'device_id'    => 'nullable|string|max:255',
-            'device_token'    => 'nullable|string|max:255',
+            'fcm_token'    => 'nullable|string|max:255',
         ], [
             'phone_number.required' => 'Phone number is required.',
-            'phone_number.digits'   => 'Phone number must be 11 digits.',
+             'phone_number.digits_between' => 'Phone number must be between 8 and 15 digits.',
             'otp.digits'            => 'OTP must be 6 digits.',
         ]);
 
@@ -191,8 +380,49 @@ class AuthController extends Controller
         $user->otp_sent_at = now();
         $user->device_type = $request->device_type;
         $user->device_id   = $request->device_id;
-        $user->device_token = $request->device_token;
+        $user->device_token = $request->fcm_token;
         $user->save();
+
+        $phone = $request->phone_number;
+
+        // ------------------------------
+        // 🔹 Condition: 9 digits → OsonSMS
+        // ------------------------------
+        if (strlen($phone) === 9) {
+            $login   = env('OSONSMS_LOGIN');
+            $from    = env('OSONSMS_FROM');
+            $apiKey  = env('OSONSMS_API_KEY');
+            $txnId   = 'otp_' . time();
+
+            $msg = "Рамзӣ тасдиқ: {$otp}\nИн рамзӣ воридшавӣ ба QadamPayk аст. Рамз барои 5 дақиқа эътибор дорад. Рамзро ба касе надиҳед.";
+
+            $input   = "$txnId;$login;$from;$phone;$apiKey";
+            $strHash = $this->generateSha256Hex($input);
+
+            $smsResponse = Http::get('https://api.osonsms.com/sendsms_v1.php', [
+                'login'        => $login,
+                'from'         => $from,
+                'phone_number' => $phone,
+                'msg'          => $msg,
+                'txn_id'       => $txnId,
+                'str_hash'     => $strHash,
+            ]);
+
+            Log::info('OsonSMS Request: ', ['phone' => $phone, 'msg' => $msg, 'txn' => $txnId, 'hash' => $strHash]);
+            Log::info('OsonSMS Response: ' . $smsResponse->body());
+
+            $smsData = $smsResponse->json();
+            if (!isset($smsData['status']) || strtolower($smsData['status']) !== 'ok') {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Failed to send OTP via OsonSMS.',
+                    'sms'     => $smsData,
+                ], 201);
+            }
+        } else {
+            // ✅ For other phone lengths, just return OTP without sending SMS
+            Log::info("Skipping OsonSMS, using local OTP for phone: $phone");
+        }
 
         return response()->json([
             'status'  => true,
@@ -208,107 +438,18 @@ class AuthController extends Controller
     }
 
 
-    // with sms api  
 
-    // public function register(Request $request)
-    // {
-    //     // Validate input
-    //     $validator = Validator::make($request->all(), [
-    //         'phone_number' => 'required',
-    //         'device_type'  => 'nullable|string|max:255',
-    //         'device_id'    => 'nullable|string|max:255',
-    //         'device_token' => 'nullable|string|max:255',
-    //     ], [
-    //         'phone_number.required' => 'Phone number is required.',
-    //         // 'phone_number.digits'   => 'Phone number must be 15 digits.',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => $validator->errors()->first(),
-    //         ], 201);
-    //     }
-
-    //     //  Check if user already exists
-    //     $existingUser = User::where('phone_number', $request->phone_number)->first();
-    //     if ($existingUser) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => 'This phone number is already registered.',
-    //         ], 201);
-    //     }
-
-    //     //  Generate OTP
-    //     $otp = rand(100000, 999999);
-
-    //     // Prepare message and compute hash
-    //     $txnId  = env('SMS_PAYMENT_ID'); // unique transaction ID
-    //     $login  = env('SMS_LOGIN');      // login
-    //     $sender = env('SMS_SENDER');     // sender
-    //     $phone  = $request->phone_number;
-    //     $passSaltHash = env('SMS_PASS_SALT_HASH'); // this is new
-    //     $message  = "Your OTP code is $otp ";
-
-    //     // Compute str_hash according to OsonSMS API requirement
-    //    $strHash = hash('sha256', $txnId . ';' . $login . ';' . $sender . ';' . $phone . ';' . $passSaltHash);
-
-    //     //  Prepare SMS data
-    //     $smsData = [
-    //         'phone_number' => $phone,
-    //         'msg'          => $message,
-    //         'login'        => $login,
-    //         'str_hash'     => $strHash,
-    //         'from'         => $sender,
-    //         'txn_id'       => $txnId,
-    //         // Optional:
-    //         //'channel'       => 'telegram',
-    //         //'is_confidential' => true,
-    //     ];
-
-    //     //  Log request
-    //     Log::info('OsonSMS Request Data: ', $smsData);
-
-    //     //  Send SMS
-    //     $smsResponse = Http::get('https://api.osonsms.com/sendsms_v1.php', $smsData);
-
-    //     //  Log response
-    //     Log::info('OsonSMS Response: ' . $smsResponse->body());
-
-    //     //  Check if SMS was sent successfully
-    //     if (strpos($smsResponse->body(), 'OK') === false) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => 'Failed to send OTP. Please try again.',
-    //         ], 500);
-    //     }
-
-    //     //  Create user
-    //     $user = User::create([
-    //         'phone_number'    => $request->phone_number,
-    //         'otp'             => $otp,
-    //         'otp_sent_at'     => now(),
-    //         'is_phone_verify' => false,
-    //         'device_type'     => $request->device_type,
-    //         'device_token'    => $request->device_token,
-    //         'device_id'       => $request->device_id,
-    //     ]);
-
-    //     //  Return response
-    //     return response()->json([
-    //         'status'  => true,
-    //         'message' => 'Registration successful. OTP has been sent.',
-    //         'data'    => [
-    //             'user_id'        => $user->id,
-    //             'phone_number'   => $user->phone_number,
-    //             'otp_sent_at'    => $user->otp_sent_at,
-    //             'is_phone_verify'=> $user->is_phone_verify,
-    //             'device_type'    => $user->device_type,
-    //             'device_token'   => $user->device_token,
-    //             'device_id'      => $user->device_id,
-    //         ],
-    //     ], 200);
-    // }
+    /**
+     * Generate SHA-256 hash in lowercase hex (for OsonSMS str_hash)
+     *
+     * @param string $input
+     * @return string
+     */
+    private function generateSha256Hex(string $input): string
+    {
+        $utf8String = mb_convert_encoding($input, 'UTF-8');
+        return hash('sha256', $utf8String);
+    }
 
 
     public function logout(Request $request)
