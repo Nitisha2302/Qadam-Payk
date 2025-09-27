@@ -54,19 +54,24 @@ Route::get('/driver-details', [DriverHomeController::class, 'driverDetails']);
 Route::post('/book-ride', [BookingController::class, 'bookRideOrParcel'])->name('book.ride');
 Route::get('/get-drivers-booking', [BookingController::class, 'getDriverBookings'])->name('get-drivers-booking');
 Route::post('/confirm-booking', [BookingController::class, 'confirmBooking'])->name('confirm-booking');
+Route::post('/upadte-booking-active-status', [BookingController::class, 'updateBookingActiveStatus'])->name('upadte-booking-active-status');
+Route::post('/upadte-booking-complete-status', [BookingController::class, 'updateBookingCompleteStatus'])->name('upadte-booking-complete-status');
+
 
 // Route::post('store-passenger-request', [PassengerRequestController::class, 'createRequest']);
 Route::get('get-current-passenger-requests', [PassengerRequestController::class, 'listCurrentPassengerRequests']);
 Route::post('/store-ride-request', [PassengerRequestController::class, 'createRideRequest']);
 Route::post('/store-parcel-request', [PassengerRequestController::class, 'createParcelRequest']);
 Route::get('all-ride-requests', [PassengerRequestController::class, 'getAllRideRequests']);
-Route::get('all-parcel-requests', [PassengerRequestController::class, 'getAllParcelRequests']);
+Route::get('all-parcel-requests', [PassengerRequestController::class, 'getAllParcelRequests']);  
+Route::get('get-interested-drivers-list/{request_id}', [PassengerRequestController::class, 'getInterestedDrivers']);
 
-// Driver accepts a request
-Route::post('/driver/accept-request', [PassengerRequestController::class, 'acceptRequest']);
+
+// Driver make interest a request
+Route::post('/driver/interest-request', [PassengerRequestController::class, 'updateRequestInterestStatus']);
 
 // Passenger confirms a request
-Route::post('/passenger/confirm-request', [PassengerRequestController::class, 'confirmRequest']);
+Route::post('request/respond-driver', [PassengerRequestController::class, 'confirmDriverByPassenger']);
 
 
 

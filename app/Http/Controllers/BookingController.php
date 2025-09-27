@@ -165,7 +165,7 @@ class BookingController extends Controller
         ],200);
     }
 
-
+    // api for confirm search ride by driver side
     public function confirmBooking(Request $request)
     {
         $driver = Auth::guard('api')->user();
@@ -215,6 +215,131 @@ class BookingController extends Controller
             'data'    => $booking
         ],200);
     }
+
+    public function updateBookingActiveStatus(Request $request)
+        {
+            // ✅ Get authenticated driver
+            $driver = Auth::guard('api')->user();
+            if (!$driver) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'User not authenticated.',
+                ], 401);
+            }
+        
+
+            // Validate input
+            $validator = Validator::make($request->all(), [
+                'booking_id' => 'required|exists:ride_bookings,id',
+            ], [
+                'booking_id.required' => 'Booking ID is required.',
+                'booking_id.exists'   => 'Booking does not exist.',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => $validator->errors()->first(),
+                ], 422);
+            }
+
+            // Find the booking
+            $booking = RideBooking::find($request->booking_id);
+            if (!$booking) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Booking not found.',
+                ], 404);
+            }
+
+            // Get the ride and check if the authenticated user is the driver
+            // $ride = Ride::find($booking->ride_id);
+            // if (!$ride || $ride->user_id != $driver->id) {
+            //     return response()->json([
+            //         'status'  => false,
+            //         'message' => 'You are not authorized to confirm this booking.',
+            //     ], 403);
+            // }
+
+            // Update booking status to active
+            $booking->active_status = '1';
+            $booking->save();
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Booking status updated to active successfully.',
+                'data'    => [
+                    'booking_id'    => $booking->id,
+                    'ride_id'       => $booking->ride_id,
+                    'driver_id'     => $driver->id,
+                    'active_status' => $booking->active_status,
+                ],
+            ], 200);
+    }
+
+
+    public function updateBookingCompleteStatus(Request $request)
+    {
+        // ✅ Get authenticated driver
+        $driver = Auth::guard('api')->user();
+        if (!$driver) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'User not authenticated.',
+            ], 401);
+        }
+
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'booking_id' => 'required|exists:ride_bookings,id',
+        ], [
+            'booking_id.required' => 'Booking ID is required.',
+            'booking_id.exists'   => 'Booking does not exist.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        // Find the booking
+        $booking = RideBooking::find($request->booking_id);
+        if (!$booking) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Booking not found.',
+            ], 404);
+        }
+
+        // // Get the ride and check if the authenticated user is the driver
+        // $ride = Ride::find($booking->ride_id);
+        // if (!$ride || $ride->user_id != $driver->id) {
+        //     return response()->json([
+        //         'status'  => false,
+        //         'message' => 'You are not authorized to complete this booking.',
+        //     ], 403);
+        // }
+
+        // Update booking status to complete
+        $booking->active_status = '3';
+        $booking->save();
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Booking status updated to complete successfully.',
+            'data'    => [
+                'booking_id'    => $booking->id,
+                'ride_id'       => $booking->ride_id,
+                'driver_id'     => $driver->id,
+                'active_status' => $booking->active_status,
+            ],
+        ], 200);
+    }
+
+
+
 
 
 
