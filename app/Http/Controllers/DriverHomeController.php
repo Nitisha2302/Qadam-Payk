@@ -330,12 +330,12 @@ class DriverHomeController extends Controller
     {
         $user = Auth::guard('api')->user();
 
-        if (!$user) {
-            return response()->json([
-                'status' => false,
-                'message' => 'User not authenticated.',
-            ], 401);
-        }
+        // if (!$user) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'User not authenticated.',
+        //     ], 401);
+        // }
 
         $validator = Validator::make($request->all(), [
             'pickup_location' => 'nullable|string|max:255',
@@ -459,12 +459,12 @@ class DriverHomeController extends Controller
     public function searchParcelRides(Request $request)
     {
         $user = Auth::guard('api')->user();
-        if (!$user) {
-            return response()->json([
-                'status'  => false,
-                'message' => 'User not authenticated'
-            ], 401);
-        }
+        // if (!$user) {
+        //     return response()->json([
+        //         'status'  => false,
+        //         'message' => 'User not authenticated'
+        //     ], 401);
+        // }
         $validator = Validator::make($request->all(), [
             'pickup_location' => 'nullable|string|max:255',
             'destination'     => 'nullable|string|max:255',
