@@ -49,6 +49,14 @@ class BookingController extends Controller
 
         $ride = \App\Models\Ride::find($request->ride_id);
 
+        // ❌ Prevent user from booking their own ride
+        if ($ride->user_id == $user->id) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'You cannot book your own ride.'
+            ], 201);
+        }
+
         if ($request->type == 0) { // Ride booking
             $availableSeats = $ride->number_of_seats - $ride->bookings()->sum('seats_booked');
             $seatsBooked = $request->seats_booked ?? 1;
