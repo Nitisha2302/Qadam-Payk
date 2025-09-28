@@ -119,7 +119,8 @@ class BookingController extends Controller
             ]
         ], 200);
     }
-
+ 
+    // api to show passengers list who request to book ride to driver (driver side)
     public function getDriverBookings(Request $request)
     {
         $driver = Auth::guard('api')->user();
@@ -174,6 +175,60 @@ class BookingController extends Controller
         ],200);
     }
 
+    // api for showing all the passenger booked request (passenger side)
+
+    public function getPassengerBookingRequests(Request $request)
+    {
+        $passenger = Auth::guard('api')->user();
+        if (!$passenger) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Passenger not authenticated'
+            ], 401);
+        }
+
+        // Fetch bookings made by this passenger
+        $bookings = \App\Models\RideBooking::with(['ride', 'ride.driver'])
+            ->where('user_id', $passenger->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $data = $bookings->map(function ($booking) {
+            return [
+                'booking_id'      => $booking->id,
+                'ride_id'         => $booking->ride_id,
+                'driver_id'       => $booking->ride->user_id ?? null,
+                'driver_name'     => $booking->ride->driver->name ?? null,
+                'driver_phone'    => $booking->ride->driver->phone_number ?? null,
+                'driver_image'    => $booking->ride->driver->image ?? null,
+                'status'          => $booking->status,
+                'seats_booked'    => $booking->seats_booked,
+                'price'           => $booking->price,
+                'type'            => $booking->type,
+                'services'        => $booking->services_details->map(function ($service) {
+                    return [
+                        'id'            => $service->id,
+                        'service_name'  => $service->service_name,
+                        'service_image' => $service->service_image,
+                    ];
+                }),
+                'pickup_location' => $booking->ride->pickup_location ?? null,
+                'destination'     => $booking->ride->destination ?? null,
+                'ride_date'       => $booking->ride->ride_date ?? null,
+                'ride_time'       => $booking->ride->ride_time ?? null,
+                'accept_parcel'   => $booking->ride->accept_parcel ?? null,
+                'created_at'      => $booking->created_at,
+            ];
+        });
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Your ride requests retrieved successfully',
+            'data'    => $data
+        ], 200);
+    }
+
+
     // api for confirm search ride by driver side
     public function confirmBooking(Request $request)
     {
@@ -218,7 +273,7 @@ class BookingController extends Controller
         $booking->status = $request->status;
         $booking->save();
 
-      
+       
 
         return response()->json([
             'status'  => true,
@@ -287,8 +342,6 @@ class BookingController extends Controller
                 ],
             ], 200);
     }
-
-
 
 
     public function updateBookingCompleteStatus(Request $request)

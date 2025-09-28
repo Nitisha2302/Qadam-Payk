@@ -424,7 +424,6 @@ class AuthController extends Controller
                 ], 201);
             }
         } else {
-            
             // ✅ For other phone lengths, just return OTP without sending SMS
             Log::info("Skipping OsonSMS, using local OTP for phone: $phone");
         }

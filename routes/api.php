@@ -53,6 +53,8 @@ Route::get('/driver-details', [DriverHomeController::class, 'driverDetails']);
 
 Route::post('/book-ride', [BookingController::class, 'bookRideOrParcel'])->name('book.ride');
 Route::get('/get-drivers-booking', [BookingController::class, 'getDriverBookings'])->name('get-drivers-booking');
+Route::get('/get-passengers-booking-requests', [BookingController::class, 'getPassengerBookingRequests'])->name('get-passengers-booking-requests');
+
 Route::post('/confirm-booking', [BookingController::class, 'confirmBooking'])->name('confirm-booking');
 Route::post('/upadte-booking-active-status', [BookingController::class, 'updateBookingActiveStatus'])->name('upadte-booking-active-status');
 Route::post('/upadte-booking-complete-status', [BookingController::class, 'updateBookingCompleteStatus'])->name('upadte-booking-complete-status');
