@@ -8,6 +8,7 @@
 /public/assets/services_images
 /public/assets/parcels
 /public/assets/parcel_image
+/public/assets/vehicle_image
 /storage/*.key
 /vendor
 .env

@@ -9,6 +9,7 @@ use App\Models\ParcelBooking;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon; // ✅ Add this line
+use App\Services\FCMService;
 
 class BookingController extends Controller
 {
@@ -85,9 +86,33 @@ class BookingController extends Controller
             'services'     => $request->services ?? [],
             'status'       => 'pending',
             'type'         => $request->type,
-            'ride_date'    => $ride->ride_date, // copy from ride
+            'ride_date'    => Carbon::parse($ride->ride_date)->format('Y-m-d'), // copy from ride
             'ride_time'    => $ride->ride_time, // copy from ride
         ]);
+
+        // Notify driver
+        // $driver = $ride->driver;
+        // $passengerName = $user->name ?: 'A passenger'; 
+        // if ($driver && $driver->device_token) {
+        //     $tokens = [
+        //         [
+        //             'device_token' => $driver->device_token,
+        //             'device_type' => $driver->device_type ?? 'android',
+        //             'user_id' => $driver->id,
+        //         ]
+        //     ];
+
+        //     $notificationData = [
+        //         'notification_type' => 1,
+        //         'title' => '🚖 New Ride Booking',
+        //         'body' => "📍 Passenger {$passengerName} booked your ride from {$ride->pickup_location} to {$ride->destination}. Please confirm!",
+        //     ];
+
+        //     // ✅ Use FCMService
+        //     $fcmService = new FCMService();
+        //     $fcmService->sendNotification($tokens, $notificationData);
+        // }
+
 
         return response()->json([
             'status'  => true,
@@ -213,6 +238,34 @@ class BookingController extends Controller
         // Update booking status
         $booking->status = $request->status;
         $booking->save();
+
+       // ----------------------
+        // ✅ Send notification to passenger
+        // ----------------------
+        // $passenger = $booking->user; // passenger who booked
+    
+        // if ($passenger && $passenger->device_token) {
+        //     $fcmService = new \App\Services\FCMService();
+
+        //     $statusText = $booking->status == 'confirmed' ? 'confirmed' : 'cancelled';
+        //     $pickup = $booking->ride->pickup_location;
+        //     $destination = $booking->ride->destination;
+
+        //     $notificationData = [
+        //         'notification_type' => 2, // booking status update
+        //         'title' => "Booking {$statusText}",
+        //         'body'  => "Your booking for ride from {$pickup} to {$destination} has been {$statusText} by the driver.",
+        //     ];
+
+        //     $fcmService->sendNotification([
+        //         [
+        //             'device_token' => $passenger->device_token,
+        //             'device_type'  => $passenger->device_type ?? 'android',
+        //             'user_id'      => $passenger->id,
+        //         ]
+        //     ], $notificationData);
+        // }
+
 
         return response()->json([
             'status'  => true,

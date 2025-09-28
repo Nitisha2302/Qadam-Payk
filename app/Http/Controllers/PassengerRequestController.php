@@ -126,7 +126,7 @@ class PassengerRequestController extends Controller
             'number_of_seats' => 'nullable|integer|min:1',
             'services' => 'nullable|array',
             'services.*'      => 'exists:services,id', // validate IDs exist
-                'budget' => 'nullable|numeric|min:0',
+            'budget' => 'required|numeric|min:0',
             'preferred_time' => 'nullable|date_format:H:i',
         ], [
             'pickup_location.required' => 'Pickup location is required.',
@@ -148,6 +148,7 @@ class PassengerRequestController extends Controller
             'services.*.string' => 'Each service must be a string.',
             'services.*.max' => 'Each service cannot exceed 50 characters.',
 
+           'budget.required' => 'Budget must be required.',
             'budget.numeric' => 'Budget must be a valid number.',
             'budget.min' => 'Budget must be at least 0.',
             'preferred_time.date_format' => 'Preferred time must be in HH:MM format.',
@@ -204,7 +205,7 @@ class PassengerRequestController extends Controller
             'drop_contact_no' => 'required|string|max:20',
             'parcel_details' => 'required|string',
             'parcel_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'budget' => 'nullable|numeric|min:0',
+            'budget' => 'required|numeric|min:0',
             'preferred_time' => 'nullable|date_format:H:i',
         ], [
             'pickup_location.required' => 'Pickup location is required.',
@@ -222,6 +223,7 @@ class PassengerRequestController extends Controller
             'parcel_images.*.image' => 'Each file must be an image.',
             'parcel_images.*.mimes' => 'Image must be jpeg, png, jpg, or gif.',
             'parcel_images.*.max' => 'Each image may not exceed 2MB.',
+              'budget.required' => 'Budget must be requiredr.',
              'budget.numeric' => 'Budget must be a valid number.',
             'budget.min' => 'Budget must be at least 0.',
             'preferred_time.date_format' => 'Preferred time must be in HH:MM format.',

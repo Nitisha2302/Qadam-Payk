@@ -389,10 +389,14 @@ class AuthController extends Controller
         // 🔹 Condition: 9 digits → OsonSMS
         // ------------------------------
         if (strlen($phone) === 9) {
-            $login   = env('OSONSMS_LOGIN');
-            $from    = env('OSONSMS_FROM');
-            $apiKey  = env('OSONSMS_API_KEY');
+            $login   = 'borafzo';
+            $from    = 'BORAFZO';
+            $apiKey  = 'c3cdbb3f1171320d49f2bf1da20f53fc';
             $txnId   = 'otp_' . time();
+            // $login   = env('OSONSMS_LOGIN');
+            // $from    = env('OSONSMS_FROM');
+            // $apiKey  = env('OSONSMS_API_KEY');
+            // $txnId   = 'otp_' . time();
 
             $msg = "Рамзӣ тасдиқ: {$otp}\nИн рамзӣ воридшавӣ ба QadamPayk аст. Рамз барои 5 дақиқа эътибор дорад. Рамзро ба касе надиҳед.";
 
