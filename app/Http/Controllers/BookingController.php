@@ -8,6 +8,7 @@ use App\Models\RideBooking;
 use App\Models\ParcelBooking;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon; // ✅ Add this line
 
 class BookingController extends Controller
 {
@@ -84,6 +85,8 @@ class BookingController extends Controller
             'services'     => $request->services ?? [],
             'status'       => 'pending',
             'type'         => $request->type,
+            'ride_date'    => $ride->ride_date, // copy from ride
+            'ride_time'    => $ride->ride_time, // copy from ride
         ]);
 
         return response()->json([
@@ -97,6 +100,8 @@ class BookingController extends Controller
                 'price'        => $booking->price,
                 'status'       => $booking->status,
                 'type'         => $booking->type,
+                'ride_date'    => $ride->ride_date, // copy from ride
+                'ride_time'    => $ride->ride_time, // copy from ride
                 'created_at'   => $booking->created_at,
                 'updated_at'   => $booking->updated_at,
                 // ✅ Replace services with full details
@@ -337,6 +342,59 @@ class BookingController extends Controller
             ],
         ], 200);
     }
+
+
+    // public function updateBookingActiveCompleteStatus(Request $request)
+    // {
+    //     // ✅ Get authenticated driver
+    //     $driver = Auth::guard('api')->user();
+    //     if (!$driver) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'User not authenticated.',
+    //         ], 401);
+    //     }
+
+    //     $now = Carbon::now();
+
+    //     // ✅ Activate rides: active_status = 0, ride time <= now, driver-specific
+    //     $ridesToActivate = RideBooking::where('active_status', '0')
+    //         ->where('user_id', $driver->id) // only this driver's rides
+    //         ->get()
+    //         ->filter(function ($booking) use ($now) {
+    //             $rideDateTime = Carbon::parse($booking->ride_date . ' ' . $booking->ride_time);
+    //             return $rideDateTime->lessThanOrEqualTo($now);
+    //         });
+
+    //     foreach ($ridesToActivate as $booking) {
+    //         $booking->active_status = '1'; // Active
+    //         $booking->save();
+    //     }
+
+    //     // ✅ Complete rides: active_status = 1, ride time < now, driver-specific
+    //     $ridesToComplete = RideBooking::where('active_status', '1')
+    //         ->where('user_id', $driver->id)
+    //         ->get()
+    //         ->filter(function ($booking) use ($now) {
+    //             $rideDateTime = Carbon::parse($booking->ride_date . ' ' . $booking->ride_time);
+    //             return $rideDateTime->lessThan($now);
+    //         });
+
+    //     foreach ($ridesToComplete as $booking) {
+    //         $booking->active_status = '3'; // Completed
+    //         $booking->save();
+    //     }
+
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => 'Booking statuses updated automatically based on ride time.',
+    //         'data'    => [
+    //             'activated_rides' => $ridesToActivate->count(),
+    //             'completed_rides' => $ridesToComplete->count(),
+    //         ],
+    //     ], 200);
+    // }
+
 
 
 

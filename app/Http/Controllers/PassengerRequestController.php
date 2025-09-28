@@ -686,53 +686,121 @@ class PassengerRequestController extends Controller
     }
 
 
-    public function getInterestedDrivers($request_id)
-    {
-        $requestModel = PassengerRequest::with(['interests.driver.vehicle'])->find($request_id);
+    // public function getInterestedDrivers($request_id)
+    // {
+    //     $requestModel = PassengerRequest::with(['interests.driver.vehicle'])->find($request_id);
 
-        if (!$requestModel) {
+    //     if (!$requestModel) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => 'Request not found.'
+    //         ], 404);
+    //     }
+
+    //     // Ride details array
+    //     $rideDetails = [
+    //         'ride_id'         => $requestModel->id,
+    //         'pickup_location' => $requestModel->pickup_location,
+    //         'destination'     => $requestModel->destination,
+    //         'ride_date'       => $requestModel->ride_date,
+    //         'ride_time'       => $requestModel->ride_time,
+    //         'number_of_seats' => $requestModel->number_of_seats,
+    //         'services'        => $requestModel->services_details,
+    //         'budget'          => $requestModel->budget,
+    //         'preferred_time'  => $requestModel->preferred_time,
+    //         'user_id'         => $requestModel->user_id,
+    //         'status'          => $requestModel->status,
+    //     ];
+
+    //     // Merge ride + driver + vehicle
+    // $data = $requestModel->interests->map(function ($interest) use ($rideDetails) {
+    //         $driver = $interest->driver;
+    //         if (!$driver) return null;
+
+    //         // Convert driver to array
+    //         $driverData = $driver->toArray();
+
+    //         // Remove nested vehicle to avoid duplicate
+    //         unset($driverData['vehicle']);
+
+    //         // Vehicle info separately
+    //         $vehicleData = $driver->vehicle ? $driver->vehicle->toArray() : [];
+
+    //         // Merge ride + driver + vehicle
+    //         return array_merge($rideDetails, $driverData, $vehicleData);
+    //     })
+    //     ->filter()
+    //     ->unique('id')
+    //     ->values();
+    
+
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => 'Interested drivers with ride details fetched successfully.',
+    //         'data'    => $data
+    //     ], 200);
+    // }
+
+
+    public function getInterestedDrivers()
+    {
+        $passenger = Auth::guard('api')->user();
+        if (!$passenger) {
             return response()->json([
                 'status'  => false,
-                'message' => 'Request not found.'
-            ], 404);
+                'message' => 'You must be logged in.'
+            ], 401);
         }
 
-        // Ride details array
-        $rideDetails = [
-            'ride_id'         => $requestModel->id,
-            'pickup_location' => $requestModel->pickup_location,
-            'destination'     => $requestModel->destination,
-            'ride_date'       => $requestModel->ride_date,
-            'ride_time'       => $requestModel->ride_time,
-            'number_of_seats' => $requestModel->number_of_seats,
-            'services'        => $requestModel->services_details,
-            'budget'          => $requestModel->budget,
-            'preferred_time'  => $requestModel->preferred_time,
-            'user_id'         => $requestModel->user_id,
-            'status'          => $requestModel->status,
-        ];
+        // Fetch all ride requests by this passenger with interests + drivers + vehicles
+        $requests = PassengerRequest::with(['interests.driver.vehicle'])
+            ->where('user_id', $passenger->id)
+            ->get();
 
-        // Merge ride + driver + vehicle
-    $data = $requestModel->interests->map(function ($interest) use ($rideDetails) {
-            $driver = $interest->driver;
-            if (!$driver) return null;
+        if ($requests->isEmpty()) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'No ride requests found for this passenger.',
+                'data'    => []
+            ], 200);
+        }
 
-            // Convert driver to array
-            $driverData = $driver->toArray();
+        // Build response
+        $data = $requests->flatMap(function ($requestModel) {
+            $rideDetails = [
+                'ride_id'         => $requestModel->id,
+                'pickup_location' => $requestModel->pickup_location,
+                'destination'     => $requestModel->destination,
+                'ride_date'       => $requestModel->ride_date,
+                'ride_time'       => $requestModel->ride_time,
+                'number_of_seats' => $requestModel->number_of_seats,
+                'services'        => $requestModel->services_details,
+                'budget'          => $requestModel->budget,
+                'preferred_time'  => $requestModel->preferred_time,
+                'user_id'         => $requestModel->user_id,
+                'status'          => $requestModel->status,
+            ];
 
-            // Remove nested vehicle to avoid duplicate
-            unset($driverData['vehicle']);
+             return $requestModel->interests->map(function ($interest) use ($rideDetails) {
+                    $driver = $interest->driver;
+                    if (!$driver) return null;
 
-            // Vehicle info separately
-            $vehicleData = $driver->vehicle ? $driver->vehicle->toArray() : [];
+                    $driverData = $driver->toArray();
+                    unset($driverData['vehicle']);
 
-            // Merge ride + driver + vehicle
-            return array_merge($rideDetails, $driverData, $vehicleData);
-        })
-        ->filter()
-        ->unique('id')
-        ->values();
-    
+                    $vehicleData = $driver->vehicle ? $driver->vehicle->toArray() : [];
+
+                    return array_merge(
+                        $rideDetails,
+                        [
+                            'interest_id' => $interest->id,          // ✅ Interest row ID
+                            'request_id'  => $interest->passenger_request_id,  // ✅ Request ID from pivot
+                        ],
+                        $driverData,
+                        $vehicleData
+                    );
+                })->filter();
+            })->values();
 
         return response()->json([
             'status'  => true,
@@ -740,6 +808,7 @@ class PassengerRequestController extends Controller
             'data'    => $data
         ], 200);
     }
+
 
 
     public function confirmDriverByPassenger(Request $request)
@@ -784,6 +853,14 @@ class PassengerRequestController extends Controller
             ], 201);
         }
 
+         // ✅ Prevent confirming again if already confirmed
+        if ($requestModel->status === 'confirmed') {
+            return response()->json([
+                'status' => false,
+                'message' => 'A driver has already been confirmed for this request.'
+            ], 201);
+        }
+
         $driverInterest = $requestModel->interests()
             ->where('driver_id', $request->driver_id)
             ->first();
@@ -816,6 +893,9 @@ class PassengerRequestController extends Controller
                 'seats_booked' => $requestModel->number_of_seats,
                 'price' => $requestModel->budget,
                 'services' => json_encode($requestModel->services ?? []),
+                   'ride_date'     => \Carbon\Carbon::parse($requestModel->ride_date)->format('Y-m-d'), // ✅ fixed format
+               'ride_time'     => $requestModel->ride_time ?? null,
+                'request_id'     => $requestModel->id ?? null,
                 'status' => 'confirmed',
             ]);
                     // Delete all other driver interests for this request
