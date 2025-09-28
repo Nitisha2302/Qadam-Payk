@@ -223,8 +223,8 @@ class PassengerRequestController extends Controller
             'parcel_images.*.image' => 'Each file must be an image.',
             'parcel_images.*.mimes' => 'Image must be jpeg, png, jpg, or gif.',
             'parcel_images.*.max' => 'Each image may not exceed 2MB.',
-              'budget.required' => 'Budget must be requiredr.',
-             'budget.numeric' => 'Budget must be a valid number.',
+            'budget.required' => 'Budget must be requiredr.',
+            'budget.numeric' => 'Budget must be a valid number.',
             'budget.min' => 'Budget must be at least 0.',
             'preferred_time.date_format' => 'Preferred time must be in HH:MM format.',
         ]);
