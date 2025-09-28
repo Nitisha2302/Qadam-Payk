@@ -66,7 +66,7 @@ Route::post('/store-ride-request', [PassengerRequestController::class, 'createRi
 Route::post('/store-parcel-request', [PassengerRequestController::class, 'createParcelRequest']);
 Route::get('all-ride-requests', [PassengerRequestController::class, 'getAllRideRequests']);
 Route::get('all-parcel-requests', [PassengerRequestController::class, 'getAllParcelRequests']);  
-Route::get('get-interested-drivers-list', [PassengerRequestController::class, 'getInterestedDrivers']);
+Route::get('get-interested-drivers-list/{request_id}', [PassengerRequestController::class, 'getInterestedDrivers']);
 
 
 // Driver make interest a request
