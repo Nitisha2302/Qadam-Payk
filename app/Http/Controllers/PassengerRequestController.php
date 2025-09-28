@@ -742,6 +742,74 @@ class PassengerRequestController extends Controller
     // }
 
 
+    // public function getInterestedDrivers()
+    // {
+    //     $passenger = Auth::guard('api')->user();
+    //     if (!$passenger) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => 'You must be logged in.'
+    //         ], 401);
+    //     }
+
+    //     // Fetch all ride requests by this passenger with interests + drivers + vehicles
+    //     $requests = PassengerRequest::with(['interests.driver.vehicle'])
+    //         ->where('user_id', $passenger->id)
+    //         ->get();
+
+    //     if ($requests->isEmpty()) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => 'No ride requests found for this passenger.',
+    //             'data'    => []
+    //         ], 200);
+    //     }
+
+    //     // Build response
+    //     $data = $requests->flatMap(function ($requestModel) {
+    //         $rideDetails = [
+    //             'ride_id'         => $requestModel->id,
+    //             'pickup_location' => $requestModel->pickup_location,
+    //             'destination'     => $requestModel->destination,
+    //             'ride_date'       => $requestModel->ride_date,
+    //             'ride_time'       => $requestModel->ride_time,
+    //             'number_of_seats' => $requestModel->number_of_seats,
+    //             'services'        => $requestModel->services_details,
+    //             'budget'          => $requestModel->budget,
+    //             'preferred_time'  => $requestModel->preferred_time,
+    //             'user_id'         => $requestModel->user_id,
+    //             'status'          => $requestModel->status,
+    //         ];
+
+    //          return $requestModel->interests->map(function ($interest) use ($rideDetails) {
+    //                 $driver = $interest->driver;
+    //                 if (!$driver) return null;
+
+    //                 $driverData = $driver->toArray();
+    //                 unset($driverData['vehicle']);
+
+    //                 $vehicleData = $driver->vehicle ? $driver->vehicle->toArray() : [];
+
+    //                 return array_merge(
+    //                     $rideDetails,
+    //                     [
+    //                         'interest_id' => $interest->id,          // ✅ Interest row ID
+    //                         'request_id'  => $interest->passenger_request_id,  // ✅ Request ID from pivot
+    //                     ],
+    //                     $driverData,
+    //                     $vehicleData
+    //                 );
+    //             })->filter();
+    //         })->values();
+
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => 'Interested drivers with ride details fetched successfully.',
+    //         'data'    => $data
+    //     ], 200);
+    // }
+
+    // upadted  resposne
     public function getInterestedDrivers()
     {
         $passenger = Auth::guard('api')->user();
@@ -781,26 +849,40 @@ class PassengerRequestController extends Controller
                 'status'          => $requestModel->status,
             ];
 
-             return $requestModel->interests->map(function ($interest) use ($rideDetails) {
-                    $driver = $interest->driver;
-                    if (!$driver) return null;
+            return $requestModel->interests->map(function ($interest) use ($rideDetails) {
+                $driver = $interest->driver;
+                if (!$driver) return null;
 
-                    $driverData = $driver->toArray();
-                    unset($driverData['vehicle']);
+                $driverData = [
+                    'driver_id'      => $driver->id, // ✅ explicitly add driver_id
+                    'name'           => $driver->name,
+                    'phone_number'   => $driver->phone_number,
+                    'email'          => $driver->email,
+                    'image'          => $driver->image,
+                    'dob'          => $driver->dob,
+                    'gender'          => $driver->gender,
+                    'is_phone_verify'          => $driver->is_phone_verify,
+                    'device_type'    => $driver->device_type,
+                    'device_id'      => $driver->device_id,
+                ];
 
-                    $vehicleData = $driver->vehicle ? $driver->vehicle->toArray() : [];
+                $vehicleData = $driver->vehicle ? [
+                    'vehicle_number' => $driver->vehicle->vehicle_number,
+                    'vehicle_type'   => $driver->vehicle->vehicle_type,
+                ] : [];
 
-                    return array_merge(
-                        $rideDetails,
-                        [
-                            'interest_id' => $interest->id,          // ✅ Interest row ID
-                            'request_id'  => $interest->passenger_request_id,  // ✅ Request ID from pivot
-                        ],
-                        $driverData,
-                        $vehicleData
-                    );
-                })->filter();
-            })->values();
+                return array_merge(
+                    $rideDetails,
+                    [
+                        'interest_id' => $interest->id,          
+                        'request_id'  => $interest->passenger_request_id,  
+                    ],
+                    $driverData,
+                    // $vehicleData
+                );
+            })->filter();
+        })->values();
+
 
         return response()->json([
             'status'  => true,
