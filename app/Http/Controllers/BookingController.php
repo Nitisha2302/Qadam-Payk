@@ -9,6 +9,7 @@ use App\Models\ParcelBooking;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon; // ✅ Add this line
+use App\Services\FCMService;
 
 class BookingController extends Controller
 {
@@ -85,9 +86,12 @@ class BookingController extends Controller
             'services'     => $request->services ?? [],
             'status'       => 'pending',
             'type'         => $request->type,
-            'ride_date'    => $ride->ride_date, // copy from ride
+            'ride_date'    => Carbon::parse($ride->ride_date)->format('Y-m-d'), // copy from ride
             'ride_time'    => $ride->ride_time, // copy from ride
         ]);
+
+       
+
 
         return response()->json([
             'status'  => true,
@@ -214,6 +218,8 @@ class BookingController extends Controller
         $booking->status = $request->status;
         $booking->save();
 
+      
+
         return response()->json([
             'status'  => true,
             'message' => 'Booking ' . $request->status . ' successfully',
@@ -281,6 +287,8 @@ class BookingController extends Controller
                 ],
             ], 200);
     }
+
+
 
 
     public function updateBookingCompleteStatus(Request $request)

@@ -18,6 +18,7 @@ class FCMService
             'body' => $data['body']
         ]);
 
+        // 🔑 Get Firebase OAuth2 token
         $client = new Client();
         $client->setAuthConfig(storage_path('app/firebase/service-account.json'));
         $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
@@ -35,23 +36,21 @@ class FCMService
                 'token' => $token,
             ]);
 
+            // ✅ Always send both notification + data for compatibility
             $payload = [
                 'message' => [
                     'token' => $token,
+                    'notification' => [
+                        'title' => (string) $data['title'],
+                        'body'  => (string) $data['body'],
+                    ],
                     'data' => [
-                        'title' => $data['title'],
-                        'body' => $data['body'],
-                        'notification_type' => (string)$data['notification_type'],
+                        'title' => (string) $data['title'],
+                        'body'  => (string) $data['body'],
+                        'notification_type' => (string) $data['notification_type'],
                     ]
                 ]
             ];
-
-            if ($deviceType === 'ios') {
-                $payload['message']['notification'] = [
-                    'title' => $data['title'],
-                    'body' => $data['body'],
-                ];
-            }
 
             Log::info("🚀 Sending FCM request", [
                 'user_id' => $userId,
@@ -62,7 +61,10 @@ class FCMService
                 $response = Http::withHeaders([
                     'Authorization' => 'Bearer ' . $accessToken,
                     'Content-Type' => 'application/json',
-                ])->post('https://fcm.googleapis.com/v1/projects/' . env('FIREBASE_PROJECT_ID') . '/messages:send', $payload);
+                ])->post(
+                    'https://fcm.googleapis.com/v1/projects/' . env('FIREBASE_PROJECT_ID') . '/messages:send',
+                    $payload
+                );
 
                 if ($response->successful()) {
                     Log::info("✅ FCM notification sent successfully", [
@@ -71,7 +73,7 @@ class FCMService
                         'response' => $response->json()
                     ]);
 
-                    // Save notification in DB
+                    // 💾 Save in DB
                     $notification = Notification::create([
                         'user_id' => $userId,
                         'title' => $data['title'],
@@ -90,7 +92,6 @@ class FCMService
                         'response' => $response->json()
                     ]);
                 }
-
             } catch (\Exception $e) {
                 Log::error("🔥 Exception while sending FCM notification", [
                     'user_id' => $userId,
