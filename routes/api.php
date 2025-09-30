@@ -38,7 +38,8 @@ Route::post('logout', [AuthController::class, 'logout']);
 // Route::post('select-language', [AuthController::class, 'selectLanguage'])->name('select-language');
 Route::get('get-profile', [AuthController::class, 'getProfile']);
 Route::post('update-profile', [AuthController::class, 'updateProfile']);
-
+Route::post('update-language', [AuthController::class, 'updateLanguage'])->name('update-language');
+Route::get('get-language', [AuthController::class, 'getLanguage'])->name('get-language');
 
 Route::post('/driver/add-vehicle', [DriverHomeController::class, 'addVehicle']);
 Route::get('/driver/get-vehicles', [DriverHomeController::class, 'getVehicles']);
@@ -76,6 +77,8 @@ Route::post('/driver/interest-request', [PassengerRequestController::class, 'upd
 
 // Passenger confirms a request
 Route::post('request/respond-driver', [PassengerRequestController::class, 'confirmDriverByPassenger']);
+
+
 
 
 

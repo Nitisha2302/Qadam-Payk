@@ -78,4 +78,5 @@ class Ride extends Model
     {
         return $this->hasMany(RideBooking::class, 'ride_id');
     }
+
 }

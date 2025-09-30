@@ -789,6 +789,71 @@ public function updateProfile(Request $request)
 
 
 
+    // ✅ Update user language
+    public function updateLanguage(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not authenticated',
+            ], 401);
+        }
+
+       // Custom validation
+       $validator = Validator::make($request->all(), [
+            'user_lang' => 'required|string',
+        ], [
+            'user_lang.required' => 'Language field is required.',
+            'user_lang.string'   => 'Language must be a valid string.',
+        ]);
+
+       if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first()
+            ], 201);
+        }
+        $user->update([
+            'user_lang' => $request->user_lang
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Language updated successfully',
+            'data' => [
+                'user_id' => $user->id,
+                'user_lang' => $user->user_lang,
+            ]
+        ]);
+    }
+
+
+    public function getLanguage()
+    {
+        $user = Auth::guard('api')->user();
+
+        if (!$user) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'User not authenticated',
+            ], 401);
+        }
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Language fetched successfully',
+            'data'    => [
+                'user_id'   => $user->id,
+                'user_lang' => $user->user_lang,
+            ]
+        ], 200);
+    }
+
+
+
+
 
     
     
