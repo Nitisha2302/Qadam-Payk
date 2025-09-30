@@ -22,6 +22,7 @@ class User extends Authenticatable
         'is_phone_verify',
         'email',
         'role',
+        'user_lang',
         'otp',
         'otp_sent_at',
         'email_verified',

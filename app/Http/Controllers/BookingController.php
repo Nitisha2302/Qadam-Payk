@@ -90,7 +90,28 @@ class BookingController extends Controller
             'ride_time'    => $ride->ride_time, // copy from ride
         ]);
 
-       
+        // Notify driver
+        $driver = $ride->driver;
+        $passengerName = $user->name ?: 'A passenger'; 
+        if ($driver && $driver->device_token) {
+            $tokens = [
+                [
+                    'device_token' => $driver->device_token,
+                    'device_type' => $driver->device_type ?? 'android',
+                    'user_id' => $driver->id,
+                ]
+            ];
+
+            $notificationData = [
+                'notification_type' => 1,
+                'title' => '🚖 New Ride Booking',
+                'body' => "📍 {$passengerName} booked your ride from {$ride->pickup_location} to {$ride->destination}. Please confirm!",
+            ];
+
+            // ✅ Use FCMService
+            $fcmService = new FCMService();
+            $fcmService->sendNotification($tokens, $notificationData);
+        }
 
 
         return response()->json([
@@ -119,7 +140,8 @@ class BookingController extends Controller
             ]
         ], 200);
     }
-
+ 
+    // api to show passengers list who request to book ride to driver (driver side)
     public function getDriverBookings(Request $request)
     {
         $driver = Auth::guard('api')->user();
@@ -135,6 +157,7 @@ class BookingController extends Controller
             ->whereHas('ride', function ($query) use ($driver) {
                 $query->where('user_id', $driver->id); // rides belong to this driver
             })
+            //  ->where('status', '!=', 'cancelled')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -173,6 +196,60 @@ class BookingController extends Controller
             'data'    => $data
         ],200);
     }
+
+    // api for showing all the passenger booked request (passenger side)
+
+    public function getPassengerBookingRequests(Request $request)
+    {
+        $passenger = Auth::guard('api')->user();
+        if (!$passenger) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Passenger not authenticated'
+            ], 401);
+        }
+
+        // Fetch bookings made by this passenger
+        $bookings = \App\Models\RideBooking::with(['ride', 'ride.driver'])
+            ->where('user_id', $passenger->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $data = $bookings->map(function ($booking) {
+            return [
+                'booking_id'      => $booking->id,
+                'ride_id'         => $booking->ride_id,
+                'driver_id'       => $booking->ride->user_id ?? null,
+                'driver_name'     => $booking->ride->driver->name ?? null,
+                'driver_phone'    => $booking->ride->driver->phone_number ?? null,
+                'driver_image'    => $booking->ride->driver->image ?? null,
+                'status'          => $booking->status,
+                'seats_booked'    => $booking->seats_booked,
+                'price'           => $booking->price,
+                'type'            => $booking->type,
+                'services'        => $booking->services_details->map(function ($service) {
+                    return [
+                        'id'            => $service->id,
+                        'service_name'  => $service->service_name,
+                        'service_image' => $service->service_image,
+                    ];
+                }),
+                'pickup_location' => $booking->ride->pickup_location ?? null,
+                'destination'     => $booking->ride->destination ?? null,
+                'ride_date'       => $booking->ride->ride_date ?? null,
+                'ride_time'       => $booking->ride->ride_time ?? null,
+                'accept_parcel'   => $booking->ride->accept_parcel ?? null,
+                'created_at'      => $booking->created_at,
+            ];
+        });
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Your ride requests retrieved successfully',
+            'data'    => $data
+        ], 200);
+    }
+
 
     // api for confirm search ride by driver side
     public function confirmBooking(Request $request)
@@ -218,7 +295,32 @@ class BookingController extends Controller
         $booking->status = $request->status;
         $booking->save();
 
-      
+        // ----------------------
+        // ✅ Send notification to passenger
+        // ----------------------
+        $passenger = $booking->user; // passenger who booked
+    
+        if ($passenger && $passenger->device_token) {
+            $fcmService = new \App\Services\FCMService();
+
+            $statusText = $booking->status == 'confirmed' ? 'confirmed' : 'cancelled';
+            $pickup = $booking->ride->pickup_location;
+            $destination = $booking->ride->destination;
+
+            $notificationData = [
+                'notification_type' => 2, // booking status update
+                'title' => "Booking {$statusText}",
+                'body'  => "Your booking for ride from {$pickup} to {$destination} has been {$statusText} by the {$driver->name}.",
+            ];
+
+            $fcmService->sendNotification([
+                [
+                    'device_token' => $passenger->device_token,
+                    'device_type'  => $passenger->device_type ?? 'android',
+                    'user_id'      => $passenger->id,
+                ]
+            ], $notificationData);
+        }
 
         return response()->json([
             'status'  => true,
@@ -287,8 +389,6 @@ class BookingController extends Controller
                 ],
             ], 200);
     }
-
-
 
 
     public function updateBookingCompleteStatus(Request $request)
@@ -402,6 +502,10 @@ class BookingController extends Controller
     //         ],
     //     ], 200);
     // }
+
+
+   
+
 
 
 

@@ -488,9 +488,6 @@ class PassengerRequestController extends Controller
         ], 200);
     }
 
-
-
-
   
     // Driver accepts a passenger request
     // public function updateRequestInterestStatus(Request $request)
@@ -664,6 +661,7 @@ class PassengerRequestController extends Controller
         if (!$driver) {
             return response()->json(['status'=>false,'message'=>'User not authenticated'],401);
         }
+        
 
         $validator = Validator::make($request->all(), [
             'request_id' => 'required|exists:passenger_requests,id',
@@ -683,6 +681,32 @@ class PassengerRequestController extends Controller
         $requestModel->interests()->create([
             'driver_id' => $driver->id,
         ]);
+
+        // ----------------------
+        // ✅ Send notification to passenger
+        // ----------------------
+        $passenger = $requestModel->user; // passenger who made the request
+      $driverName = $driver->name ? $driver->name : 'Driver';
+
+
+        if ($passenger && $passenger->device_token) {
+        
+            $fcmService = new \App\Services\FCMService();
+
+            $notificationData = [
+                'notification_type' => 3, // new interest notification
+                'title' => "Driver interested",
+                'body'  => "{$driverName} has expressed interest in your ride request from {$requestModel->pickup_location} to {$requestModel->destination}.Please Confirm",
+            ];
+
+            $fcmService->sendNotification([
+                [
+                    'device_token' => $passenger->device_token,
+                    'device_type'  => $passenger->device_type ?? 'android',
+                    'user_id'      => $passenger->id,
+                ]
+            ], $notificationData);
+        }
 
         return response()->json(['status'=>true,'message'=>'Driver expressed interest successfully'],200);
     }
@@ -902,9 +926,27 @@ class PassengerRequestController extends Controller
             ], 201);
         }
 
+        $driver = \App\Models\User::find($request->driver_id);
+       $passengerName = $passenger->name ? $passenger->name : "Passenger";
         if ($request->status === 'declined') {
             // Delete the interest if declined
             $driverInterest->delete();
+
+             // Send notification to driver
+            if ($driver && $driver->device_token) {
+                $fcmService = new \App\Services\FCMService();
+                $fcmService->sendNotification([
+                    [
+                        'device_token' => $driver->device_token,
+                        'device_type'  => $driver->device_type ?? 'android',
+                        'user_id'      => $driver->id,
+                    ]
+                ], [
+                    'notification_type' => 5, // passenger declined
+                    'title' => "Ride Request Declined",
+                    'body'  => "{$passengerName} has declined your interest for the ride from {$requestModel->pickup_location} to {$requestModel->destination}.",
+                ]);
+            }
 
             return response()->json([
                 'status' => true,
@@ -928,17 +970,37 @@ class PassengerRequestController extends Controller
                 'request_id'     => $requestModel->id ?? null,
                 'status' => 'confirmed',
             ]);
-                    // Delete all other driver interests for this request
+            // Delete all other driver interests for this request
             $requestModel->interests()
                 ->where('driver_id', '!=', $request->driver_id)
                 ->delete();
-        });
+           });
+      
 
+          // Send notification to driver
+        if ($driver && $driver->device_token) {
+            $fcmService = new \App\Services\FCMService();
+            $fcmService->sendNotification([
+                [
+                    'device_token' => $driver->device_token,
+                    'device_type'  => $driver->device_type ?? 'android',
+                    'user_id'      => $driver->id,
+                ]
+            ], [
+                'notification_type' => 4, // passenger confirmed
+                'title' => "Ride Request Confirmed",
+                'body'  => "{$passengerName} has confirmed your interest for ride from {$requestModel->pickup_location} to {$requestModel->destination}.",
+            ]);
+        }
         return response()->json([
             'status' => true,
             'message' => 'Driver confirmed successfully and booking has been created.'
         ],200);
     }
+
+
+
+    
 
 
 

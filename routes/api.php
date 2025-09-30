@@ -38,7 +38,8 @@ Route::post('logout', [AuthController::class, 'logout']);
 // Route::post('select-language', [AuthController::class, 'selectLanguage'])->name('select-language');
 Route::get('get-profile', [AuthController::class, 'getProfile']);
 Route::post('update-profile', [AuthController::class, 'updateProfile']);
-
+Route::post('update-language', [AuthController::class, 'updateLanguage'])->name('update-language');
+Route::get('get-language', [AuthController::class, 'getLanguage'])->name('get-language');
 
 Route::post('/driver/add-vehicle', [DriverHomeController::class, 'addVehicle']);
 Route::get('/driver/get-vehicles', [DriverHomeController::class, 'getVehicles']);
@@ -53,6 +54,8 @@ Route::get('/driver-details', [DriverHomeController::class, 'driverDetails']);
 
 Route::post('/book-ride', [BookingController::class, 'bookRideOrParcel'])->name('book.ride');
 Route::get('/get-drivers-booking', [BookingController::class, 'getDriverBookings'])->name('get-drivers-booking');
+Route::get('/get-passengers-booking-requests', [BookingController::class, 'getPassengerBookingRequests'])->name('get-passengers-booking-requests');
+
 Route::post('/confirm-booking', [BookingController::class, 'confirmBooking'])->name('confirm-booking');
 Route::post('/upadte-booking-active-status', [BookingController::class, 'updateBookingActiveStatus'])->name('upadte-booking-active-status');
 Route::post('/upadte-booking-complete-status', [BookingController::class, 'updateBookingCompleteStatus'])->name('upadte-booking-complete-status');
@@ -74,6 +77,8 @@ Route::post('/driver/interest-request', [PassengerRequestController::class, 'upd
 
 // Passenger confirms a request
 Route::post('request/respond-driver', [PassengerRequestController::class, 'confirmDriverByPassenger']);
+
+
 
 
 
