@@ -825,7 +825,7 @@ class DriverHomeController extends Controller
 
     public function driverDetails(Request $request)
     {
-        $userId = $request->query('user_id');
+        $userId = $request->query(key: 'user_id');
 
         $validator = Validator::make(['user_id' => $userId], [
             'user_id' => 'required|integer|exists:users,id',
@@ -892,13 +892,13 @@ class DriverHomeController extends Controller
             ];
 
             // Merge ride data into the same responseData
-            $responseData = array_merge($responseData, $rideData);
+            $responseData1 = array_merge($responseData, $rideData);
         }
 
         return response()->json([
             'status'  => true,
             'message' => 'Driver details fetched successfully.',
-            'data'    => $responseData,
+            'data'    => $responseData1,
         ], 200);
     }
 
