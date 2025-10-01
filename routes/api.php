@@ -79,16 +79,11 @@ Route::post('/driver/interest-request', [PassengerRequestController::class, 'upd
 Route::post('request/respond-driver', [PassengerRequestController::class, 'confirmDriverByPassenger']);
 
 
-
-
-
-
-
-
-
-
 Route::get('get-city', [HomeController::class, 'getCity']);
 Route::get('/get-car-brands', [HomeController::class, 'getAllBrands'])->name('car-brands');
 Route::get('/get-car-models/{brand}', [HomeController::class, 'getModelsByBrand'])->name('car-models');
 Route::get('/get-car-colors/{model}', [HomeController::class, 'getColorsByModel'])->name('car-colors');
 Route::get('/get-services', [HomeController::class, 'getAllServices']);
+
+
+Route::post('/store-enquiry', [HomeController::class, 'storeEnquiry']);

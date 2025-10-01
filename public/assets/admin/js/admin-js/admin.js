@@ -220,6 +220,61 @@ $(document).on('click', '.delete-service-confirmation-popup-delete-btn', functio
 
 // delete service on confirm end
 
+// delete query on confirm start
+
+// When trash icon clicked, set query id to modal confirm button
+
+$(document).on('click', '.delete-query-btn', function () {
+    let queryId = $(this).data('query-id');
+    $('.delete-query-confirmation-popup-delete-btn').data('query-id', queryId);
+});
+
+// On confirm delete
+$(document).on('click', '.delete-query-confirmation-popup-delete-btn', function () {
+    let queryId = $(this).data('query-id');
+
+    $.ajax({
+        url: deleteQueryUrl,
+        type: 'DELETE',
+        data: {
+            query_id: queryId,
+            _token: csrfToken
+        },
+        success: function (response) {
+            let $msgBox = $('#notificationMessage');
+            $('#staticBackdrop').modal('hide'); // Hide popup
+
+            if (response.success) {
+                location.reload(); 
+            } else {
+                $msgBox
+                    .removeClass('d-none alert-success')
+                    .addClass('alert-danger')
+                    .text(response.message || 'Could not delete query.');
+            }
+
+            setTimeout(() => {
+                $msgBox.addClass('d-none').text('');
+            }, 4000);
+        },
+        error: function () {
+            $('#notificationMessage')
+                .removeClass('d-none alert-success')
+                .addClass('alert-danger')
+                .text('Error deleting query.');
+
+            setTimeout(() => {
+                $('#notificationMessage').addClass('d-none').text('');
+            }, 4000);
+        }
+    });
+});
+
+
+
+// delete query on confirm end
+
+
 // verify or Reject user profile js start
 
 // Verify user
@@ -307,7 +362,6 @@ $(document).ready(function(){
         // update modal title and fields
         $('#userModalLabel').text('Driver Details - ' + (user.name || '-'));
         $('#modal-name').text(user.name ?? '-');
-        $('#modal-email').text(user.email ?? '-');
         $('#modal-phone_number').text(user.phone_number ?? '-');
     });
 
@@ -323,6 +377,10 @@ $(document).on('click', '.delete-plan-btn', function () {
 $(document).on('click', '.cancel-popup-btnbox', function () {
     $('.delete-plan-confirmation-popup').fadeOut();
 });
+
+
+
+
 
 
 

@@ -17,7 +17,7 @@
 
         <div id="notificationMessage" class="alert d-none" role="alert"></div>
            
-         <a href="{{ route('dashboard.admin.cities') }}" class="btn btn-green">Add City</a></br></br>
+         <a href="{{ route('dashboard.admin.cities') }}" class="btn btn-green">Add City</a>
 
        </div> 
        <div id="notificationMessage" class="alert d-none" role="alert"></div>

@@ -24,8 +24,8 @@
                 <tr>
                     <th>Profile Image</th>
                     <th>Name</th>
-                    <th>Email</th>
                     <th>Phone Number</th>
+                    <th>Goverment Id</th>
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
@@ -35,12 +35,37 @@
                     <tr>
                         <td>
                             <img class="listing-img" 
-                                src="{{ $user->image ? asset('assets/profile_image/' . $user->image) : asset('assets/profile_image/default_user_profile.jpg') }}" 
+                                src="{{ $user->image ? asset('assets/profile_image/' . $user->image) : asset('assets/admin/images/default_user_profile.jpg') }}" 
                                 alt="user-img" width="80">
                         </td>
                         <td>{{ $user->name }}</td>
-                        <td>{{ $user->email ?? '-' }}</td>
                         <td>{{ $user->phone_number ?? '-' }}</td>
+                        <td>
+                           @php
+                                $govIds = [];
+                                if ($user->government_id) {
+                                    // Remove extra quotes if present
+                                    $cleanJson = trim($user->government_id, '"'); 
+                                    $govIds = json_decode($cleanJson, true);
+                                    // Fallback if still null
+                                    if (!is_array($govIds)) {
+                                        $govIds = [];
+                                    }
+                                }
+                            @endphp
+
+                            @if(!empty($govIds))
+                                @foreach($govIds as $idImage)
+                                    <a href="{{ asset('assets/identity/' . $idImage) }}" target="_blank">
+                                        <img class="listing-img" 
+                                            src="{{ file_exists(public_path('assets/identity/' . $idImage)) ? asset('assets/identity/' . $idImage) : asset('assets/admin/images/aadharcard.jpg') }}" 
+                                            alt="gov-id" width="80">
+                                    </a>
+                                @endforeach
+                            @else
+                                <img class="listing-img" src="{{ asset('assets/admin/images/aadharcard.jpg') }}" alt="" width="80">
+                            @endif
+                        </td>
                         <td>
                             @if($user->id_verified == 0)
                                 <span class="badge bg-warning">Pending</span>
@@ -123,7 +148,6 @@
         <table class="table table-striped table-bordered table-notification-list">
           <tbody>
             <tr><th>Name</th><td id="modal-name">-</td></tr>
-            <tr><th>Email</th><td id="modal-email">-</td></tr>
             <tr><th>Phone NUmber</th><td id="modal-phone_number">-</td></tr>
           </tbody>
         </table>

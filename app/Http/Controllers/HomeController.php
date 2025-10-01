@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 use App\Models\City; 
 use App\Models\CarModel; 
 use App\Models\Service;
+use App\Models\Enquiry;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class HomeController extends Controller
 {
@@ -82,6 +85,48 @@ class HomeController extends Controller
                         'message' => 'Services fetched successfully.',
             'data'   => $services, // array of objects [{id:1, service_name:"WiFi"}, ...]
         ], 200);
+    }
+
+    public function storeEnquiry(Request $request)
+    {
+            //  Get authenticated user
+            $user = Auth::guard('api')->user();
+            if (!$user) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'User not authenticated'
+                ], 401);
+            }
+
+            //  Validation
+           $validator = Validator::make($request->all(), [
+                'title'       => 'required|string',
+                'description' => 'required|string',
+            ], [
+                'title.required'      => 'Title is required.',
+                'description.required'      => 'Description ID is required.',
+           ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => $validator->errors()->first()
+                ], 201);
+            }
+
+            //  Store enquiry
+            $enquiry = Enquiry::create([
+                'user_id'     => $user->id,
+                'phone'       => $user->phone ?? '', // assuming phone is in users table
+                'title'       => $request->title,
+                'description' => $request->description,
+            ]);
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Enquiry submitted successfully',
+                'data'    => $enquiry
+            ],200);
     }
 
     
