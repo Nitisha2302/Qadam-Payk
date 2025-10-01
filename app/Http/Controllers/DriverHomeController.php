@@ -903,7 +903,7 @@ class DriverHomeController extends Controller
     // }
 
 
-    public function driverDetails(Request $request)
+public function driverDetails(Request $request)
 {
     $userId = $request->query('user_id');
 
