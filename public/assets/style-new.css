@@ -1,5 +1,5 @@
 .table-notification-list thead tr th {
-    background-color: #86c349;
+    background-color: #008955;
     font-size: 22px;
     line-height: 25px;
     color: #ffffff;
@@ -22,10 +22,10 @@
     font-family: "MyriadPro-400";
     padding: 10px;
     vertical-align: baseline;
-}#86c349
+}#008955
 
 button.action-btn {
-    background-color: #86c349;
+    background-color: #008955;
     padding: 10px 32px;
     border: none;
     border-radius: 30px;
@@ -39,7 +39,7 @@ button.action-btn {
 }
 
 a.action-btn {
-    color: #86c349;
+    color: #008955;
 }
 
 td.btn-parent {
@@ -58,7 +58,7 @@ td.btn-parent {
 /* dashboaed css  */
 .custom-class {
     font-size: 30px;
-    color: #86c349;
+    color: #008955;
 }
 
 .icon-font-size {
@@ -109,7 +109,7 @@ section.delete-confirmation-popup.delete-user-confirmation-popup {
 .close.cancel-popup-btnbox {
     float: inline-end;
     margin-top: -36px;
-    background-color: #86c349;
+    background-color: #008955;
     border-radius: 50%;
     height: 40px;
     width: 40px;
@@ -122,12 +122,12 @@ section.delete-confirmation-popup.delete-user-confirmation-popup {
 
 h2.delete-confirmation-popup-title.delete-user-confirmation-popup-title {
     font-weight: 800;
-    color: #86c349;
+    color: #008955;
     font-size: 24px;
 }
 
 .popup__content button {
-    background-color: #86c349;
+    background-color: #008955;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -220,13 +220,13 @@ button.delete-confirmation-popup-btn.delete-confirmation-popup-delete-btn.delete
 /* .grid-imgbox {
     background-color: #fff;
     padding: 15px;
-    border: 1px solid #86c349;
+    border: 1px solid #008955;
     border-radius: 5px;
     margin-bottom: 20px;
 } */
 
 li.header-list {
-    background-color: #86c349cc !important;
+    background-color: #008955cc !important;
     color: #fff !important;
     font-size: 18px !important;
     text-transform: capitalize !important;
@@ -243,8 +243,8 @@ li.header-list .employee-list-heading {
 /* plan css start  */
 
 button.delete-confirmation-popup-btn.btn {
-    background-color: #86c349;
-    border: 1px solid #86c349;
+    background-color: #008955;
+    border: 1px solid #008955;
     color: #fff;
     border-radius: 5px;
     padding: 11px;
@@ -294,7 +294,7 @@ table.table.table-striped.table-bordered.table-notification-list td:last-child {
 
 .macro-neutrinos label {
     font-size: 15px !important;
-    background-color: #86c349 !important;
+    background-color: #008955 !important;
     color: #fff !important;
     padding: 14px !important;
     border-radius: 10px !important;
@@ -306,7 +306,7 @@ table.table.table-striped.table-bordered.table-notification-list td:last-child {
 p.form-group-label {
     font-size: 22px;
     font-family: MyriadPro-700;
-    color: #86c349;
+    color: #008955;
     margin-bottom: 0;
     text-transform: capitalize;
 }
@@ -327,17 +327,17 @@ input[type=number] {
     background-color: #fff;
     padding: 10px;
     border-radius: 5px;
-    border: 1px solid #86c349;
+    border: 1px solid #008955;
 }
 
 label.select-label {
     font-size: 22px;
     font-family: MyriadPro-700;
-    color: #86c349;
+    color: #008955;
 }
 
 a.btn.btn-green {
-    background-color: #86c349;
+    background-color: #008955;
     color: #fff;
     font-weight: 600;
     font-size: 16px;
@@ -364,12 +364,12 @@ a.btn.btn-green {
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-    background: #86c349;
+    background: #008955;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-    background: #86c349;
+    background: #008955;
 }
 
 
@@ -379,7 +379,7 @@ a.btn.btn-green {
 /*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  PROVACY POLICY AND TERSMS & CONDITION CSS START HERE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
 
 .privacy-policy-head {
-    background-color: #86c34917;
+    background-color: #00895517;
     padding: 24px;
     margin-bottom: 30px;
 }
@@ -399,7 +399,7 @@ a.btn.btn-green {
 h2.heading {
     font-size: 24px;
     font-weight: 600;
-    color: #86c349;
+    color: #008955;
 }
 
 .privacy-policy-head h5 {
@@ -416,7 +416,7 @@ h2.heading {
 strong.before-style:before {
     content: "";
     display: inline-block;
-    background-color: #86c349;
+    background-color: #008955;
     width: 12px;
     height: 12px;
     margin-right: 10px;
@@ -469,13 +469,13 @@ ul.pp-list {
 
 .container-main h1 {
     font-size: 24px;
-    color: #86c349;
+    color: #008955;
     font-weight: 500;
 }
 
 .container-main h2 {
     font-size: 20px;
-    color: #86c349;
+    color: #008955;
 }
 
 .container-main p {
@@ -520,7 +520,7 @@ img.user-profile-img {
     margin: 0 auto;
     background-color: #fff;
     border-radius: 5px;
-    border: 1x solid #86c349;
+    border: 1x solid #008955;
 }
 
    .heading-text-center-main{    
@@ -608,11 +608,11 @@ button.delete-btn-design:hover {
 
 
 a.action-btn{
-    border: 1px solid #86c349;
+    border: 1px solid #008955;
     width: 30px !important;
     height: 30px !important;
     padding: 7px;
-    background-color: #86c349;
+    background-color: #008955;
     border-radius: 5px;
     color: #fff !important;
     font-size: 15px;
@@ -621,8 +621,8 @@ a.action-btn{
 
 a.action-btn:hover{
     background-color: transparent;
-    color: #86c349 !important;
-    border: 1px solid #86c349;
+    color: #008955 !important;
+    border: 1px solid #008955;
 }
 
 

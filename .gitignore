@@ -22,3 +22,8 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+
+# Do not ignore firebase folder inside storage/app
+!/storage/app/firebase/
+!/storage/app/firebase/**

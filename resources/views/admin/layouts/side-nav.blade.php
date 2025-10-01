@@ -2,7 +2,7 @@
     <div class="d-flex align-items-center justify-content-center">
         <a class="navbar-brand"
             href="{{ Auth::user()->role == 1 ? route('dashboard.admin.all-cities') : (Auth::user()->role == 2 ? route('dashboard.employee.all-cities') : '#') }}">
-            <!-- <img class="full-imgbox" src="{{ asset('assets/admin/images/qadampayk-dash.png') }}" width="200" alt="logo"> -->
+            <img class="full-imgbox" src="{{ asset('assets/admin/images/qadampayk-dash.png') }}" width="200" alt="logo">
         </a>
     </div>
  
