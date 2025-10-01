@@ -95,6 +95,26 @@ class GlobalSearchController extends Controller
             ]);
         }
 
+        if (str_contains($currentRoute, 'all-query')) {
+            $queries = User::whereHas('rides') // ✅ only drivers
+                ->where(function ($query) use ($searchTerm) {
+                    $query->where('title', 'like', "%{$searchTerm}%")
+                        ->orWhere('description', 'like', "%{$searchTerm}%")
+                        ->orWhere('phone_number', 'like', "%{$searchTerm}%");
+                })
+                ->paginate(10)
+                ->appends($request->only('search'));
+
+            return view('admin.enquiry.allQuery', [
+                'queries' => $queries,
+                'search_queries' => $queries,
+            ]);
+        }
+
+
+
+        
+
         // Default fallback (optional)
         return redirect()->back()->with('error', 'Search not available on this page.');
     }

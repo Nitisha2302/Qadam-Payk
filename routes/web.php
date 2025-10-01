@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\GlobalSearchController;
 use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\CarController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\EnquiryController;
 
 
 Route::fallback(function () {
@@ -71,6 +72,11 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
         Route::put('upadte-service/{id}', [CarController::class, 'updateService'])->name('update-service');
        Route::delete('delete-service', [CarController::class, 'deleteService'])->name('deleteService');  
 
+        Route::get('all-queries', [EnquiryController::class, 'allQueries'])->name('all-query');
+        Route::delete('delete-query', [EnquiryController::class, 'deleteQuery'])->name('deleteQuery');
+
+        Route::get('privacy-policy', [EnquiryController::class, 'editPrivacyPolicy'])->name('privacy-policy.edit');
+        Route::post('privacy-policy', [EnquiryController::class, 'updatePrvacyPolicy'])->name('privacy-policy.update');
 
 
     });

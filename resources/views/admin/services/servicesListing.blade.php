@@ -17,7 +17,7 @@
 
         <div id="notificationMessage" class="alert d-none" role="alert"></div>
            
-         <a href="{{ route('dashboard.admin.service') }}" class="btn btn-green">Add Service</a></br></br>
+         <a href="{{ route('dashboard.admin.service') }}" class="btn btn-green">Add Service</a>
 
        </div> 
        <div id="notificationMessage" class="alert d-none" role="alert"></div>

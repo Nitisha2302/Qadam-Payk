@@ -26,7 +26,6 @@ class UserController extends Controller
         $users = User::whereHas('rides')
                     ->orderBy('id', 'desc')
                     ->paginate(10);
-
         return view('admin.users.driversListing', compact('users'));
     }
 
