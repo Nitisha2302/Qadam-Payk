@@ -823,30 +823,148 @@ class DriverHomeController extends Controller
     //     ], 200);
     // }
 
+    // public function driverDetails(Request $request)
+    // {
+    //     $userId = $request->query(key: 'user_id');
+
+    //     $validator = Validator::make(['user_id' => $userId], [
+    //         'user_id' => 'required|integer|exists:users,id',
+    //     ], [
+    //         'user_id.required' => 'User ID is required.',
+    //         'user_id.integer'  => 'User ID must be a valid integer.',
+    //         'user_id.exists'   => 'Driver not found.',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => $validator->errors()->first(),
+    //         ], 201);
+    //     }
+
+    //     $driver = User::find($userId);
+    //     $vehicle = Vehicle::where('user_id', $driver->id)->first();
+
+    //     // Base driver & vehicle info
+    //     $responseData = [
+    //         'driver_id'      => $driver->id,
+    //         'name'           => $driver->name,
+    //         'image'          => $driver->image,
+    //         'phone_number'   => $driver->phone_number,
+    //         'dob'            => $driver->dob,
+    //         'gender'         => $driver->gender,
+    //         'vehicle_id'     => $vehicle->id ?? null,
+    //         'brand'          => $vehicle->brand ?? null,
+    //         'model'          => $vehicle->model ?? null,
+    //         'vehicle_image'  => $vehicle->vehicle_image ?? null,
+    //         'vehicle_type'   => $vehicle->vehicle_type ?? null,
+    //         'number_plate'   => $vehicle->number_plate ?? null,
+    //     ];
+
+    //     // Fetch rides for this driver and merge directly
+    //     $rides = Ride::where('vehicle_id', $vehicle->id ?? 0)
+    //                 ->orderBy('ride_date', 'asc')
+    //                 ->orderBy('ride_time', 'asc')
+    //                 ->get();
+
+    //     foreach ($rides as $ride) {
+    //         $rideData = [
+    //             'ride_id'          => $ride->id,
+    //             'pickup_location'  => $ride->pickup_location,
+    //             'destination'      => $ride->destination,
+    //             'number_of_seats'  => $ride->number_of_seats,
+    //             'price'            => $ride->price * $ride->number_of_seats,
+    //             'ride_date'        => $ride->ride_date,
+    //             'ride_time'        => $ride->ride_time,
+    //             'services'         => $ride->services_details,
+    //             'accept_parcel'    => $ride->accept_parcel,
+    //             'vehicle_id'       => $vehicle->id ?? null,
+    //             'brand'            => $vehicle->brand ?? null,
+    //             'model'            => $vehicle->model ?? null,
+    //             'vehicle_image'    => $vehicle->vehicle_image ?? null,
+    //             'vehicle_type'     => $vehicle->vehicle_type ?? null,
+    //             'number_plate'     => $vehicle->number_plate ?? null,
+    //             'driver_id'        => $driver->id,
+    //             'driver_status'    => $driver->id_verified ,
+    //             'driver_rating'    => '3',
+    //             'phone_number'     => $driver->phone_number,
+    //             'id_verified'      => $driver->id_verified,
+    //         ];
+
+    //         // Merge ride data into the same responseData
+    //         $responseData = array_merge($responseData, $rideData);
+    //     }
+
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => 'Driver details fetched successfully.',
+    //         'data'    => $responseData,
+    //     ], 200);
+    // }
+
+
     public function driverDetails(Request $request)
-    {
-        $userId = $request->query(key: 'user_id');
+{
+    $userId = $request->query('user_id');
 
-        $validator = Validator::make(['user_id' => $userId], [
-            'user_id' => 'required|integer|exists:users,id',
-        ], [
-            'user_id.required' => 'User ID is required.',
-            'user_id.integer'  => 'User ID must be a valid integer.',
-            'user_id.exists'   => 'Driver not found.',
-        ]);
+    $validator = Validator::make(['user_id' => $userId], [
+        'user_id' => 'required|integer|exists:users,id',
+    ], [
+        'user_id.required' => 'User ID is required.',
+        'user_id.integer'  => 'User ID must be a valid integer.',
+        'user_id.exists'   => 'Driver not found.',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status'  => false,
-                'message' => $validator->errors()->first(),
-            ], 201);
+    if ($validator->fails()) {
+        return response()->json([
+            'status'  => false,
+            'message' => $validator->errors()->first(),
+        ], 201);
+    }
+
+    $driver = User::find($userId);
+    $vehicle = Vehicle::where('user_id', $driver->id)->first();
+
+    // Fetch rides
+    $rides = Ride::where('vehicle_id', $vehicle->id ?? 0)
+                ->orderBy('ride_date', 'asc')
+                ->orderBy('ride_time', 'asc')
+                ->get();
+
+    $data = [];
+
+    if ($rides->count() > 0) {
+        foreach ($rides as $ride) {
+            $rideData = [
+                'driver_id'      => $driver->id,
+                'name'           => $driver->name,
+                'image'          => $driver->image,
+                'phone_number'   => $driver->phone_number,
+                'dob'            => $driver->dob,
+                'gender'         => $driver->gender,
+                'id_verified'         => $driver->id_verified,
+                'vehicle_id'     => $vehicle->id ?? null,
+                'brand'          => $vehicle->brand ?? null,
+                'model'          => $vehicle->model ?? null,
+                'vehicle_image'  => $vehicle->vehicle_image ?? null,
+                'vehicle_type'   => $vehicle->vehicle_type ?? null,
+                'number_plate'   => $vehicle->number_plate ?? null,
+                'ride_id'        => $ride->id,
+                'pickup_location'=> $ride->pickup_location,
+                'destination'    => $ride->destination,
+                'number_of_seats'=> $ride->number_of_seats,
+                'price'          => $ride->price * $ride->number_of_seats,
+                'ride_date'      => $ride->ride_date,
+                'ride_time'      => $ride->ride_time,
+                'services'       => $ride->services_details,
+                'accept_parcel'  => $ride->accept_parcel,
+            ];
+
+            $data[] = $rideData;
         }
-
-        $driver = User::find($userId);
-        $vehicle = Vehicle::where('user_id', $driver->id)->first();
-
-        // Base driver & vehicle info
-        $responseData = [
+    } else {
+        // No rides, still return driver & vehicle info
+        $data[] = [
             'driver_id'      => $driver->id,
             'name'           => $driver->name,
             'image'          => $driver->image,
@@ -860,47 +978,15 @@ class DriverHomeController extends Controller
             'vehicle_type'   => $vehicle->vehicle_type ?? null,
             'number_plate'   => $vehicle->number_plate ?? null,
         ];
-
-        // Fetch rides for this driver and merge directly
-        $rides = Ride::where('vehicle_id', $vehicle->id ?? 0)
-                    ->orderBy('ride_date', 'asc')
-                    ->orderBy('ride_time', 'asc')
-                    ->get();
-
-        foreach ($rides as $ride) {
-            $rideData = [
-                'ride_id'          => $ride->id,
-                'pickup_location'  => $ride->pickup_location,
-                'destination'      => $ride->destination,
-                'number_of_seats'  => $ride->number_of_seats,
-                'price'            => $ride->price * $ride->number_of_seats,
-                'ride_date'        => $ride->ride_date,
-                'ride_time'        => $ride->ride_time,
-                'services'         => $ride->services_details,
-                'accept_parcel'    => $ride->accept_parcel,
-                'vehicle_id'       => $vehicle->id ?? null,
-                'brand'            => $vehicle->brand ?? null,
-                'model'            => $vehicle->model ?? null,
-                'vehicle_image'    => $vehicle->vehicle_image ?? null,
-                'vehicle_type'     => $vehicle->vehicle_type ?? null,
-                'number_plate'     => $vehicle->number_plate ?? null,
-                'driver_id'        => $driver->id,
-                'driver_status'    => $driver->id_verified ,
-                'driver_rating'    => '3',
-                'phone_number'     => $driver->phone_number,
-                'id_verified'      => $driver->id_verified,
-            ];
-
-            // Merge ride data into the same responseData
-            $responseData1 = array_merge($responseData, $rideData);
-        }
-
-        return response()->json([
-            'status'  => true,
-            'message' => 'Driver details fetched successfully.',
-            'data'    => $responseData1,
-        ], 200);
     }
+
+    return response()->json([
+        'status'  => true,
+        'message' => 'Driver details fetched successfully.',
+        'data'    => $data,
+    ], 200);
+}
+
 
 
 
