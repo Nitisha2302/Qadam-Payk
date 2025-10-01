@@ -7,6 +7,8 @@ use App\Http\Controllers\DriverHomeController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PassengerRequestController;
+use App\Http\Controllers\ContentController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -87,3 +89,7 @@ Route::get('/get-services', [HomeController::class, 'getAllServices']);
 
 
 Route::post('/store-enquiry', [HomeController::class, 'storeEnquiry']);
+
+
+Route::get('privacy-policy', [ContentController::class, 'privacyPolicy']);
+Route::get('terms-conditions', [ContentController::class, 'termsConditions']);;

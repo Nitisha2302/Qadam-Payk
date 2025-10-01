@@ -74,6 +74,15 @@
                 </a>
             </li>
 
+            <li class="@if (Route::currentRouteName() == 'dashboard.admin.terms-comditions-edit') active @endif">
+                <a href="{{ route('dashboard.admin.terms-comditions-edit') }}">
+                    <span class="d-flex gap-3 align-items-end">
+                       <i class="fas fa-file-alt icon-font-size"></i>
+                        <span class="nav-content-menu">Terms & Conditions</span>
+                    </span>
+                </a>
+            </li>
+
         @endif
     </ul>
 </aside>

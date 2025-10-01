@@ -4,7 +4,7 @@
 <div class="main-box-content main-space-box ">
     <section class="project-doorbox">
         <div class="heading-content-box heading-text-center-main">
-            <h2 class="text-center">Update Privacy Policy Content</h2>
+            <h2 class="text-center">Update Terms & Conditions Content</h2>
             <div id="successMessage" class="alert alert-success d-none"></div>
 
             @if (session('success'))
@@ -23,15 +23,15 @@
         </div>
 
         <div class="project-ongoing-box">
-            <form class="employe-form" action="{{ route('dashboard.admin.privacy-policy.update') }}" method="POST"  enctype="multipart/form-data">
+            <form class="employe-form" action="{{ route('dashboard.admin.update-terms-comditions') }}" method="POST"  enctype="multipart/form-data">
                   @csrf
                   <div class="form-container">
                     <div class="row">
 
                         <div class="col-md-12">
                             <div class="form-group mb-4">
-                                <label for="title">Privacy Policy Title</label>
-                                <textarea id="title-editor" name="title" class="form-control user-input" placeholder="Enter Privacy Policy Title">{{ old('title', $privacyPolicy->title ?? '') }}</textarea>
+                                <label for="title">Title</label>
+                                <textarea id="title-editor" name="title" class="form-control user-input" placeholder="Enter term and condition Title">{{ old('title', $privacyPolicy->title ?? '') }}</textarea>
                                 @error('title')
                                     <div class="text-danger error-message">{{ $message }}</div>
                                 @enderror
@@ -40,8 +40,8 @@
 
                         <div class="col-md-12">
                             <div class="form-group mb-4">
-                                <label for="content">Privacy Policy Content</label>
-                                <textarea id="content-editor" name="content" class="form-control user-input" placeholder="Enter Privacy Policy Content">{{ old('content', $privacyPolicy->content ?? '') }}</textarea>
+                                <label for="content">Content</label>
+                                <textarea id="content-editor" name="content" class="form-control user-input" placeholder="Enter term and condition Content">{!! old('content', $privacyPolicy->content ?? '') !!}</textarea>
                                 @error('content')
                                     <div class="text-danger error-message">{{ $message }}</div>
                                 @enderror

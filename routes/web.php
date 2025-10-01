@@ -32,9 +32,6 @@ Route::get('/term-conditions', [DashboardController::class, 'appTermCondition'])
 
 
 
-
-
-
 // Routes with the same prefix for both Admin and Investor
 Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
     // Admin Dashboard
@@ -75,9 +72,10 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
         Route::get('all-queries', [EnquiryController::class, 'allQueries'])->name('all-query');
         Route::delete('delete-query', [EnquiryController::class, 'deleteQuery'])->name('deleteQuery');
 
-        Route::get('privacy-policy', [EnquiryController::class, 'editPrivacyPolicy'])->name('privacy-policy.edit');
-        Route::post('privacy-policy', [EnquiryController::class, 'updatePrvacyPolicy'])->name('privacy-policy.update');
-
+        Route::get('edit-privacy-policy', [EnquiryController::class, 'editPrivacyPolicy'])->name('privacy-policy.edit');
+        Route::post('update-privacy-policy', [EnquiryController::class, 'updatePrvacyPolicy'])->name('privacy-policy.update');
+        Route::get('edit-terms-conditions', [EnquiryController::class, 'editTermsConditions'])->name('terms-comditions-edit');
+        Route::post('update-terms-conditions', [EnquiryController::class, 'updateTermsConditions'])->name('update-terms-comditions');
 
     });
 
