@@ -129,5 +129,32 @@ class HomeController extends Controller
             ],200);
     }
 
+    public function getEnquiryAnswer(Request $request)
+    {
+        // Get authenticated user
+        $user = Auth::guard('api')->user();
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not authenticated'
+            ], 401);
+        }
+
+        // Fetch all enquiries/answers for this user
+        $enquiries = Enquiry::where('user_id', $user->id)
+                            ->orderBy('created_at', 'asc')
+                            ->get(['id', 'user_id', 'title', 'description', 'answer', 'created_at']);
+
+        return response()->json([
+            'status' => true,
+            'message'=> "Query fetched successfully.",
+            'data'   => $enquiries,
+        ],200);
+    }
+
+
+
+
+
     
 }

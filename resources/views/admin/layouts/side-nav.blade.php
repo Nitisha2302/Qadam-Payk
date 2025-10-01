@@ -68,7 +68,7 @@
             <li class="@if (Route::currentRouteName() == 'dashboard.admin.privacy-policy.edit') active @endif">
                 <a href="{{ route('dashboard.admin.privacy-policy.edit') }}">
                     <span class="d-flex gap-3 align-items-end">
-                       <i class="fas fa-envelope icon-font-size"></i>
+                      <i class="fas fa-lock icon-font-size"></i>
                         <span class="nav-content-menu">Privacy Policy</span>
                     </span>
                 </a>

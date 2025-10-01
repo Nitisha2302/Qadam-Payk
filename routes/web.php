@@ -71,6 +71,7 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
 
         Route::get('all-queries', [EnquiryController::class, 'allQueries'])->name('all-query');
         Route::delete('delete-query', [EnquiryController::class, 'deleteQuery'])->name('deleteQuery');
+        Route::post('answer-query', [EnquiryController::class, 'answerQuery'])->name('answer-query');
 
         Route::get('edit-privacy-policy', [EnquiryController::class, 'editPrivacyPolicy'])->name('privacy-policy.edit');
         Route::post('update-privacy-policy', [EnquiryController::class, 'updatePrvacyPolicy'])->name('privacy-policy.update');

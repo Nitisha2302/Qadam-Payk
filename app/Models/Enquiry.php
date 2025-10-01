@@ -13,6 +13,7 @@ class Enquiry extends Model
         'user_id',
         'title',
         'description',
+        'answer',
     ];
 
     public function user()

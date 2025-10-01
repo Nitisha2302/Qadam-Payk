@@ -38,6 +38,26 @@ class EnquiryController extends Controller
     }
 
 
+    public function answerQuery(Request $request)
+    {
+        $request->validate([
+            'query_id' => 'required|exists:enquiries,id',
+            'answer'   => 'required|string',
+        ], [
+            'query_id.required' => 'Query ID is required.',
+            'answer.required'   => 'Please enter the answer.',
+        ]);
+
+        $enquiry = Enquiry::findOrFail($request->query_id);
+        $enquiry->answer = $request->answer;
+        $enquiry->save();
+
+        return response()->json([
+            'success' => 'Answer submitted successfully.'
+        ]);
+    }
+
+
     public function editPrivacyPolicy()
     {
         $privacyPolicy = PrivacyPolicy::first(); // Assume only 1 policy exists

@@ -89,6 +89,7 @@ Route::get('/get-services', [HomeController::class, 'getAllServices']);
 
 
 Route::post('/store-enquiry', [HomeController::class, 'storeEnquiry']);
+Route::post('/get-enquiry-answer', [HomeController::class, 'getEnquiryAnswer']);
 
 
 Route::get('privacy-policy', [ContentController::class, 'privacyPolicy']);

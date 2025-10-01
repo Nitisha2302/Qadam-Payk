@@ -6,6 +6,7 @@
        <div class="ai-training-data-wrapper d-flex align-items-baseline justify-content-between">
          <div class="heading-content-box">
             <h2>All Queries</h2>
+            <div id="answerSuccessMessage" class="alert alert-success d-none"></div>
             <div id="successMessage" class="alert alert-success d-none"></div>
             @if (session('success'))
                 <div class="alert alert-success" role="alert" id="success-message">
@@ -26,6 +27,7 @@
                         <th style="width:20%;">Phone Number</th>
                         <th style="width:30%;">Title</th>
                         <th>Query</th>
+                         <th>Answer</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -35,10 +37,18 @@
                             <td >{{ $enquiry->user->phone_number ?? 'N/A' }}</td>
                             <td><div class="scrollable-td">{{$enquiry->title}}</div></td> 
                             <td><div class="scrollable-td">{{$enquiry->description}}</div></td> 
+                            <td class="answer-cell"><div class="scrollable-td">{{ $enquiry->answer ?? 'N/A' }}</div></td>
                             <td>                                            
                                 <div class="d-flex align-items-center gap-2">
                                     <button  class="dropdown-item delete-btn-design delete-query-btn d-flex justify-content-center" data-query-id="{{ $enquiry->id }}" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
                                         <i class="fa fa-regular fa-trash"></i>
+                                    </button>
+                                    <!-- Answer Button -->
+                                    <button class="btn btn-primary btn-sm answer-btn" 
+                                            data-query-id="{{ $enquiry->id }}" 
+                                            data-current-answer="{{ $enquiry->answer ?? '' }}" 
+                                            type="button" data-bs-toggle="modal" data-bs-target="#answerModal">
+                                        Answer
                                     </button>
                                 </div>
                             </td>
@@ -106,6 +116,38 @@
             </div>
         </section>
     <!-- delete-confirmation-popup-->
+
+    <!-- Answer Modal -->   
+
+    <div class="modal fade" id="answerModal" tabindex="-1" aria-labelledby="answerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="answerModalLabel">Reply to Query</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="answerForm">
+                    @csrf
+                    <input type="hidden" name="query_id" id="query_id">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="answer">Answer</label>
+                            <textarea name="answer" id="answer" class="form-control" style="height: 200px; overflow-y: auto; resize: none;"></textarea>
+                            <span class="text-danger error-answer"></span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">Submit Answer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+
 @endsection
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -113,4 +155,65 @@
     const csrfToken = "{{ csrf_token() }}";
     const deleteQueryUrl = "{{ route('dashboard.admin.deleteQuery') }}";
 </script>
+<script>
+$(document).ready(function() {
+    // Open modal and set query ID
+    $('.answer-btn').click(function() {
+        var queryId = $(this).data('query-id');
+        var currentAnswer = $(this).data('current-answer');
+
+        $('#query_id').val(queryId);
+        // $('#answer').val(currentAnswer);
+        $('.error-answer').text('');
+    });
+
+    // AJAX submit
+    $('#answerForm').submit(function(e) {
+        e.preventDefault();
+
+        var formData = $(this).serialize();
+
+        $.ajax({
+            url: "{{ route('dashboard.admin.answer-query') }}",
+            type: "POST",
+            data: formData,
+            success: function(response) {
+                if(response.success) {
+                    // Hide modal
+                    $('#answerModal').modal('hide');
+
+                    // Show success message dynamically
+                    $('#answerSuccessMessage')
+                        .removeClass('d-none')
+                        .text(response.success);
+
+                    // Optional: remove message after 3 seconds
+                    setTimeout(function() {
+                        $('#answerSuccessMessage').addClass('d-none').text('');
+                    }, 3000);
+
+                    // Update the table row with the new answer (if needed)
+                    var queryId = $('#query_id').val();
+                     var newAnswer = $('#answer').val();
+                      // Update the <td> with the new answer
+                    $('tr').filter(function() {
+                        return $(this).find('.answer-btn').data('query-id') == queryId;
+                    }).find('td.answer-cell .scrollable-td').text(newAnswer);
+                                $('button.answer-btn[data-query-id="'+queryId+'"]').data('current-answer', $('#answer').val());
+                            }
+                        },
+            error: function(xhr) {
+                if(xhr.status === 422) {
+                    let errors = xhr.responseJSON.errors;
+                    if(errors.answer) {
+                        $('.error-answer').text(errors.answer[0]);
+                    }
+                }
+            }
+        });
+    });
+});
+</script>
+
+
 

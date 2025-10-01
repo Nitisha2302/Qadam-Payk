@@ -58,12 +58,12 @@
                                 @foreach($govIds as $idImage)
                                     <a href="{{ asset('assets/identity/' . $idImage) }}" target="_blank">
                                         <img class="listing-img" 
-                                            src="{{ file_exists(public_path('assets/identity/' . $idImage)) ? asset('assets/identity/' . $idImage) : asset('assets/admin/images/aadharcard.jpg') }}" 
+                                            src="{{ file_exists(public_path('assets/identity/' . $idImage)) ? asset('assets/identity/' . $idImage) : asset('assets/admin/images/default_user_profile.jpg') }}" 
                                             alt="gov-id" width="80">
                                     </a>
                                 @endforeach
                             @else
-                                <img class="listing-img" src="{{ asset('assets/admin/images/aadharcard.jpg') }}" alt="" width="80">
+                                <img class="listing-img" src="{{ asset('assets/admin/images/default_user_profile.jpg') }}" alt="" width="80">
                             @endif
                         </td>
                         <td>
