@@ -9,7 +9,9 @@
 /public/assets/parcels
 /public/assets/parcel_image
 /public/assets/vehicle_image
-/storage/*.key
+/storage/framework
+/storage/logs
+/storage/app/public
 /vendor
 .env
 .env.backup
@@ -24,6 +26,3 @@ yarn-error.log
 /.vscode
 
 
-# Do not ignore firebase folder inside storage/app
-!/storage/app/firebase/
-!/storage/app/firebase/**
