@@ -942,7 +942,7 @@ public function driverDetails(Request $request)
                 'phone_number'   => $driver->phone_number,
                 'dob'            => $driver->dob,
                 'gender'         => $driver->gender,
-                'id_verified'         => $driver->id_verified,
+                'id_verified'    => $driver->id_verified,
                 'vehicle_id'     => $vehicle->id ?? null,
                 'brand'          => $vehicle->brand ?? null,
                 'model'          => $vehicle->model ?? null,
@@ -977,9 +977,8 @@ public function driverDetails(Request $request)
             'vehicle_image'  => $vehicle->vehicle_image ?? null,
             'vehicle_type'   => $vehicle->vehicle_type ?? null,
             'number_plate'   => $vehicle->number_plate ?? null,
-             'id_verified'    => $driver->id_verified,
-            
-            
+            'id_verified'    => $driver->id_verified,
+
         ];
     }
 
