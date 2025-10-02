@@ -751,9 +751,11 @@ class PassengerRequestController extends Controller
                 'image'          => $driver->image,
                 'dob'            => $driver->dob,
                 'gender'         => $driver->gender,
+                'id_verified'    => $driver->id_verified,
                 'is_phone_verify' => $driver->is_phone_verify,
                 'device_type'    => $driver->device_type,
                 'device_id'      => $driver->device_id,
+                
             ];
 
             $vehicleData = $driver->vehicle ? [

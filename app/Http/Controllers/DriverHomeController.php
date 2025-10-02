@@ -977,6 +977,9 @@ public function driverDetails(Request $request)
             'vehicle_image'  => $vehicle->vehicle_image ?? null,
             'vehicle_type'   => $vehicle->vehicle_type ?? null,
             'number_plate'   => $vehicle->number_plate ?? null,
+             'id_verified'    => $driver->id_verified,
+            
+            
         ];
     }
 
