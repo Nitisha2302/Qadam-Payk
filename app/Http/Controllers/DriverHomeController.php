@@ -942,7 +942,7 @@ public function driverDetails(Request $request)
                 'phone_number'   => $driver->phone_number,
                 'dob'            => $driver->dob,
                 'gender'         => $driver->gender,
-                'id_verified'         => $driver->id_verified,
+                // 'id_verified'         => $driver->id_verified,
                 'vehicle_id'     => $vehicle->id ?? null,
                 'brand'          => $vehicle->brand ?? null,
                 'model'          => $vehicle->model ?? null,
@@ -958,6 +958,7 @@ public function driverDetails(Request $request)
                 'ride_time'      => $ride->ride_time,
                 'services'       => $ride->services_details,
                 'accept_parcel'  => $ride->accept_parcel,
+                'id_verified'    => $driver->id_verified,
             ];
 
             $data[] = $rideData;
