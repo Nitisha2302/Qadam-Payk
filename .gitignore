@@ -9,9 +9,7 @@
 /public/assets/parcels
 /public/assets/parcel_image
 /public/assets/vehicle_image
-/storage/framework
-/storage/logs
-/storage/app/public
+/storage/*.key
 /vendor
 .env
 .env.backup
@@ -24,5 +22,3 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
-
-

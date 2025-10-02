@@ -20,7 +20,7 @@ class FCMService
 
         // 🔑 Get Firebase OAuth2 token
         $client = new Client();
-        $client->setAuthConfig(storage_path('app/firebase/service-account.json'));
+        $client->setAuthConfig(storage_path('app/service-account.json'));
         $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
         $client->fetchAccessTokenWithAssertion();
         $accessToken = $client->getAccessToken()['access_token'];
