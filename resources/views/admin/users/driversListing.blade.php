@@ -34,9 +34,14 @@
                 @forelse($users as $user)
                     <tr>
                         <td>
-                            <img class="listing-img" 
+                            <a href="{{ asset('assets/profile_image/' . $user->image) }}" target="_blank">
+                                        <img class="listing-img" 
+                                            src="{{ file_exists(public_path('assets/profile_image/' . $user->image)) ? asset('assets/profile_image/' . $user->image) : asset('assets/admin/images/default_user_profile.jpg') }}" 
+                                            alt="gov-id" width="80">
+                            </a>
+                            <!-- <img class="listing-img" 
                                 src="{{ $user->image ? asset('assets/profile_image/' . $user->image) : asset('assets/admin/images/default_user_profile.jpg') }}" 
-                                alt="user-img" width="80">
+                                alt="user-img" width="80"> -->
                         </td>
                         <td>{{ $user->name }}</td>
                         <td>{{ $user->phone_number ?? '-' }}</td>
