@@ -33,12 +33,23 @@
             <tbody>
                 @forelse($users as $user)
                     <tr>
+                        @php
+                            $imagePath = 'assets/profile_image/' . $user->image;
+                            $imageUrl = file_exists(public_path($imagePath)) 
+                                ? asset($imagePath) 
+                                : asset('assets/admin/images/default_user_profile.jpg');
+                        @endphp
                         <td>
-                            <a href="{{ asset('assets/profile_image/' . $user->image) }}" target="_blank">
+                            <a href="{{ $imageUrl }}" target="_blank">
+                                        <img class="listing-img" 
+                                            src="{{ $imageUrl }}" 
+                                            alt="gov-id" width="80">
+                            </a>
+                            <!-- <a href="{{ asset('assets/profile_image/' . $user->image) }}" target="_blank">
                                         <img class="listing-img" 
                                             src="{{ file_exists(public_path('assets/profile_image/' . $user->image)) ? asset('assets/profile_image/' . $user->image) : asset('assets/admin/images/default_user_profile.jpg') }}" 
                                             alt="gov-id" width="80">
-                            </a>
+                            </a> -->
                             <!-- <img class="listing-img" 
                                 src="{{ $user->image ? asset('assets/profile_image/' . $user->image) : asset('assets/admin/images/default_user_profile.jpg') }}" 
                                 alt="user-img" width="80"> -->

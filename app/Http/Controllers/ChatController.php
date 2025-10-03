@@ -35,27 +35,59 @@ class ChatController extends Controller
     }
 
     // List all conversations
-    public function allConversation() {
+    // public function allConversation() {
+    //     $user = Auth::guard('api')->user();
+    //     if (!$user) return response()->json(['status' => false,'message' => 'User not authenticated'], 401);
+
+    //     $meId = $user->id;
+    //     $conversations = Conversation::where('user_one_id', $meId)
+    //         ->orWhere('user_two_id', $meId)
+    //         ->with(['messages.sender'])
+    //         ->orderByDesc('last_message_at')
+    //         ->get();
+
+    //     $result = $conversations->map(function($c) use ($meId){
+    //         $otherId = $c->otherUserId($meId);
+    //         $lastMsg = $c->messages->last();
+    //         return [
+    //             'conversation_id' => $c->id,
+    //             'other_user_id'   => $otherId,
+    //             'last_message'    => $lastMsg ? $lastMsg->message : null,
+    //             'last_message_time'=> $lastMsg ? $lastMsg->created_at->toDateTimeString() : null,
+    //             'unread_count'    => $c->messages->whereNull('read_at')->where('sender_id','!=',$meId)->count()
+    //         ];
+    //     });
+
+    //     return response()->json(['status'=>true,'message'=>'Conversations fetched successfully','conversations'=>$result],200);
+    // }
+
+    // new with user details 
+
+      public function allConversation() {
         $user = Auth::guard('api')->user();
         if (!$user) return response()->json(['status' => false,'message' => 'User not authenticated'], 401);
 
         $meId = $user->id;
         $conversations = Conversation::where('user_one_id', $meId)
             ->orWhere('user_two_id', $meId)
-            ->with(['messages.sender'])
+            ->with(['messages.sender', 'userOne', 'userTwo']) // eager load users
             ->orderByDesc('last_message_at')
             ->get();
 
         $result = $conversations->map(function($c) use ($meId){
             $otherId = $c->otherUserId($meId);
+            $otherUser = $c->otherUser($meId); // full user model
             $lastMsg = $c->messages->last();
             return [
-                'conversation_id' => $c->id,
-                'other_user_id'   => $otherId,
-                'last_message'    => $lastMsg ? $lastMsg->message : null,
-                'last_message_time'=> $lastMsg ? $lastMsg->created_at->toDateTimeString() : null,
-                'unread_count'    => $c->messages->whereNull('read_at')->where('sender_id','!=',$meId)->count()
-            ];
+            'conversation_id'   => $c->id,
+            'other_user_id'     => $otherUser->id ?? null,
+            'other_user_name'   => $otherUser->name ?? null,
+            'other_user_phone'  => $otherUser->phone ?? null,
+            'other_user_image'  => $otherUser->image,
+            'last_message'      => $lastMsg ? $lastMsg->message : null,
+            'last_message_time' => $lastMsg ? $lastMsg->created_at->toDateTimeString() : null,
+            'unread_count'      => $c->messages->whereNull('read_at')->where('sender_id','!=',$meId)->count()
+        ];
         });
 
         return response()->json(['status'=>true,'message'=>'Conversations fetched successfully','conversations'=>$result],200);
@@ -82,10 +114,15 @@ class ChatController extends Controller
             return response()->json(['status'=>false,'message'=>'You are not a participant in this conversation'],201);
         }
 
-        $messages = $conversation->messages()->with('sender')->get()->map(function($m){
+        $messages = $conversation->messages()->with('sender')->get()->map(function($m) use ($user){
+               $sender = $m->sender;
             return [
                 'id'=>$m->id,
                 'sender_id'=>$m->sender_id,
+                 'is_me'        => $m->sender_id == $user->id,// ✅ true if current user sent it
+                 'sender_name' => $sender->name ?? null,
+                'sender_phone'=> $sender->phone ?? null,
+                'sender_image'=>  $sender->image,
                 'message'=>$m->message,
                 'type'=>$m->type,
                 'meta'=>$m->meta,
@@ -162,6 +199,147 @@ class ChatController extends Controller
     }
 
 
-    
+    // Mark messages as read with conversation 
+    // public function markRead(Request $request) {
+    //     $user = Auth::guard('api')->user();
+    //     if (!$user) return response()->json(['status' => false,'message' => 'User not authenticated'], 401);
+
+    //     $validator = Validator::make($request->all(), [
+    //         'conversation_id' => 'required|exists:conversations,id'
+    //     ]);
+
+    //     if ($validator->fails()) return response()->json(['status'=>false,'message'=>$validator->errors()->first()],201);
+
+    //     $conversation = Conversation::find($request->conversation_id);
+
+    //     if(!in_array($user->id, [$conversation->user_one_id,$conversation->user_two_id])) {
+    //         return response()->json(['status'=>false,'message'=>'You are not a participant in this conversation'],201);
+    //     }
+
+    //     $count = Message::where('conversation_id', $conversation->id)
+    //         ->where('sender_id','!=',$user->id)
+    //         ->whereNull('read_at')
+    //         ->update(['read_at'=>now()]);
+
+    //     return response()->json(['status'=>true,'message'=>"Messages marked as read successfully",'marked_count'=>$count],200);
+    // }
+
+    // with both  
+    public function markRead(Request $request) {
+        $user = Auth::guard('api')->user();
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not authenticated'
+            ], 401);
+        }
+
+        // Validation
+        $validator = Validator::make($request->all(), [
+            'conversation_id' => 'nullable|exists:conversations,id',
+            'message_id'      => 'nullable|exists:messages,id',
+        ], [
+            'conversation_id.exists' => 'The conversation you are trying to access does not exist.',
+            'message_id.exists'      => 'The message you are trying to mark as read does not exist.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first()
+            ], 201);
+        }
+
+        // Case 1: Mark a single message
+        if ($request->message_id) {
+            $message = Message::find($request->message_id);
+
+            if (!$message) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Message not found.'
+                ], 404);
+            }
+
+            if (!in_array($user->id, [$message->conversation->user_one_id, $message->conversation->user_two_id])) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'You are not allowed to mark this message as read.'
+                ], 201);
+            }
+
+            if ($message->sender_id == $user->id) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'You cannot mark your own message as read.'
+                ], 201);
+            }
+
+            if ($message->read_at) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'This message is already marked as read.'
+                ], 201);
+            }
+
+            $message->update(['read_at' => now()]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Message marked as read successfully',
+                'marked_message_id' => $message->id
+            ], 200);
+        }
+
+        // Case 2: Mark all messages in a conversation
+        if ($request->conversation_id) {
+            $conversation = Conversation::find($request->conversation_id);
+
+            if (!$conversation) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Conversation not found.'
+                ], 404);
+            }
+
+            if (!in_array($user->id, [$conversation->user_one_id, $conversation->user_two_id])) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'You are not a participant in this conversation.'
+                ], 403);
+            }
+
+            // Get IDs of unread messages before update
+            $unreadMessageIds = Message::where('conversation_id', $conversation->id)
+                ->where('sender_id', '!=', $user->id)
+                ->whereNull('read_at')
+                ->pluck('id')
+                ->toArray();
+
+            if (empty($unreadMessageIds)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No unread messages to mark as read.'
+                ], 200);
+            }
+
+            // Update them all
+            Message::whereIn('id', $unreadMessageIds)->update(['read_at' => now()]);
+
+            return response()->json([
+                'status' => true,
+                'message' => "Messages marked as read successfully",
+                'marked_count' => count($unreadMessageIds),
+                'marked_ids' => $unreadMessageIds
+            ], 200);
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => 'You must provide either a conversation_id or a message_id.'
+        ], 400);
+    }
+
+
 
 }

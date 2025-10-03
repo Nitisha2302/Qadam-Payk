@@ -2,6 +2,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 
 class Conversation extends Model
 {
@@ -22,8 +23,27 @@ class Conversation extends Model
         return self::firstOrCreate(['user_one_id'=>$one,'user_two_id'=>$two]);
     }
 
+    // Relations with User
+    public function userOne() {
+        return $this->belongsTo(User::class, 'user_one_id');
+    }
+
+    public function userTwo() {
+        return $this->belongsTo(User::class, 'user_two_id');
+    }
+
     // Get the other participant's ID
     public function otherUserId($userId) {
         return $this->user_one_id == $userId ? $this->user_two_id : $this->user_one_id;
     }
+
+    // Get the other participant's ID
+    // Get the other participant's full User model
+    public function otherUser($userId) {
+        return $this->user_one_id == $userId ? $this->userTwo : $this->userOne;
+    }
+
+    
+
+    
 }

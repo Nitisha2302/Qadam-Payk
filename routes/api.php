@@ -69,6 +69,7 @@ Route::post('/update-booking-active-complete-status', [BookingController::class,
 // Route::post('store-passenger-request', [PassengerRequestController::class, 'createRequest']);
 Route::get('get-current-passenger-requests', [PassengerRequestController::class, 'listCurrentPassengerRequests']);
 Route::post('/store-ride-request', [PassengerRequestController::class, 'createRideRequest']);
+
 Route::post('/store-parcel-request', [PassengerRequestController::class, 'createParcelRequest']);
 Route::get('all-ride-requests', [PassengerRequestController::class, 'getAllRideRequests']);
 Route::get('all-parcel-requests', [PassengerRequestController::class, 'getAllParcelRequests']);  
@@ -103,3 +104,6 @@ Route::get('chat/conversations', [ChatController::class, 'allConversation']); //
 Route::post('chat/messages', [ChatController::class, 'allMessages']); // Get messages in a conversation
 Route::post('chat/send', [ChatController::class, 'send']); // Send a message
 Route::post('chat/mark-read', [ChatController::class, 'markRead']); // Mark messages as read
+
+
+
