@@ -8,6 +8,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PassengerRequestController;
 use App\Http\Controllers\ContentController;
+use App\Http\Controllers\ChatController;
 
 /*
 |--------------------------------------------------------------------------
@@ -93,4 +94,12 @@ Route::post('/get-enquiry-answer', [HomeController::class, 'getEnquiryAnswer']);
 
 
 Route::get('privacy-policy', [ContentController::class, 'privacyPolicy']);
-Route::get('terms-conditions', [ContentController::class, 'termsConditions']);;
+Route::get('terms-conditions', [ContentController::class, 'termsConditions']);
+
+// conversation api
+
+Route::post('chat/start', [ChatController::class, 'start']); // Start or get conversation
+Route::get('chat/conversations', [ChatController::class, 'allConversation']); // List conversations with last message, timestamp, unread count
+Route::post('chat/messages', [ChatController::class, 'allMessages']); // Get messages in a conversation
+Route::post('chat/send', [ChatController::class, 'send']); // Send a message
+
