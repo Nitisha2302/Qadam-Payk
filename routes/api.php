@@ -102,4 +102,4 @@ Route::post('chat/start', [ChatController::class, 'start']); // Start or get con
 Route::get('chat/conversations', [ChatController::class, 'allConversation']); // List conversations with last message, timestamp, unread count
 Route::post('chat/messages', [ChatController::class, 'allMessages']); // Get messages in a conversation
 Route::post('chat/send', [ChatController::class, 'send']); // Send a message
-
+Route::post('chat/mark-read', [ChatController::class, 'markRead']); // Mark messages as read
