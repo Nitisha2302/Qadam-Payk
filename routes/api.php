@@ -108,5 +108,6 @@ Route::post('chat/mark-read', [ChatController::class, 'markRead']); // Mark mess
 
 
 
-
+Route::get('get-driver-confirmedPendinCancelled-rides', [BookingController::class, 'getDriverConfirmedPendingancelledRides']);
+Route::get('get-passenger-confirmedPendingCancelled-rides', [BookingController::class, 'getPassengerConfirmedPendingCanclledRides']);
 

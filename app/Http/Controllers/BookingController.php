@@ -518,259 +518,286 @@ class BookingController extends Controller
     }
 
 
-    // public function updateBookingActiveCompleteStatus(Request $request)
-    // {
-    //     // ✅ Get authenticated driver
-    //     $driver = Auth::guard('api')->user();
-    //     if (!$driver) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'User not authenticated.',
-    //         ], 401);
-    //     }
-
-    //     $now = Carbon::now();
-
-    //     // ✅ Activate rides: active_status = 0, ride time <= now, driver-specific
-    //     $ridesToActivate = RideBooking::where('active_status', '0')
-    //         ->where('user_id', $driver->id) // only this driver's rides
-    //         ->get()
-    //         ->filter(function ($booking) use ($now) {
-    //             $rideDateTime = Carbon::parse($booking->ride_date . ' ' . $booking->ride_time);
-    //             return $rideDateTime->lessThanOrEqualTo($now);
-    //         });
-
-    //     foreach ($ridesToActivate as $booking) {
-    //         $booking->active_status = '1'; // Active
-    //         $booking->save();
-    //     }
-
-    //     // ✅ Complete rides: active_status = 1, ride time < now, driver-specific
-    //     $ridesToComplete = RideBooking::where('active_status', '1')
-    //         ->where('user_id', $driver->id)
-    //         ->get()
-    //         ->filter(function ($booking) use ($now) {
-    //             $rideDateTime = Carbon::parse($booking->ride_date . ' ' . $booking->ride_time);
-    //             return $rideDateTime->lessThan($now);
-    //         });
-
-    //     foreach ($ridesToComplete as $booking) {
-    //         $booking->active_status = '3'; // Completed
-    //         $booking->save();
-    //     }
-
-    //     return response()->json([
-    //         'status'  => true,
-    //         'message' => 'Booking statuses updated automatically based on ride time.',
-    //         'data'    => [
-    //             'activated_rides' => $ridesToActivate->count(),
-    //             'completed_rides' => $ridesToComplete->count(),
-    //         ],
-    //     ], 200);
-    // }
-
 
     // code for get cancelled pending confirm ride of driver and passednger
 
 
-     // for confirm only 
-    // public function getDriverConfirmedRides(Request $request)
-    // {
-    //     $driver = Auth::guard('api')->user();
-
-    //     if (!$driver) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'User not authenticated'
-    //         ], 401);
-    //     }
-
-    //     // --- 1) Driver's own rides booked by passengers ---
-    //     $rideBookings = RideBooking::with([
-    //             'user:id,name,phone_number,image', // passenger
-    //             'ride:id,user_id,pickup_location,destination,ride_date,ride_time'
-    //         ])
-    //         ->whereHas('ride', function ($q) use ($driver) {
-    //             $q->where('user_id', $driver->id);
-    //         })
-    //         ->whereIn('status', ['pending', 'confirmed'])
-    //         ->orderBy('created_at', 'desc')
-    //         ->get()
-    //         ->map(function ($booking) {
-    //             return [
-    //                 'source'          => 'ride_booking',
-    //                 'booking_id'      => $booking->id,
-    //                 'pickup_location' => $booking->ride->pickup_location ?? null,
-    //                 'destination'     => $booking->ride->destination ?? null,
-    //                 'ride_date'       => $booking->ride->ride_date,
-    //                 'ride_time'       => $booking->ride->ride_time,
-    //                 'price'           => $booking->price,
-    //                 'status'          => $booking->status,
-    //                 'passenger_id'    => $booking->user->id ?? null,
-    //                 'passenger_name'  => $booking->user->name ?? null,
-    //                 'passenger_phone' => $booking->user->phone_number ?? null,
-    //                 'passenger_image' => $booking->user->image ?? null,
-    //             ];
-    //         });
-
-    //     // --- 2) Passenger requests where driver is confirmed ---
-    //     $confirmedRequests = \App\Models\PassengerRequest::with([
-    //         'user:id,name,phone_number,image'
-    //     ])
-    //     ->where('driver_id', $driver->id) // passenger chose this driver
-    //     ->whereIn('status', ['pending', 'confirmed'])
-    //     ->orderBy('created_at', 'desc')
-    //     ->get()
-    //     ->map(function ($request) {
-    //         return [
-    //             'source'          => 'passenger_request',
-    //             'booking_id'      => $request->id,
-    //             'pickup_location' => $request->pickup_location ?? null,
-    //             'destination'     => $request->destination ?? null,
-    //             'ride_date'       => $request->ride_date,
-    //             'ride_time'       => $request->ride_time,
-    //             'price'           => $request->budget,
-    //             'status'          => $request->status, // ✅ actual status
-    //             'passenger_id'    => $request->user->id ?? null,
-    //             'passenger_name'  => $request->user->name ?? null,
-    //             'passenger_phone' => $request->user->phone_number ?? null,
-    //             'passenger_image' => $request->user->image ?? null,
-    //         ];
-    //     });
-
-    //     // --- merge both collections and sort by ride_date descending ---
-    //     $data = $rideBookings->merge($confirmedRequests)->sortByDesc('ride_date')->values();
-
-    //     return response()->json([
-    //         'status'  => true,
-    //         'message' => 'Confirmed rides fetched successfully',
-    //         'data'    => $data
-    //     ], 200);
-    // }
-
-
-    // three in one  /api/driver/rides?status=pending   /api/driver/rides?status=confirmed  /api/driver/rides?status=cancelled
-
     // public function getDriverConfirmedPendingancelledRides(Request $request)
     // {
     //     $driver = Auth::guard('api')->user();
-
     //     if (!$driver) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'User not authenticated'
-    //         ], 401);
+    //         return response()->json(['status' => false, 'message' => 'User not authenticated'], 401);
     //     }
 
     //     $statusFilter = $request->query('status');
-    //     $allowedStatuses = ['pending', 'confirmed', 'cancelled'];
-    //     $statuses = in_array($statusFilter, $allowedStatuses) ? [$statusFilter] : ['pending', 'confirmed'];
 
-    //     // --- 1) Driver's rides booked by passengers ---
-    //     $rideBookings = RideBooking::with(['user', 'ride'])
-    //         ->whereHas('ride', fn($q) => $q->where('user_id', $driver->id))
-    //         ->whereIn('status', $statuses)
-    //         ->orderBy('created_at', 'desc')
+    //     // Determine which statuses to fetch
+    //     if (!$statusFilter) {
+    //         $statuses = ['pending','confirmed','cancelled','declined'];
+    //     } else {
+    //         switch ($statusFilter) {
+    //             case 'pending':    $statuses = ['pending']; break;
+    //             case 'complete':   $statuses = ['confirmed']; break;
+    //             case 'cancelled':  $statuses = ['cancelled','declined']; break;
+    //             default:
+    //                 return response()->json([
+    //                     'status'=>false,
+    //                     'message'=>'Invalid status. Use pending, complete, cancelled or leave empty.'
+    //                 ], 400);
+    //         }
+    //     }
+
+    //     // 1) RideBookings by this driver
+    //     $rideBookings = RideBooking::with(['user','ride'])
+    //         ->whereHas('ride', fn($q) => $q->where('user_id',$driver->id))
+    //         ->whereIn('status',$statuses)
+    //         ->orderBy('created_at','desc')
     //         ->get();
 
-    //     // --- 2) Passenger requests where driver is assigned ---
-    //     $confirmedRequests = \App\Models\PassengerRequest::with('user')
-    //         ->where('driver_id', $driver->id)
-    //         ->whereIn('status', $statuses)
-    //         ->orderBy('created_at', 'desc')
+    //     // 2) PassengerRequests assigned to this driver
+    //     $passengerRequests = \App\Models\PassengerRequest::with('user')
+    //         ->where('driver_id',$driver->id)
+    //         ->whereIn('status',$statuses)
+    //         ->orderBy('created_at','desc')
     //         ->get();
 
-    //     // --- Merge both collections ---
-    //     $merged = $rideBookings->concat($confirmedRequests)->sortByDesc(fn($item) => data_get($item, 'ride_date'));
+    //     // Merge both collections
+    //     $merged = $rideBookings->concat($passengerRequests)
+    //         ->sortByDesc(fn($item)=> data_get($item,'ride_date'));
 
-    //     // --- Map to final array format ---
+    //     // Map to response
     //     $data = $merged->map(fn($item) => [
     //         'source' => $item instanceof RideBooking ? 'ride_booking' : 'passenger_request',
     //         'booking_id' => $item->id,
-    //         'pickup_location' => data_get($item, 'ride.pickup_location', $item->pickup_location),
-    //         'destination' => data_get($item, 'ride.destination', $item->destination),
-    //         'ride_date' => data_get($item, 'ride.ride_date', $item->ride_date),
-    //         'ride_time' => data_get($item, 'ride.ride_time', $item->ride_time),
+    //         'pickup_location' => data_get($item,'ride.pickup_location',$item->pickup_location),
+    //         'destination' => data_get($item,'ride.destination',$item->destination),
+    //         'ride_date' => data_get($item,'ride.ride_date',$item->ride_date),
+    //         'ride_time' => data_get($item,'ride.ride_time',$item->ride_time),
     //         'price' => $item instanceof RideBooking ? $item->price : $item->budget,
     //         'status' => $item->status,
-    //         'passenger_id' => data_get($item, 'user.id'),
-    //         'passenger_name' => data_get($item, 'user.name'),
-    //         'passenger_phone' => data_get($item, 'user.phone_number'),
-    //         'passenger_image' => data_get($item, 'user.image'),
+    //         'passenger_id' => data_get($item,'user.id'),
+    //         'passenger_name' => data_get($item,'user.name'),
+    //         'passenger_phone' => data_get($item,'user.phone_number'),
+    //         'passenger_image' => data_get($item,'user.image'),
     //     ])->values();
 
     //     return response()->json([
-    //         'status' => true,
-    //         'message' => 'Rides fetched successfully',
-    //         'data' => $data
-    //     ], 200);
+    //         'status'=>true,
+    //         'message'=>'Rides fetched successfully',
+    //         'data'=>$data
+    //     ],200);
     // }
+
+
 
     // public function getPassengerConfirmedPendingCanclledRides(Request $request)
     // {
     //     $passenger = Auth::guard('api')->user();
-
     //     if (!$passenger) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'User not authenticated'
-    //         ], 401);
+    //         return response()->json(['status' => false, 'message' => 'User not authenticated'], 401);
     //     }
 
-    //     // Get status from query parameter
     //     $statusFilter = $request->query('status');
-    //     $allowedStatuses = ['pending', 'confirmed', 'declined', 'cancelled'];
-    //     // $statuses = in_array($statusFilter, $allowedStatuses) ? [$statusFilter] : ['pending', 'confirmed'];
-    //      if ($statusFilter === 'declined') {
-    //        $statuses = ['declined', 'cancelled'];
-    //     } elseif (in_array($statusFilter, $allowedStatuses)) {
-    //         $statuses = [$statusFilter];
+
+    //     if (!$statusFilter) {
+    //         $statuses = ['pending','confirmed','cancelled','declined'];
     //     } else {
-    //         $statuses = ['pending', 'confirmed'];
+    //         switch ($statusFilter) {
+    //             case 'pending':    $statuses = ['pending']; break;
+    //             case 'complete':   $statuses = ['confirmed']; break;
+    //             case 'cancelled':  $statuses = ['cancelled','declined']; break;
+    //             default:
+    //                 return response()->json([
+    //                     'status'=>false,
+    //                     'message'=>'Invalid status. Use pending, complete, cancelled or leave empty.'
+    //                 ], 400);
+    //         }
     //     }
 
-    //     // --- 1) Rides booked by this passenger ---
-    //     $rideBookings = RideBooking::with(['ride', 'ride.driver'])
-    //         ->where('user_id', $passenger->id)
-    //         ->whereIn('status', $statuses)
-    //         ->orderBy('created_at', 'desc')
+    //     // 1) RideBookings by this passenger
+    //     $rideBookings = RideBooking::with(['ride','ride.driver'])
+    //         ->where('user_id',$passenger->id)
+    //         ->whereIn('status',$statuses)
+    //         ->orderBy('created_at','desc')
     //         ->get();
 
-    //     // --- 2) Passenger requests created by this passenger that have a driver assigned ---
-    //     $assignedRequests = \App\Models\PassengerRequest::with('driver')
-    //         ->where('user_id', $passenger->id)
-    //         ->whereIn('status', $statuses)
-    //         ->orderBy('created_at', 'desc')
+    //     // 2) PassengerRequests by this passenger
+    //     $passengerRequests = \App\Models\PassengerRequest::with('driver')
+    //         ->where('user_id',$passenger->id)
+    //         ->whereIn('status',$statuses)
+    //         ->orderBy('created_at','desc')
     //         ->get();
 
-    //     // --- Merge collections ---
-    //     $merged = $rideBookings->concat($assignedRequests)->sortByDesc(fn($item) => data_get($item, 'ride_date'));
+    //     $merged = $rideBookings->concat($passengerRequests)
+    //         ->sortByDesc(fn($item)=> data_get($item,'ride_date'));
 
-    //     // --- Map to final array ---
     //     $data = $merged->map(fn($item) => [
     //         'source' => $item instanceof RideBooking ? 'ride_booking' : 'passenger_request',
     //         'booking_id' => $item->id,
-    //         'pickup_location' => data_get($item, 'ride.pickup_location', $item->pickup_location),
-    //         'destination' => data_get($item, 'ride.destination', $item->destination),
-    //         'ride_date' => data_get($item, 'ride.ride_date', $item->ride_date),
-    //         'ride_time' => data_get($item, 'ride.ride_time', $item->ride_time),
+    //         'pickup_location' => data_get($item,'ride.pickup_location',$item->pickup_location),
+    //         'destination' => data_get($item,'ride.destination',$item->destination),
+    //         'ride_date' => data_get($item,'ride.ride_date',$item->ride_date),
+    //         'ride_time' => data_get($item,'ride.ride_time',$item->ride_time),
     //         'price' => $item instanceof RideBooking ? $item->price : $item->budget,
     //         'status' => $item->status,
-    //         'driver_id' => data_get($item, 'ride.driver.id', $item->driver_id),
-    //         'driver_name' => data_get($item, 'ride.driver.name', $item->driver->name ?? null),
-    //         'driver_phone' => data_get($item, 'ride.driver.phone_number', $item->driver->phone_number ?? null),
-    //         'driver_image' => data_get($item, 'ride.driver.image', $item->driver->image ?? null),
+    //         'driver_id' => data_get($item,'ride.driver.id',$item->driver_id),
+    //         'driver_name' => data_get($item,'ride.driver.name',$item->driver->name ?? null),
+    //         'driver_phone' => data_get($item,'ride.driver.phone_number',$item->driver->phone_number ?? null),
+    //         'driver_image' => data_get($item,'ride.driver.image',$item->driver->image ?? null),
     //     ])->values();
 
     //     return response()->json([
-    //         'status' => true,
-    //         'message' => 'Passenger rides fetched successfully',
-    //         'data' => $data
-    //     ], 200);
+    //         'status'=>true,
+    //         'message'=>'Passenger rides fetched successfully',
+    //         'data'=>$data
+    //     ],200);
     // }
 
 
     // new flow 
+
+
+    // Driver
+    public function getDriverConfirmedPendingancelledRides(Request $request)
+    {
+        $driver = Auth::guard('api')->user();
+        if (!$driver) {
+            return response()->json(['status' => false, 'message' => 'Driver not authenticated'], 401);
+        }
+
+        $statusFilter = $request->query('status');
+
+        // Determine statuses to fetch
+        if (!$statusFilter) {
+            $statuses = ['pending','confirmed','cancelled','declined'];
+        } else {
+            switch ($statusFilter) {
+                case 'pending':    
+                    $statuses = ['pending']; 
+                    break;
+                case 'complete':   
+                    $statuses = ['confirmed']; 
+                    break;
+                case 'cancelled':  
+                case 'declined':   // ✅ Treat declined same as cancelled
+                    $statuses = ['cancelled','declined']; 
+                    break;
+                default:
+                    return response()->json([
+                        'status'=>false,
+                        'message'=>'Invalid status. Use pending, complete, cancelled, declined or leave empty.'
+                    ], 400);
+            }
+        }
+
+        // RideBookings where driver owns the ride
+        $rideBookings = RideBooking::with(['user','ride'])
+            ->whereHas('ride', fn($q) => $q->where('user_id',$driver->id))
+            ->whereIn('status',$statuses)
+            ->orderByDesc('created_at')
+            ->get();
+
+        // PassengerRequests assigned to driver
+        $passengerRequests = \App\Models\PassengerRequest::with('user')
+            ->where('driver_id',$driver->id)
+            ->whereIn('status',$statuses)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $data = $rideBookings->concat($passengerRequests)
+            ->sortByDesc(fn($item)=> data_get($item,'ride_date'))
+            ->map(fn($item) => [
+                'source' => $item instanceof RideBooking ? 'ride_booking' : 'passenger_request',
+                'booking_id' => $item->id,
+                'pickup_location' => data_get($item,'ride.pickup_location',$item->pickup_location),
+                'destination' => data_get($item,'ride.destination',$item->destination),
+                'ride_date' => data_get($item,'ride.ride_date',$item->ride_date),
+                'ride_time' => data_get($item,'ride.ride_time',$item->ride_time),
+                'price' => $item instanceof RideBooking ? $item->price : $item->budget,
+                'status' => $item->status,
+                'passenger_id' => data_get($item,'user.id'),
+                'passenger_name' => data_get($item,'user.name'),
+                'passenger_phone' => data_get($item,'user.phone_number'),
+                'passenger_image' => data_get($item,'user.image'),
+            ])->values();
+
+        return response()->json([
+            'status'=>true,
+            'message'=>'Driver rides fetched successfully',
+            'data'=>$data
+        ],200);
+    }
+
+
+    // Passenger
+    public function getPassengerConfirmedPendingCanclledRides(Request $request)
+    {
+        $passenger = Auth::guard('api')->user();
+        if (!$passenger) {
+            return response()->json(['status' => false, 'message' => 'Passenger not authenticated'], 401);
+        }
+
+        $statusFilter = $request->query('status');
+
+        if (!$statusFilter) {
+            $statuses = ['pending','confirmed','cancelled','declined'];
+        } else {
+            switch ($statusFilter) {
+                case 'pending':    
+                    $statuses = ['pending']; 
+                    break;
+                case 'complete':   
+                    $statuses = ['confirmed']; 
+                    break;
+                case 'cancelled':  
+                case 'declined':   // ✅ Treat declined same as cancelled
+                    $statuses = ['cancelled','declined']; 
+                    break;
+                default:
+                    return response()->json([
+                        'status'=>false,
+                        'message'=>'Invalid status. Use pending, complete, cancelled, declined or leave empty.'
+                    ], 400);
+            }
+        }
+
+        // RideBookings by passenger
+        $rideBookings = RideBooking::with(['ride','ride.driver'])
+            ->where('user_id',$passenger->id)
+            ->whereIn('status',$statuses)
+            ->orderByDesc('created_at')
+            ->get();
+
+        // PassengerRequests by passenger
+        $passengerRequests = \App\Models\PassengerRequest::with('driver')
+            ->where('user_id',$passenger->id)
+            ->whereIn('status',$statuses)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $data = $rideBookings->concat($passengerRequests)
+            ->sortByDesc(fn($item)=> data_get($item,'ride_date'))
+            ->map(fn($item) => [
+                'source' => $item instanceof RideBooking ? 'ride_booking' : 'passenger_request',
+                'booking_id' => $item->id,
+                'pickup_location' => data_get($item,'ride.pickup_location',$item->pickup_location),
+                'destination' => data_get($item,'ride.destination',$item->destination),
+                'ride_date' => data_get($item,'ride.ride_date',$item->ride_date),
+                'ride_time' => data_get($item,'ride.ride_time',$item->ride_time),
+                'price' => $item instanceof RideBooking ? $item->price : $item->budget,
+                'status' => $item->status,
+                'driver_id' => data_get($item,'ride.driver.id',$item->driver_id),
+                'driver_name' => data_get($item,'ride.driver.name',$item->driver->name ?? null),
+                'driver_phone' => data_get($item,'ride.driver.phone_number',$item->driver->phone_number ?? null),
+                'driver_image' => data_get($item,'ride.driver.image',$item->driver->image ?? null),
+            ])->values();
+
+        return response()->json([
+            'status'=>true,
+            'message'=>'Passenger rides fetched successfully',
+            'data'=>$data
+        ],200);
+    }
 
 
 
