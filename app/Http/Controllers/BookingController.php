@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Ride;
 use App\Models\RideBooking;
 use App\Models\ParcelBooking;
+use App\Models\Service;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon; // ✅ Add this line
@@ -656,7 +657,6 @@ class BookingController extends Controller
 
     // new flow 
 
-
     // Driver
     public function getDriverConfirmedPendingancelledRides(Request $request)
     {
@@ -714,6 +714,13 @@ class BookingController extends Controller
                 'ride_date' => data_get($item,'ride.ride_date',$item->ride_date),
                 'ride_time' => data_get($item,'ride.ride_time',$item->ride_time),
                 'price' => $item instanceof RideBooking ? $item->price : $item->budget,
+                // ✅ Add number of passengers / seats booked
+                'seats_booked' => $item instanceof RideBooking ? $item->seats_booked : 1,
+
+                // ✅ Add services
+                'services' => $item instanceof RideBooking
+                    ? Service::whereIn('id', $item->services ?? [])->get(['id','service_name','service_image'])
+                    : Service::whereIn('id', $item->services ?? [])->get(['id','service_name','service_image']),
                 'status' => $item->status,
                 'passenger_id' => data_get($item,'user.id'),
                 'passenger_name' => data_get($item,'user.name'),
@@ -786,6 +793,13 @@ class BookingController extends Controller
                 'ride_time' => data_get($item,'ride.ride_time',$item->ride_time),
                 'price' => $item instanceof RideBooking ? $item->price : $item->budget,
                 'status' => $item->status,
+                 // ✅ Add number of passengers / seats booked
+                'seats_booked' => $item instanceof RideBooking ? $item->seats_booked : 1,
+
+                // ✅ Add services
+                'services' => $item instanceof RideBooking
+                    ? Service::whereIn('id', $item->services ?? [])->get(['id','service_name','service_image'])
+                    : Service::whereIn('id', $item->services ?? [])->get(['id','service_name','service_image']),
                 'driver_id' => data_get($item,'ride.driver.id',$item->driver_id),
                 'driver_name' => data_get($item,'ride.driver.name',$item->driver->name ?? null),
                 'driver_phone' => data_get($item,'ride.driver.phone_number',$item->driver->phone_number ?? null),
