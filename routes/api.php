@@ -49,6 +49,7 @@ Route::get('/driver/get-vehicles', [DriverHomeController::class, 'getVehicles'])
 Route::post('/driver/edit-vehicle', [DriverHomeController::class, 'editVehicle']);
 Route::post('/driver/create-ride', [DriverHomeController::class, 'createRide']);
 Route::post('/driver/edit-ride', [DriverHomeController::class, 'editRide']);
+Route::get('/get-all-rides-createdByDriver', [DriverHomeController::class, 'getAllRidesCreatedByDriver']);
 Route::get('/driver-details', [DriverHomeController::class, 'driverDetails']);
 
  Route::get('/search-rides', [DriverHomeController::class, 'searchRides']);
@@ -104,6 +105,8 @@ Route::get('chat/conversations', [ChatController::class, 'allConversation']); //
 Route::post('chat/messages', [ChatController::class, 'allMessages']); // Get messages in a conversation
 Route::post('chat/send', [ChatController::class, 'send']); // Send a message
 Route::post('chat/mark-read', [ChatController::class, 'markRead']); // Mark messages as read
+
+
 
 
 

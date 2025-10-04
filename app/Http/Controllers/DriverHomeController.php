@@ -325,135 +325,68 @@ class DriverHomeController extends Controller
         ], 200);
     }
 
+    // api for get all the ride list ceatred by deiver
+public function getAllRidesCreatedByDriver(Request $request)
+{
+    $user = Auth::guard('api')->user();
 
-    // public function searchRides(Request $request)
-    // {
-    //     $user = Auth::guard('api')->user();
+    if (!$user) {
+        return response()->json([
+            'status' => false,
+            'message' => 'User not authenticated.',
+        ], 401);
+    }
 
-    //     // if (!$user) {
-    //     //     return response()->json([
-    //     //         'status' => false,
-    //     //         'message' => 'User not authenticated.',
-    //     //     ], 401);
-    //     // }
+    // ✅ Fetch rides created by this driver with vehicle & driver relation
+    $rides = Ride::with([
+            'vehicle:id,brand,model,number_plate,vehicle_image,vehicle_type',
+            'driver:id,name,phone_number,image'  // <- use phone_number
+        ])
+        ->where('user_id', $user->id)
+        ->get();
 
-    //     $validator = Validator::make($request->all(), [
-    //         'pickup_location' => 'nullable|string|max:255',
-    //         'destination'     => 'nullable|string|max:255',
-    //         'ride_date'       => 'nullable|date_format:d-m-Y|after_or_equal:today',
-    //         'number_of_seats' => 'nullable|integer|min:1',
-    //         'services'        => 'nullable|array',   // optional
-    //         'services.*'      => 'string|max:50',
-    //     ], [
-    //         'pickup_location.string' => 'Pickup location must be a valid string.',
-    //         'pickup_location.max'    => 'Pickup location must not exceed 255 characters.',
-    //         'destination.string'     => 'Destination must be a valid string.',
-    //         'destination.max'        => 'Destination must not exceed 255 characters.',
-    //           'ride_date.date_format'  => 'Ride date must be in DD-MM-YYYY format.',
-    //         'ride_date.after_or_equal' => 'Ride date must be today or a future date.',
-    //         'number_of_seats.integer'=> 'Number of seats must be a valid number.',
-    //         'number_of_seats.min'    => 'Number of seats must be at least 1.',
-    //         'services.array'           => 'Services must be an array.',
-    //         'services.*.string'        => 'Each service must be a string.',
-    //         'services.*.max'           => 'Each service cannot exceed 50 characters.',
-    //     ]);
+    // ✅ Format response (merge vehicle + driver + services into flat array)
+    $rides = $rides->map(function ($ride) {
+        return [
+            "id"              => $ride->id,
+            "pickup_location" => $ride->pickup_location,
+            "destination"     => $ride->destination,
+            "number_of_seats" => $ride->number_of_seats,
+            "price"           => $ride->price,
+            "ride_date"       => $ride->ride_date,
+            "ride_time"       => $ride->ride_time,
+            "accept_parcel"   => (bool) $ride->accept_parcel,
 
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => $validator->errors()->first(),
-    //         ], 422);
-    //     }
+            // Vehicle details
+            "vehicle_id"      => $ride->vehicle->id ?? null,
+            "vehicle_brand"   => $ride->vehicle->brand ?? null,
+            "vehicle_model"   => $ride->vehicle->model ?? null,
+            "vehicle_number"  => $ride->vehicle->number_plate ?? null,
+            "vehicle_type"    => $ride->vehicle->vehicle_type ?? null,
+            "vehicle_image"   => $ride->vehicle->vehicle_image ?? null,
 
-    //     // ✅ Default seats = 1 if not provided
-    //    $numberOfSeats = $request->number_of_seats ?? 1;
+            // Driver details
+            "driver_id"       => $ride->driver->id ?? null,
+            "driver_name"     => $ride->driver->name ?? null,
+            "driver_phone"    => $ride->driver->phone_number ?? null,
+            "driver_image"    => $ride->driver->image ?? null,
 
-    //     $query = \App\Models\Ride::query();
+            // Services (convert JSON ids → actual service details)
+            "services"        => Service::whereIn('id', $ride->services ?? [])
+                                        ->get(['id','service_name','service_image']),
+        ];
+    });
 
-    //     // ❌ Exclude rides created by authenticated user
-    //     $query->where('user_id', '!=', $user->id);
+    return response()->json([
+        "status"  => true,
+        "message" => "Driver rides fetched successfully.",
+        "data"    => $rides,
+    ], 200);
+}
 
-    //     if ($request->pickup_location) {
-    //         $query->where('pickup_location', 'like', '%'.$request->pickup_location.'%');
-    //     }
 
-    //     if ($request->destination) {
-    //         $query->where('destination', 'like', '%'.$request->destination.'%');
-    //     }
 
-    //     if ($request->ride_date) {
-    //         try {
-    //             // Convert DD-MM-YYYY → YYYY-MM-DD
-    //             $rideDate = Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d');
-    //             $query->whereDate('ride_date', $rideDate);
-    //         } catch (\Exception $e) {
-    //             return response()->json([
-    //                 'status'  => false,
-    //                 'message' => 'Invalid ride_date format. Please use DD-MM-YYYY.',
-    //             ], 422);
-    //         }
-    //     }
 
-    //     // ✅ Always apply seat filter
-    //     $query->where('number_of_seats', '>=', $numberOfSeats);
-
-    //     // Optional: Filter by services if provided
-    //     if ($request->services && is_array($request->services)) {
-    //         foreach ($request->services as $service) {
-    //             $query->whereJsonContains('services', $service);
-    //         }
-    //     }
-
-    //     $rides = $query->orderBy('ride_date', 'asc')
-    //                 ->orderBy('ride_time', 'asc')
-    //                 ->get();
-
-    //     $ridesData = $rides->map(function ($ride) use ($request) {
-    //     $vehicle = Vehicle::find($ride->vehicle_id);
-    //     $driver  = $vehicle ? User::find($vehicle->user_id) : null;
-
-    
-
-    //     // Calculate total price based on requested seats
-    //     $totalPrice = $request->number_of_seats 
-    //                 ? $ride->price * $request->number_of_seats 
-    //                 : $ride->price;
-
-    //         return [
-    //             'ride_id'          => $ride->id,
-    //             'pickup_location'  => $ride->pickup_location,
-    //             'destination'      => $ride->destination,
-    //             'number_of_seats'  => $ride->number_of_seats,
-    //            'price'            => $totalPrice,
-    //             'ride_date'        => $ride->ride_date,
-    //             'ride_time'        => $ride->ride_time,
-    //             'services'         =>  $ride->services_details,
-    //             'accept_parcel'    => $ride->accept_parcel,
-
-    //             // Vehicle fields
-    //             'vehicle_id'       => $vehicle->id ?? null,
-    //             'brand'            => $vehicle->brand ?? null,
-    //             'model'            => $vehicle->model ?? null,
-    //             'vehicle_image'    => $vehicle->vehicle_image ?? null,
-    //             'vehicle_type'     => $vehicle->vehicle_type ?? null,
-    //             'number_plate'     => $vehicle->number_plate ?? null,
-
-    //             // Driver fields
-    //             'driver_id'        => $driver->id ?? null,
-    //             'driver_name'      => $driver->name ?? null,
-    //             'driver_image'     => $driver->image ?? null,
-    //             'driver_status'    => $driver ? ($driver->id_verified ? 'verified' : 'not verified') : null,
-    //             // 'driver_rating'    => $driver->rating ?? null,
-    //              'driver_rating'    => '3',
-    //         ];
-    //     });
-
-    //     return response()->json([
-    //         'status'  => true,
-    //         'message' => 'Rides found successfully.',
-    //         'data'    => $ridesData,
-    //     ], 200);
-    // }
 
     public function searchRides(Request $request)
     {
@@ -697,131 +630,6 @@ class DriverHomeController extends Controller
         ], 200);
     }
 
-    // public function searchParcelRides(Request $request)
-    // {
-    //     $user = Auth::guard('api')->user();
-    //     if (!$user) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => 'User not authenticated'
-    //         ], 401);
-    //     }
-    //     $validator = Validator::make($request->all(), [
-    //         'pickup_location' => 'nullable|string|max:255',
-    //         'destination'     => 'nullable|string|max:255',
-    //         'ride_date'       => 'nullable|date_format:d-m-Y|after_or_equal:today',
-    //         'number_of_seats' => 'nullable|integer|min:1',
-    //         'services'        => 'nullable|array',   // optional
-    //         'services.*'      => 'string|max:50',
-    //     ], [
-    //         'pickup_location.string' => 'Pickup location must be a valid string.',
-    //         'pickup_location.max'    => 'Pickup location must not exceed 255 characters.',
-    //         'destination.string'     => 'Destination must be a valid string.',
-    //         'destination.max'        => 'Destination must not exceed 255 characters.',
-    //           'ride_date.date_format'  => 'Ride date must be in DD-MM-YYYY format.',
-    //         'ride_date.after_or_equal' => 'Ride date must be today or a future date.',
-    //         'number_of_seats.integer'=> 'Number of seats must be a valid number.',
-    //         'number_of_seats.min'    => 'Number of seats must be at least 1.',
-    //             'services.array'           => 'Services must be an array.',
-    //         'services.*.string'        => 'Each service must be a string.',
-    //         'services.*.max'           => 'Each service cannot exceed 50 characters.',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => $validator->errors()->first(),
-    //         ], 201);
-    //     }
-    //      // ✅ Default seats = 1 if not provided
-    //     $numberOfSeats = $request->number_of_seats ?? 1;
-
-    //     $query = \App\Models\Ride::query();
-
-    //     // ✅ Only rides that accept parcels
-    //     $query->where('accept_parcel', 1);
-    //     // ❌ Exclude rides created by authenticated user
-    //     $query->where('user_id', '!=', $user->id);
-
-    //     if ($request->pickup_location) {
-    //         $query->where('pickup_location', 'like', '%'.$request->pickup_location.'%');
-    //     }
-
-    //     if ($request->destination) {
-    //         $query->where('destination', 'like', '%'.$request->destination.'%');
-    //     }
-
-    //     if ($request->ride_date) {
-    //         try {
-    //             $rideDate = Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d');
-    //             $query->whereDate('ride_date', $rideDate);
-    //         } catch (\Exception $e) {
-    //             return response()->json([
-    //                 'status'  => false,
-    //                 'message' => 'Invalid ride_date format. Please use DD-MM-YYYY.',
-    //             ], 201);
-    //         }
-    //     }
-
-   
-    //     // ✅ Always apply seat filter
-    //     $query->where('number_of_seats', '>=', $numberOfSeats);
-
-    //     // Optional: Filter by services if provided
-    //     if ($request->services && is_array($request->services)) {
-    //         foreach ($request->services as $service) {
-    //             $query->whereJsonContains('services', $service);
-    //         }
-    //     }
-
-    //     $rides = $query->orderBy('ride_date', 'asc')
-    //                 ->orderBy('ride_time', 'asc')
-    //                 ->get();
-
-
-    //     $ridesData = $rides->map(function ($ride) use ($request) {
-    //     $vehicle = Vehicle::find($ride->vehicle_id);
-    //     $driver  = $vehicle ? User::find($vehicle->user_id) : null;
-
-    //         // Calculate total price based on requested seats
-    //         $totalPrice = $request->number_of_seats 
-    //                     ? $ride->price * $request->number_of_seats 
-    //                     : $ride->price;
-
-    //         return [
-    //             'ride_id'          => $ride->id,
-    //             'pickup_location'  => $ride->pickup_location,
-    //             'destination'      => $ride->destination,
-    //             'number_of_seats'  => $ride->number_of_seats,
-    //             'price'            => $totalPrice,
-    //             'ride_date'        => $ride->ride_date,
-    //             'ride_time'        => $ride->ride_time,
-    //             'services'         => $ride->services_details,
-    //             'accept_parcel'    => $ride->accept_parcel,
-
-    //             // Vehicle
-    //             'vehicle_id'       => $vehicle->id ?? null,
-    //             'brand'            => $vehicle->brand ?? null,
-    //             'model'            => $vehicle->model ?? null,
-    //             'vehicle_image'    => $vehicle->vehicle_image ?? null,
-    //             'vehicle_type'     => $vehicle->vehicle_type ?? null,
-    //             'number_plate'     => $vehicle->number_plate ?? null,
-
-    //             // Driver
-    //             'driver_id'        => $driver->id ?? null,
-    //             'driver_name'      => $driver->name ?? null,
-    //             'driver_image'     => $driver->image ?? null,
-    //             'driver_status'    => $driver ? ($driver->id_verified ? 'verified' : 'not verified') : null,
-    //             'driver_rating'    => '3',
-    //         ];
-    //     });
-
-    //     return response()->json([
-    //         'status'  => true,
-    //         'message' => 'Parcel rides found successfully.',
-    //         'data'    => $ridesData,
-    //     ], 200);
-    // }
 
     // public function driverDetails(Request $request)
     // {
@@ -903,92 +711,92 @@ class DriverHomeController extends Controller
     // }
 
 
-public function driverDetails(Request $request)
-{
-    $userId = $request->query('user_id');
+    public function driverDetails(Request $request)
+    {
+        $userId = $request->query('user_id');
 
-    $validator = Validator::make(['user_id' => $userId], [
-        'user_id' => 'required|integer|exists:users,id',
-    ], [
-        'user_id.required' => 'User ID is required.',
-        'user_id.integer'  => 'User ID must be a valid integer.',
-        'user_id.exists'   => 'Driver not found.',
-    ]);
+        $validator = Validator::make(['user_id' => $userId], [
+            'user_id' => 'required|integer|exists:users,id',
+        ], [
+            'user_id.required' => 'User ID is required.',
+            'user_id.integer'  => 'User ID must be a valid integer.',
+            'user_id.exists'   => 'Driver not found.',
+        ]);
 
-    if ($validator->fails()) {
-        return response()->json([
-            'status'  => false,
-            'message' => $validator->errors()->first(),
-        ], 201);
-    }
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => false,
+                'message' => $validator->errors()->first(),
+            ], 201);
+        }
 
-    $driver = User::find($userId);
-    $vehicle = Vehicle::where('user_id', $driver->id)->first();
+        $driver = User::find($userId);
+        $vehicle = Vehicle::where('user_id', $driver->id)->first();
 
-    // Fetch rides
-    $rides = Ride::where('vehicle_id', $vehicle->id ?? 0)
-                ->orderBy('ride_date', 'asc')
-                ->orderBy('ride_time', 'asc')
-                ->get();
+        // Fetch rides
+        $rides = Ride::where('vehicle_id', $vehicle->id ?? 0)
+                    ->orderBy('ride_date', 'asc')
+                    ->orderBy('ride_time', 'asc')
+                    ->get();
 
-    $data = [];
+        $data = [];
 
-    if ($rides->count() > 0) {
-        foreach ($rides as $ride) {
-            $rideData = [
+        if ($rides->count() > 0) {
+            foreach ($rides as $ride) {
+                $rideData = [
+                    'driver_id'      => $driver->id,
+                    'name'           => $driver->name,
+                    'image'          => $driver->image,
+                    'phone_number'   => $driver->phone_number,
+                    'dob'            => $driver->dob,
+                    'gender'         => $driver->gender,
+                    // 'id_verified'         => $driver->id_verified,
+                    'vehicle_id'     => $vehicle->id ?? null,
+                    'brand'          => $vehicle->brand ?? null,
+                    'model'          => $vehicle->model ?? null,
+                    'vehicle_image'  => $vehicle->vehicle_image ?? null,
+                    'vehicle_type'   => $vehicle->vehicle_type ?? null,
+                    'number_plate'   => $vehicle->number_plate ?? null,
+                    'ride_id'        => $ride->id,
+                    'pickup_location'=> $ride->pickup_location,
+                    'destination'    => $ride->destination,
+                    'number_of_seats'=> $ride->number_of_seats,
+                    'price'          => $ride->price * $ride->number_of_seats,
+                    'ride_date'      => $ride->ride_date,
+                    'ride_time'      => $ride->ride_time,
+                    'services'       => $ride->services_details,
+                    'accept_parcel'  => $ride->accept_parcel,
+                    'id_verified'    => $driver->id_verified,
+                ];
+
+                $data[] = $rideData;
+            }
+        } else {
+            // No rides, still return driver & vehicle info
+            $data[] = [
                 'driver_id'      => $driver->id,
                 'name'           => $driver->name,
                 'image'          => $driver->image,
                 'phone_number'   => $driver->phone_number,
                 'dob'            => $driver->dob,
                 'gender'         => $driver->gender,
-                // 'id_verified'         => $driver->id_verified,
                 'vehicle_id'     => $vehicle->id ?? null,
                 'brand'          => $vehicle->brand ?? null,
                 'model'          => $vehicle->model ?? null,
                 'vehicle_image'  => $vehicle->vehicle_image ?? null,
                 'vehicle_type'   => $vehicle->vehicle_type ?? null,
                 'number_plate'   => $vehicle->number_plate ?? null,
-                'ride_id'        => $ride->id,
-                'pickup_location'=> $ride->pickup_location,
-                'destination'    => $ride->destination,
-                'number_of_seats'=> $ride->number_of_seats,
-                'price'          => $ride->price * $ride->number_of_seats,
-                'ride_date'      => $ride->ride_date,
-                'ride_time'      => $ride->ride_time,
-                'services'       => $ride->services_details,
-                'accept_parcel'  => $ride->accept_parcel,
                 'id_verified'    => $driver->id_verified,
+
             ];
-
-            $data[] = $rideData;
         }
-    } else {
-        // No rides, still return driver & vehicle info
-        $data[] = [
-            'driver_id'      => $driver->id,
-            'name'           => $driver->name,
-            'image'          => $driver->image,
-            'phone_number'   => $driver->phone_number,
-            'dob'            => $driver->dob,
-            'gender'         => $driver->gender,
-            'vehicle_id'     => $vehicle->id ?? null,
-            'brand'          => $vehicle->brand ?? null,
-            'model'          => $vehicle->model ?? null,
-            'vehicle_image'  => $vehicle->vehicle_image ?? null,
-            'vehicle_type'   => $vehicle->vehicle_type ?? null,
-            'number_plate'   => $vehicle->number_plate ?? null,
-            'id_verified'    => $driver->id_verified,
 
-        ];
+        return response()->json([
+            'status'  => true,
+            'message' => 'Driver details fetched successfully.',
+            'data'    => $data,
+        ], 200);
     }
-
-    return response()->json([
-        'status'  => true,
-        'message' => 'Driver details fetched successfully.',
-        'data'    => $data,
-    ], 200);
-}
 
 
 
