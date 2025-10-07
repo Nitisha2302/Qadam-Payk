@@ -34,36 +34,9 @@ class ChatController extends Controller
         ],200);
     }
 
-    // List all conversations
-    // public function allConversation() {
-    //     $user = Auth::guard('api')->user();
-    //     if (!$user) return response()->json(['status' => false,'message' => 'User not authenticated'], 401);
-
-    //     $meId = $user->id;
-    //     $conversations = Conversation::where('user_one_id', $meId)
-    //         ->orWhere('user_two_id', $meId)
-    //         ->with(['messages.sender'])
-    //         ->orderByDesc('last_message_at')
-    //         ->get();
-
-    //     $result = $conversations->map(function($c) use ($meId){
-    //         $otherId = $c->otherUserId($meId);
-    //         $lastMsg = $c->messages->last();
-    //         return [
-    //             'conversation_id' => $c->id,
-    //             'other_user_id'   => $otherId,
-    //             'last_message'    => $lastMsg ? $lastMsg->message : null,
-    //             'last_message_time'=> $lastMsg ? $lastMsg->created_at->toDateTimeString() : null,
-    //             'unread_count'    => $c->messages->whereNull('read_at')->where('sender_id','!=',$meId)->count()
-    //         ];
-    //     });
-
-    //     return response()->json(['status'=>true,'message'=>'Conversations fetched successfully','conversations'=>$result],200);
-    // }
-
     // new with user details 
 
-      public function allConversation() {
+    public function allConversation() {
         $user = Auth::guard('api')->user();
         if (!$user) return response()->json(['status' => false,'message' => 'User not authenticated'], 401);
 
@@ -136,6 +109,70 @@ class ChatController extends Controller
     }
 
     // Send a message
+    // public function send(Request $request) {
+    //     $user = Auth::guard('api')->user();
+    //     if (!$user) return response()->json(['status' => false,'message' => 'User not authenticated'], 401);
+
+    //     $validator = Validator::make($request->all(), [
+    //         'conversation_id' => 'nullable|exists:conversations,id',
+    //         'other_user_id'   => 'nullable|exists:users,id',
+    //         'message'         => 'required|string|max:5000',
+    //         'type'            => 'nullable|in:text,image,file,system'
+    //     ], [
+    //         'conversation_id.exists' => 'Conversation not found.',
+    //         'other_user_id.exists'   => 'User does not exist.',
+    //         'message.required'       => 'Message cannot be empty.',
+    //         'message.string'         => 'Message must be text.',
+    //         'message.max'            => 'Message is too long (max 5000 chars).',
+    //         'type.in'                => 'Invalid message type.',
+    //     ]);
+
+    //     if($validator->fails())
+    //         return response()->json(['status'=>false,'errors'=>$validator->errors()],201);
+
+    //     if($request->conversation_id) {
+    //         $conversation = Conversation::find($request->conversation_id);
+    //     } else {
+    //         $conversation = Conversation::between($user->id, $request->other_user_id);
+    //     }
+
+    //     if(!in_array($user->id, [$conversation->user_one_id,$conversation->user_two_id])) {
+    //         return response()->json(['status'=>false,'message'=>'You are not a participant in this conversation'],201);
+    //     }
+
+    //     $message = Message::create([
+    //         'conversation_id' => $conversation->id,
+    //         'sender_id'       => $user->id,
+    //         'message'         => $request->message,
+    //         'type'            => $request->type ?? 'text',
+    //         'send_at'         => now()  // ✅ Save send time
+    //     ]);
+
+    //     $conversation->update([
+    //         'last_message_id'      => $message->id,
+    //         'last_message_preview' => substr($message->message,0,200),
+    //         'last_message_at'      => now()
+    //     ]);
+
+    //     return response()->json([
+    //         'status'       => true,
+    //         'message'      => 'Message sent successfully',
+    //         'message_data' => [
+    //             'id'              => $message->id,
+    //             'conversation_id' => $conversation->id,
+    //             'sender_id'       => $message->sender_id,
+    //             'message'         => $message->message,
+    //             'type'            => $message->type,
+    //             'meta'            => $message->meta,
+    //             'send_at'         => $message->send_at ? $message->send_at->toDateTimeString() : null,
+    //             'read_at'         => $message->read_at ? $message->read_at->toDateTimeString() : null,
+    //             'created_at'      => $message->created_at->toDateTimeString()
+    //         ]
+    //     ],200);
+    // }
+
+    // with notifications 
+
     public function send(Request $request) {
         $user = Auth::guard('api')->user();
         if (!$user) return response()->json(['status' => false,'message' => 'User not authenticated'], 401);
@@ -181,6 +218,34 @@ class ChatController extends Controller
             'last_message_at'      => now()
         ]);
 
+        // ✅ Identify receiver
+        $receiverId = $conversation->user_one_id == $user->id
+            ? $conversation->user_two_id
+            : $conversation->user_one_id;
+
+        $receiver = \App\Models\User::find($receiverId);
+
+        // ✅ Send FCM Notification
+        if ($receiver && $receiver->device_token) {
+            $tokens = [
+                [
+                    'device_token' => $receiver->device_token,
+                    'device_type'  => $receiver->device_type ?? 'android',
+                    'user_id'      => $receiver->id,
+                ]
+            ];
+
+            $notificationData = [
+                'notification_type' => 2, // custom type for chat message
+                'title' => '💬 New Message',
+                'body'  => "{$user->name} sent you a message: {$request->message}",
+            ];
+
+            // Import your FCM service class if not already
+            $fcmService = new \App\Services\FCMService();
+            $fcmService->sendNotification($tokens, $notificationData);
+        }
+
         return response()->json([
             'status'       => true,
             'message'      => 'Message sent successfully',
@@ -199,30 +264,8 @@ class ChatController extends Controller
     }
 
 
-    // Mark messages as read with conversation 
-    // public function markRead(Request $request) {
-    //     $user = Auth::guard('api')->user();
-    //     if (!$user) return response()->json(['status' => false,'message' => 'User not authenticated'], 401);
+    
 
-    //     $validator = Validator::make($request->all(), [
-    //         'conversation_id' => 'required|exists:conversations,id'
-    //     ]);
-
-    //     if ($validator->fails()) return response()->json(['status'=>false,'message'=>$validator->errors()->first()],201);
-
-    //     $conversation = Conversation::find($request->conversation_id);
-
-    //     if(!in_array($user->id, [$conversation->user_one_id,$conversation->user_two_id])) {
-    //         return response()->json(['status'=>false,'message'=>'You are not a participant in this conversation'],201);
-    //     }
-
-    //     $count = Message::where('conversation_id', $conversation->id)
-    //         ->where('sender_id','!=',$user->id)
-    //         ->whereNull('read_at')
-    //         ->update(['read_at'=>now()]);
-
-    //     return response()->json(['status'=>true,'message'=>"Messages marked as read successfully",'marked_count'=>$count],200);
-    // }
 
     // with both  
     public function markRead(Request $request) {

@@ -19,14 +19,17 @@ class DashboardController extends Controller
         $userCount    = $baseQuery->count();
         $cityCount    = City::count();
 
-
+       // ✅ Drivers (users who have created rides)
         $driversQuery = User::where(function ($query) {
             $query->where('role', '!=', 1)
                 ->orWhereNull('role');
         })
         ->whereHas('rides'); // Only drivers who have rides
-
         $driversCount = $driversQuery->count();
+
+        // ✅ Passengers (users who have booked rides)
+        $passengersQuery = (clone $baseQuery)->whereHas('rideBookings');
+        $passengersCount = $passengersQuery->count();
 
         // Drivers by ID verification status
         $pendingDrivers  = (clone $driversQuery)->where('id_verified', 0)->count();
@@ -36,7 +39,7 @@ class DashboardController extends Controller
     
 
         return view('admin.dashboard', compact(
-            'userCount', 'cityCount', 'pendingDrivers', 'verifiedDrivers', 'rejectedDrivers','driversCount'
+            'userCount', 'passengersCount', 'cityCount', 'pendingDrivers', 'verifiedDrivers', 'rejectedDrivers','driversCount'
         ));
     }
 

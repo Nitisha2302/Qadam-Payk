@@ -19,6 +19,7 @@ class Ride extends Model
         'price',
         'ride_date',
         'ride_time',
+        'reaching_time',
         'services',
         'accept_parcel',
     ];
@@ -78,5 +79,6 @@ class Ride extends Model
     {
         return $this->hasMany(RideBooking::class, 'ride_id');
     }
+    
 
 }

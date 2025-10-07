@@ -54,11 +54,11 @@ class User extends Authenticatable
         return $this->hasOne(Vehicle::class, 'user_id');
     }
 
-    // public function rideBookings()
-    // {
-    //     // A passenger can have many bookings
-    //     return $this->hasMany(RideBooking::class, 'user_id');
-    // }
+    public function rideBookings()
+    {
+        // A passenger can have many bookings
+        return $this->hasMany(RideBooking::class, 'user_id');
+    }
 
         // ✅ Accessor to format DOB
     public function getDobAttribute($value)

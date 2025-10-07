@@ -814,6 +814,160 @@ class BookingController extends Controller
     }
 
 
+    public function getSendResponse(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'User not authenticated'], 401);
+        }
+
+        $sentData = collect([]);
+
+        // Check if user is driver (created rides)
+        $driverRides = \App\Models\Ride::where('user_id', $user->id)->pluck('id')->toArray();
+
+        if (!empty($driverRides)) {
+            // ✅ DRIVER → Sent = Requests they showed interest in from passenger requests
+            $sentRequests = \App\Models\PassengerRequest::where('driver_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $sentData = $sentRequests->map(function ($req) {
+                return [
+                    'request_id'         => $req->id,
+                    'type'               => $req->type,
+                    'pickup_location'    => $req->pickup_location,
+                    'destination'        => $req->destination,
+                    'budget'             => $req->budget,
+                    'ride_date'          => $req->ride_date,
+                    'ride_time'          => $req->ride_time,
+                    'status'             => $req->status,
+                    'services'           => is_string($req->services) ? json_decode($req->services, true) : ($req->services ?? []),
+                    'created_at'         => $req->created_at,
+                ];
+            });
+
+        } else {
+            // ✅ PASSENGER → Sent = Bookings made or Requests created
+            $bookings = \App\Models\RideBooking::with(['ride', 'ride.driver'])
+                ->where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $requests = \App\Models\PassengerRequest::where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $sentData = $bookings->map(function ($booking) {
+                return [
+                    'type'            => 'ride_booking',
+                    'booking_id'      => $booking->id,
+                    'driver_id'       => $booking->ride->user_id ?? null,
+                    'driver_name'     => $booking->ride->driver->name ?? null,
+                    'pickup_location' => $booking->ride->pickup_location ?? null,
+                    'destination'     => $booking->ride->destination ?? null,
+                    'status'          => $booking->status,
+                    'price'           => $booking->price,
+                    'created_at'      => $booking->created_at,
+                ];
+            })->merge($requests->map(function ($req) {
+                return [
+                    'type'            => 'passenger_request',
+                    'request_id'      => $req->id,
+                    'pickup_location' => $req->pickup_location,
+                    'destination'     => $req->destination,
+                    'budget'          => $req->budget,
+                    'status'          => $req->status,
+                    'created_at'      => $req->created_at,
+                ];
+            }));
+        }
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Sent requests fetched successfully',
+            'data'    => $sentData
+        ]);
+    }
+
+    public function getReceivedResponse(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'User not authenticated'], 401);
+        }
+
+        $receivedData = collect([]);
+
+        // Check if user is driver (created rides)
+        $driverRides = \App\Models\Ride::where('user_id', $user->id)->pluck('id')->toArray();
+
+        if (!empty($driverRides)) {
+            // ✅ DRIVER → Received = Passenger bookings on their rides
+            $bookings = \App\Models\RideBooking::with(['user', 'ride'])
+                ->whereIn('ride_id', $driverRides)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            // ✅ DRIVER → Also received = Passenger requests not yet assigned but available to them
+            $requests = \App\Models\PassengerRequest::whereNull('driver_id')
+                ->orWhere('driver_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $receivedData = $bookings->map(function ($booking) {
+                return [
+                    'type'            => 'ride_booking',
+                    'booking_id'      => $booking->id,
+                    'passenger_id'    => $booking->user_id,
+                    'passenger_name'  => $booking->user->name ?? null,
+                    'pickup_location' => $booking->ride->pickup_location ?? null,
+                    'destination'     => $booking->ride->destination ?? null,
+                    'status'          => $booking->status,
+                    'price'           => $booking->price,
+                    'created_at'      => $booking->created_at,
+                ];
+            })->merge($requests->map(function ($req) {
+                return [
+                    'type'            => 'passenger_request',
+                    'request_id'      => $req->id,
+                    'pickup_location' => $req->pickup_location,
+                    'destination'     => $req->destination,
+                    'budget'          => $req->budget,
+                    'status'          => $req->status,
+                    'created_at'      => $req->created_at,
+                ];
+            }));
+
+        } else {
+            // ✅ PASSENGER → Received = When driver shows interest in their requests
+            $receivedRequests = \App\Models\PassengerRequest::where('user_id', $user->id)
+                ->whereNotNull('driver_id')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $receivedData = $receivedRequests->map(function ($req) {
+                return [
+                    'request_id'      => $req->id,
+                    'driver_id'       => $req->driver_id,
+                    'pickup_location' => $req->pickup_location,
+                    'destination'     => $req->destination,
+                    'budget'          => $req->budget,
+                    'status'          => $req->status,
+                    'created_at'      => $req->created_at,
+                ];
+            });
+        }
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Received requests fetched successfully',
+            'data'    => $receivedData
+        ]);
+    }
+
+
+
 
 
 

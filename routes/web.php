@@ -38,6 +38,7 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
     Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'role:1']], function () {
         Route::get('dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
         Route::get('all-drivers', [UserController::class, 'driversList'])->name('all-drivers');
+        Route::get('all-passengers', [UserController::class, 'passengersList'])->name('all-passengers');
         Route::delete('delete-user', [UserController::class, 'deleteUser'])->name('deleteUser');
         Route::post('verify-user', [UserController::class, 'verifyUser'])->name('verifyUser');
         Route::post('reject-user', [UserController::class, 'rejectUser'])->name('rejectUser');

@@ -184,6 +184,7 @@ class DriverHomeController extends Controller
             'price'           => 'required|numeric|min:0',
             'ride_date'       => 'required|date|after_or_equal:today',
             'ride_time'       => 'required|date_format:H:i',
+            'reaching_time'  => 'nullable|date_format:H:i', // ✅ added rule
             'accept_parcel'   => 'nullable|boolean',
             'services'        => 'nullable|array',
             'services.*'      => 'exists:services,id', 
@@ -201,7 +202,9 @@ class DriverHomeController extends Controller
             'ride_time.required'       => 'Ride time is required.',
             'ride_time.date_format'    => 'Ride time must be in the format HH:MM.',
             'accept_parcel.boolean'    => 'Accept parcel must be true or false.',
-             'services.*.exists' => 'One or more selected services are invalid.',
+            'services.*.exists' => 'One or more selected services are invalid.',
+            'reaching_time.date_format' => 'Reaching time must be in HH:MM (24-hour) format.',
+
         ]);
 
         if ($validator->fails()) {
@@ -222,6 +225,7 @@ class DriverHomeController extends Controller
             'price'          => $request->price,
             'ride_date'      => $request->ride_date,
             'ride_time'      => $request->ride_time,
+            'reaching_time' => $request->reaching_time ?? $ride->reaching_time ?? null, // ✅ prefer user input, else from ride
            'accept_parcel'  => $request->accept_parcel ?? false,
             'services'       => $request->services,
         ]);
@@ -260,6 +264,7 @@ class DriverHomeController extends Controller
             'price'           => 'required|numeric|min:0',
             'ride_date'       => 'required|date|after_or_equal:today',
             'ride_time'       => 'required|date_format:H:i',
+             'reaching_time'  => 'nullable|date_format:H:i',
             'accept_parcel'   => 'nullable|boolean',
          'services'        => ['nullable', 'array'],
         ], [
@@ -277,6 +282,7 @@ class DriverHomeController extends Controller
             'ride_time.date_format'    => 'Ride time must be in the format HH:MM.',
             'accept_parcel.boolean'    => 'Accept parcel must be true or false.',
             'services.array'           => 'Services must be an array.',
+            'reaching_time.date_format' => 'Reaching time must be in HH:MM (24-hour) format.',
         ]);
 
         
@@ -310,6 +316,7 @@ class DriverHomeController extends Controller
             'price'           => $request->price,
             'ride_date'       => $request->ride_date,
             'ride_time'       => $request->ride_time,
+             'reaching_time' => $request->reaching_time ?? $ride->reaching_time ?? null,
             'accept_parcel'   => $request->accept_parcel ?? false,
             'services'        => $request->services,
         ]);
@@ -326,63 +333,63 @@ class DriverHomeController extends Controller
     }
 
     // api for get all the ride list ceatred by deiver
-public function getAllRidesCreatedByDriver(Request $request)
-{
-    $user = Auth::guard('api')->user();
+    public function getAllRidesCreatedByDriver(Request $request)
+    {
+        $user = Auth::guard('api')->user();
 
-    if (!$user) {
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not authenticated.',
+            ], 401);
+        }
+
+        // ✅ Fetch rides created by this driver with vehicle & driver relation
+        $rides = Ride::with([
+                'vehicle:id,brand,model,number_plate,vehicle_image,vehicle_type',
+                'driver:id,name,phone_number,image'  // <- use phone_number
+            ])
+            ->where('user_id', $user->id)
+            ->get();
+
+        // ✅ Format response (merge vehicle + driver + services into flat array)
+        $rides = $rides->map(function ($ride) {
+            return [
+                "id"              => $ride->id,
+                "pickup_location" => $ride->pickup_location,
+                "destination"     => $ride->destination,
+                "number_of_seats" => $ride->number_of_seats,
+                "price"           => $ride->price,
+                "ride_date"       => $ride->ride_date,
+                "ride_time"       => $ride->ride_time,
+                "accept_parcel"   => (bool) $ride->accept_parcel,
+
+                // Vehicle details
+                "vehicle_id"      => $ride->vehicle->id ?? null,
+                "vehicle_brand"   => $ride->vehicle->brand ?? null,
+                "vehicle_model"   => $ride->vehicle->model ?? null,
+                "vehicle_number"  => $ride->vehicle->number_plate ?? null,
+                "vehicle_type"    => $ride->vehicle->vehicle_type ?? null,
+                "vehicle_image"   => $ride->vehicle->vehicle_image ?? null,
+
+                // Driver details
+                "driver_id"       => $ride->driver->id ?? null,
+                "driver_name"     => $ride->driver->name ?? null,
+                "driver_phone"    => $ride->driver->phone_number ?? null,
+                "driver_image"    => $ride->driver->image ?? null,
+
+                // Services (convert JSON ids → actual service details)
+                "services"        => Service::whereIn('id', $ride->services ?? [])
+                                            ->get(['id','service_name','service_image']),
+            ];
+        });
+
         return response()->json([
-            'status' => false,
-            'message' => 'User not authenticated.',
-        ], 401);
+            "status"  => true,
+            "message" => "Driver rides fetched successfully.",
+            "data"    => $rides,
+        ], 200);
     }
-
-    // ✅ Fetch rides created by this driver with vehicle & driver relation
-    $rides = Ride::with([
-            'vehicle:id,brand,model,number_plate,vehicle_image,vehicle_type',
-            'driver:id,name,phone_number,image'  // <- use phone_number
-        ])
-        ->where('user_id', $user->id)
-        ->get();
-
-    // ✅ Format response (merge vehicle + driver + services into flat array)
-    $rides = $rides->map(function ($ride) {
-        return [
-            "id"              => $ride->id,
-            "pickup_location" => $ride->pickup_location,
-            "destination"     => $ride->destination,
-            "number_of_seats" => $ride->number_of_seats,
-            "price"           => $ride->price,
-            "ride_date"       => $ride->ride_date,
-            "ride_time"       => $ride->ride_time,
-            "accept_parcel"   => (bool) $ride->accept_parcel,
-
-            // Vehicle details
-            "vehicle_id"      => $ride->vehicle->id ?? null,
-            "vehicle_brand"   => $ride->vehicle->brand ?? null,
-            "vehicle_model"   => $ride->vehicle->model ?? null,
-            "vehicle_number"  => $ride->vehicle->number_plate ?? null,
-            "vehicle_type"    => $ride->vehicle->vehicle_type ?? null,
-            "vehicle_image"   => $ride->vehicle->vehicle_image ?? null,
-
-            // Driver details
-            "driver_id"       => $ride->driver->id ?? null,
-            "driver_name"     => $ride->driver->name ?? null,
-            "driver_phone"    => $ride->driver->phone_number ?? null,
-            "driver_image"    => $ride->driver->image ?? null,
-
-            // Services (convert JSON ids → actual service details)
-            "services"        => Service::whereIn('id', $ride->services ?? [])
-                                        ->get(['id','service_name','service_image']),
-        ];
-    });
-
-    return response()->json([
-        "status"  => true,
-        "message" => "Driver rides fetched successfully.",
-        "data"    => $rides,
-    ], 200);
-}
 
 
 

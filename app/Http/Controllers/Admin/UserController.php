@@ -8,25 +8,24 @@ use App\Models\User;
 
 class UserController extends Controller
 {
-//    public function driversList()
-//     {
-//         // Fetch all users except role 1 (latest first, 10 per page)
-//         $users = User::where('role', '!=', 1)
-//                     ->orderBy('id', 'desc')
-//                     ->paginate(10);
-
-//         // Return Blade view with users data
-//         return view('admin.users.driversListing', compact('users'));
-//     }
 
 
-  public function driversList()
+   public function driversList()
     {
         // Only drivers (users who have rides)
         $users = User::whereHas('rides')
                     ->orderBy('id', 'desc')
                     ->paginate(10);
         return view('admin.users.driversListing', compact('users'));
+    }
+
+    public function passengersList()
+    {
+        $users = User::whereHas('rideBookings')
+                    ->orderBy('id', 'desc')
+                    ->paginate(10);
+
+        return view('admin.users.passengersListing', compact('users'));
     }
 
 

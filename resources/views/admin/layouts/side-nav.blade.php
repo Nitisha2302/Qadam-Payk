@@ -28,6 +28,15 @@
                 </a>
             </li>
 
+            <li class="@if (Route::currentRouteName() == 'dashboard.admin.all-passengers') active @endif">
+                <a href="{{ route('dashboard.admin.all-passengers') }}">
+                    <span class="d-flex gap-3 align-items-end">
+                        <i class="fa fa-users icon-font-size"></i>
+                        <span class="nav-content-menu">Passengers</span>
+                    </span>
+                </a>
+            </li>
+
             <li class="@if (Route::currentRouteName() == 'dashboard.admin.all-cities') active @endif">
                 <a href="{{ route('dashboard.admin.all-cities') }}">
                     <span class="d-flex gap-3 align-items-end">

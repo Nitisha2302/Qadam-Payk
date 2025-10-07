@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\City;
 use App\Models\CarModel; 
 use App\Models\Service;
+use App\Models\rideBookings;
 use Illuminate\Support\Facades\Auth;
 
 class GlobalSearchController extends Controller
@@ -48,6 +49,21 @@ class GlobalSearchController extends Controller
                 ->appends($request->only('search'));
 
             return view('admin.users.driversListing', [
+                'users' => $users,
+                'search_users' => $users,
+            ]);
+        }
+        if (str_contains($currentRoute, 'all-passengers')) {
+            $users = User::whereHas('rideBookings') // ✅ only passengers
+                ->where(function ($query) use ($searchTerm) {
+                    $query->where('name', 'like', "%{$searchTerm}%")
+                        ->orWhere('email', 'like', "%{$searchTerm}%")
+                        ->orWhere('phone_number', 'like', "%{$searchTerm}%");
+                })
+                ->paginate(10)
+                ->appends($request->only('search'));
+
+            return view('admin.users.passengersListing', [
                 'users' => $users,
                 'search_users' => $users,
             ]);

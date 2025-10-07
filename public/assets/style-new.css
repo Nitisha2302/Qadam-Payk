@@ -634,3 +634,35 @@ a.action-btn:hover{
 }
 
 /* end here  */
+
+
+/* sidebar scroller start here  */
+
+.sidebar-nav {
+    height: 100vh; /* Full viewport height */
+    overflow-y: auto; /* Enables vertical scrolling */
+    overflow-x: hidden; /* Hide horizontal scroll */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #008955 #f1f1f1; /* Firefox scrollbar colors */
+}
+
+/* For Chrome, Edge, Safari */
+.sidebar-nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: #008955;
+    border-radius: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: #008955;
+}
+
+
+/* side bar scroleer end here  */

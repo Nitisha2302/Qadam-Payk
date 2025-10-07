@@ -64,7 +64,7 @@
                               <i class="fa fa-users icon-font-size"></i>
                             </div>
                             <div class="card-title m-0">
-                                   0
+                                  {{ $passengersCount }}
                                 <div class="card-subtitle">
                                     Total Passengers
                                 </div>
@@ -214,7 +214,7 @@ $(document).ready(function() {
             labels: ['Users', 'Drivers', 'Passengers'],
             datasets: [{
                 label: 'Count',
-                data: {!! json_encode([$userCount, $driversCount, 0]) !!}, // Replace 0 with $passengersCount if available
+                data: {!! json_encode([$userCount, $driversCount, $passengersCount]) !!}, // Replace 0 with $passengersCount if available
                 backgroundColor: [
                     'rgba(54, 162, 235, 0.7)',   // blue for Users
                     'rgba(40, 167, 69, 0.7)',    // green for Drivers
