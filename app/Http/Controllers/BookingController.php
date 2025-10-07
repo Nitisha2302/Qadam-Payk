@@ -838,6 +838,7 @@ class BookingController extends Controller
             $sentData = $sentRequests->map(function ($req) {
                 return [
                     'request_id'      => $req->id,
+                    'ride_id'         => $req->ride_id,
                     'driver_id'       => $req->driver_id,
                     'pickup_location' => $req->pickup_location,
                     'destination'     => $req->destination,
@@ -865,6 +866,7 @@ class BookingController extends Controller
             $bookingData = $bookings->map(function ($booking) {
                 return [
                     'request_id'      => $booking->request_id,
+                    'ride_id'         => $booking->ride_id,
                     'driver_id'       => optional($booking->ride)->user_id,
                     'pickup_location' => optional($booking->ride)->pickup_location,
                     'destination'     => optional($booking->ride)->destination,
