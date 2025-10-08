@@ -31,6 +31,7 @@ class BookingController extends Controller
             'services'     => 'nullable|array',
             'services.*'   => 'exists:services,id',
             'type'         => 'required|in:0,1', // 0 = ride, 1 = parcel
+            'comment'      => 'nullable|string|max:2000', // ✅ new validation
         ], [
             'ride_id.required'      => 'Ride ID is required.',
             'ride_id.exists'        => 'Selected ride does not exist.',
@@ -41,6 +42,8 @@ class BookingController extends Controller
             'services.*.exists'     => 'Selected service is invalid.',
             'type.required'         => 'Booking type is required.',
             'type.in'               => 'Type must be 0 (ride) or 1 (parcel).',
+            'comment.string'        => 'Comment must be a valid text.',
+            'comment.max'           => 'Comment cannot exceed 500 characters.',
         ]);
 
         if ($validator->fails()) {
@@ -104,6 +107,7 @@ class BookingController extends Controller
             'type'         => $request->type,
             'ride_date'    => Carbon::parse($ride->ride_date)->format('Y-m-d'), // copy from ride
             'ride_time'    => $ride->ride_time, // copy from ride
+             'comment'      => $request->comment,
         ]);
 
         // Notify driver
@@ -145,6 +149,7 @@ class BookingController extends Controller
                 'ride_time'    => $ride->ride_time, // copy from ride
                 'created_at'   => $booking->created_at,
                 'updated_at'   => $booking->updated_at,
+                 'comment'      => $request->comment,
                 // ✅ Replace services with full details
                 'services'     => $booking->services_details->map(function ($service) {
                     return [
@@ -200,6 +205,7 @@ class BookingController extends Controller
                 'price'         => $booking->price,
                 'status'        => $booking->status,
                 'type'          => $booking->type,
+                'comment'          => $booking->comment,
                 'services'      => $booking->services_details->map(function ($service) {
                     return [
                         'id'            => $service->id,

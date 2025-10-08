@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class RideBooking extends Model
 {
     protected $fillable = [
-        'ride_id', 'user_id', 'seats_booked', 'price', 'services', 'status','type','active_status','ride_date','ride_time','request_id'
+        'ride_id', 'user_id', 'seats_booked', 'price', 'services', 'status','type','active_status','ride_date','ride_time','request_id','comment'
     ];
 
     protected $casts = [
