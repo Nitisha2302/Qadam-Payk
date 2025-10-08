@@ -1009,6 +1009,7 @@ class BookingController extends Controller
                                 'passenger_id'    => $booking->user_id,
                                 'passenger_name'  => optional($booking->user)->name,
                                 'passenger_phone' => optional($booking->user)->phone_number,
+                                'passenger_image' => optional($booking->user)->image,
                                 'seats_booked'    => $booking->seats_booked,
                                 // 'is_ride'    =>      $booking->type,
                                 'price'           => $booking->price,
