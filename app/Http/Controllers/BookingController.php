@@ -769,7 +769,7 @@ class BookingController extends Controller
 
         if (!empty($driverRides)) {
             // DRIVER → Sent = Requests they showed interest in from passenger requests
-            $sentRequests = \App\Models\PassengerRequest::where('driver_id', $user->id)
+            $sentRequests = \App\Models\PassengerRequest::where('user_id', $user->id)
                 ->orderBy('created_at', 'desc')
                 ->get();
 
