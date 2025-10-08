@@ -9,6 +9,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PassengerRequestController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\RatingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -115,3 +116,6 @@ Route::get('get-confirmation-status', [BookingController::class, 'getConfirmatio
 
 Route::get('/get-send-response', [BookingController::class, 'getSendResponse'])->name('get-send-responses');
 Route::get('/get-recived-response', [BookingController::class, 'getReceivedResponse'])->name('get-recived-responses');
+
+Route::post('/rate', [RatingController::class, 'store']);
+Route::get('/ratings', [RatingController::class, 'list']);
