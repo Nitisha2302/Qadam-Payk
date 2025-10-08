@@ -111,5 +111,7 @@ Route::post('chat/mark-read', [ChatController::class, 'markRead']); // Mark mess
 Route::get('get-driver-confirmedPendinCancelled-rides', [BookingController::class, 'getDriverConfirmedPendingancelledRides']);
 Route::get('get-passenger-confirmedPendingCancelled-rides', [BookingController::class, 'getPassengerConfirmedPendingCanclledRides']);
 
+Route::get('get-confirmation-status', [BookingController::class, 'getConfirmationStatus']);
+
 Route::get('/get-send-response', [BookingController::class, 'getSendResponse'])->name('get-send-responses');
 Route::get('/get-recived-response', [BookingController::class, 'getReceivedResponse'])->name('get-recived-responses');
