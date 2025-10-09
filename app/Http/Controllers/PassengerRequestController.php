@@ -466,7 +466,7 @@ class PassengerRequestController extends Controller
         }
 
     
-    // Ride details
+       // Ride details
         $rideDetails = [
             'ride_id'         => $requestModel->id,
             'pickup_location' => $requestModel->pickup_location,

@@ -519,6 +519,30 @@ class BookingController extends Controller
             $booking->active_status = '1';
             $booking->save();
 
+        // ✅ Send notification to passenger
+        $passenger = $booking->user;
+        if ($passenger && $passenger->device_token) {
+            $fcmService = new \App\Services\FCMService();
+
+            $ride = $booking->ride;
+            $pickup = $ride->pickup_location ?? '';
+            $destination = $ride->destination ?? '';
+
+            $notificationData = [
+                'notification_type' => 2,
+                'title' => "Booking Activated",
+                'body'  => "Your booking for the ride from {$pickup} to {$destination} has been started.",
+            ];
+
+            $fcmService->sendNotification([
+                [
+                    'device_token' => $passenger->device_token,
+                    'device_type'  => $passenger->device_type ?? 'android',
+                    'user_id'      => $passenger->id,
+                ]
+            ], $notificationData);
+        }
+
             return response()->json([
                 'status'  => true,
                 'message' => 'Booking status updated to active successfully.',
@@ -579,6 +603,30 @@ class BookingController extends Controller
         // Update booking status to complete
         $booking->active_status = '2';
         $booking->save();
+
+        // ✅ Send notification to passenger
+        $passenger = $booking->user;
+        if ($passenger && $passenger->device_token) {
+            $fcmService = new \App\Services\FCMService();
+
+            $ride = $booking->ride;
+            $pickup = $ride->pickup_location ?? '';
+            $destination = $ride->destination ?? '';
+
+            $notificationData = [
+                'notification_type' => 2,
+                'title' => "Booking Completed",
+                'body'  => "Your booking for the ride from {$pickup} to {$destination} has been  completed.",
+            ];
+
+            $fcmService->sendNotification([
+                [
+                    'device_token' => $passenger->device_token,
+                    'device_type'  => $passenger->device_type ?? 'android',
+                    'user_id'      => $passenger->id,
+                ]
+            ], $notificationData);
+        }
 
         return response()->json([
             'status'  => true,
