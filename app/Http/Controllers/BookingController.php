@@ -820,7 +820,9 @@ class BookingController extends Controller
         ]);
     }
 
-    // public function getSendResponse(Request $request)
+    // nitisha code start here 
+
+    // public function getReceivedResponse(Request $request)
     // {
     //     $user = Auth::guard('api')->user();
     //     if (!$user) {
@@ -830,163 +832,105 @@ class BookingController extends Controller
     //         ], 401);
     //     }
 
-    //     $sentData = collect([]);
+    //     $receivedData = collect([]);
 
-    //     // Check if user is driver (created rides)
-    //     $driverRides = \App\Models\Ride::where('user_id', $user->id)->pluck('id')->toArray();
+    //     // Check if user is Driver (created rides)
+    //     $driverRides = \App\Models\Ride::with(['rideBookings.user', 'vehicle'])->where('user_id', $user->id)->get();
 
-    //     if (!empty($driverRides)) {
-    //         // DRIVER → Sent = Requests they showed interest in from passenger requests
-    //         $sentRequests = \App\Models\PassengerRequest::where('user_id', $user->id)
-    //             ->orderBy('created_at', 'desc')
-    //             ->get();
+    //     if ($driverRides->isNotEmpty()) {
+    //         // DRIVER
+    //         $rideData = $driverRides->map(function ($ride) {
+    //             $vehicle = Ride::where('vehicle_id', $ride->vehicle_id ?? 0)
+    //                 ->orderBy('ride_date', 'asc')
+    //                 ->orderBy('ride_time', 'asc')
+    //                 ->get();
 
-    //         $sentData = $sentRequests->map(function ($req) {
-    //             return [
-    //                 'request_id'      => $req->id,
-    //                 'ride_id'         => $req->ride_id,
-    //                 'driver_id'       => $req->driver_id,
-    //                 'pickup_location' => $req->pickup_location,
-    //                 'destination'     => $req->destination,
-    //                 'number_of_seats' => $req->number_of_seats,
-    //                 'budget'          => $req->budget,
-    //                 'status'          => $req->status,
-    //                 'services'        => $req->services ?? [],
-    //                 'ride_date'       => $req->ride_date,
-    //                 'ride_time'       => $req->ride_time,
-    //                 'created_at'      => $req->created_at,
-    //             ];
-    //         });
+    //                 return [
+    //                     'created_by'      => 'driver', // Explicitly mark who created
+    //                     'ride_id'         => $ride->id,
+    //                     'pickup_location' => $ride->pickup_location,
+    //                     'destination'     => $ride->destination,
+    //                     'ride_date'       => $ride->ride_date,
+    //                     'ride_time'       => $ride->ride_time,
+    //                     'accept_parcel'   => $ride->accept_parcel,
+    //                     'number_of_seats' => $ride->number_of_seats,
+    //                     'vehicle_id'      => $ride->vehicle_id,
+    //                     // 👇 Flattened vehicle info
+    //                     'vehicle_name'  => $ride->vehicle->brand ?? null,
+    //                     'vehicle_model' => $ride->vehicle->model ?? null,
+    //                     'vehicle_number'=> $ride->vehicle->number_plate ?? null,
+    //                     'vehicle_image' => $ride->vehicle->vehicle_image ?? null,
+    //                     'bookings'        => $ride->rideBookings->map(function ($booking) {
+    //                         return [
+    //                             'created_by'      => 'passenger', // Each booking created by passenger
+    //                             'booking_id'      => $booking->id,
+    //                             'passenger_id'    => $booking->user_id,
+    //                             'passenger_name'  => optional($booking->user)->name,
+    //                             'passenger_phone' => optional($booking->user)->phone_number,
+    //                             'passenger_image' => optional($booking->user)->image,
+    //                             'seats_booked'    => $booking->seats_booked,
+    //                             // 'is_ride'    =>      $booking->type,
+    //                             'price'           => $booking->price,
+    //                             'status'          => $booking->status,
+    //                             'services'        => $booking->services ?? [],
+    //                             'created_at'      => $booking->created_at,
+    //                         ];
+    //                     }),
+    //                 ];
+    //             });
 
-    //     } else {
-    //         // PASSENGER → Sent = Bookings made or Requests created
-    //         $bookings = \App\Models\RideBooking::with(['ride', 'ride.driver'])
-    //             ->where('user_id', $user->id)
-    //             ->orderBy('created_at', 'desc')
-    //             ->get();
+    //         // $rideData = $driverRides->map(function ($ride) {
+    //         //     return [
+    //         //         'created_by'      => 'driver', // 🚩 Explicitly mark who created
+    //         //         'ride_id'         => $ride->id,
+    //         //         'pickup_location' => $ride->pickup_location,
+    //         //         'destination'     => $ride->destination,
+    //         //         'ride_date'       => $ride->ride_date,
+    //         //         'ride_time'       => $ride->ride_time,
+    //         //         'accept_parcel'   => $ride->accept_parcel,
+    //         //         'number_of_seats' => $ride->number_of_seats,
+    //         //         'vehicle_id'      => $ride->vehicle_id,
+    //         //         $vehicle = Ride::where('vehicle_id', $ride->vehicle_id ?? 0)
+    //         //         ->orderBy('ride_date', 'asc')
+    //         //         ->orderBy('ride_time', 'asc')
+    //         //         ->get();
+    //         //         'vehicle_brand' => $vehicle -> pluck('brand')->first() ?? null,
+    //         //         'bookings'        => $ride->rideBookings->map(function ($booking) {
+    //         //             return [
+    //         //                 'created_by'      => 'passenger', // 🚩 Each booking created by passenger
+    //         //                 'booking_id'      => $booking->id,
+    //         //                 'passenger_id'    => $booking->user_id,
+    //         //                 'passenger_name'  => optional($booking->user)->name,
+    //         //                 'passenger_phone' => optional($booking->user)->phone_number,
+    //         //                 'seats_booked'    => $booking->seats_booked,
+    //         //                 'price'           => $booking->price,
+    //         //                 'status'          => $booking->status,
+    //         //                 'services'        => $booking->services ?? [],
+    //         //                 'created_at'      => $booking->created_at,
+    //         //             ];
+    //         //         }),
+    //         //     ];
+    //         // });
 
+    //         // Ride requests assigned to driver
     //         $requests = \App\Models\PassengerRequest::where('user_id', $user->id)
     //             ->orderBy('created_at', 'desc')
     //             ->get();
 
-    //         $bookingData = $bookings->map(function ($booking) {
-    //             return [
-    //                 'request_id'      => $booking->request_id,
-    //                 'ride_id'         => $booking->ride_id,
-    //                 'driver_id'       => optional($booking->ride)->user_id,
-    //                 'pickup_location' => optional($booking->ride)->pickup_location,
-    //                 'destination'     => optional($booking->ride)->destination,
-    //                 'number_of_seats' => $booking->seats_booked,
-    //                 'budget'          => $booking->price,
-    //                 'status'          => $booking->status,
-    //                 'services'        => $booking->services ?? [],
-    //                 'ride_date'       => $booking->ride_date ?? optional($booking->ride)->ride_date,
-    //                 'ride_time'       => $booking->ride_time ?? optional($booking->ride)->ride_time,
-    //                 'created_at'      => $booking->created_at,
-    //             ];
-    //         });
-
-    //         $requestData = $requests->map(function ($req) {
-    //             return [
-    //                 'request_id'      => $req->id,
-    //                 'driver_id'       => $req->driver_id,
-    //                 'pickup_location' => $req->pickup_location,
-    //                 'destination'     => $req->destination,
-    //                 'number_of_seats' => $req->number_of_seats,
-    //                 'budget'          => $req->budget,
-    //                 'status'          => $req->status,
-    //                 'services'        => $req->services ?? [],
-    //                 'ride_date'       => $req->ride_date,
-    //                 'ride_time'       => $req->ride_time,
-    //                 'created_at'      => $req->created_at,
-    //             ];
-    //         });
-
-    //         $sentData = $bookingData->merge($requestData);
-    //     }
-
-    //     return response()->json([
-    //         'status'  => true,
-    //         'message' => 'Sent requests fetched successfully',
-    //         'data'    => $sentData
-    //     ]);
-    // }
-
-    // public function getSendResponse(Request $request)
-    // {
-    //     $user = Auth::guard('api')->user();
-    //     if (!$user) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => 'User not authenticated'
-    //         ], 401);
-    //     }
-
-    //     $sentData = collect([]);
-
-    //     // Check if user is driver (created rides)
-    //     $driverRides = \App\Models\Ride::where('user_id', $user->id)->pluck('id')->toArray();
-
-    //     if (!empty($driverRides)) {
-    //         // DRIVER → Sent = Requests they showed interest in from passenger requests
-    //         $sentRequests = \App\Models\PassengerRequest::where('driver_id', $user->id)
-    //             ->orderBy('created_at', 'desc')
-    //             ->get();
-
-    //         $sentData = $sentRequests->map(function ($req) {
-    //             return [
-    //                 'request_id'      => $req->id,
-    //                 'ride_id'         => $req->ride_id,
-    //                 'driver_id'       => $req->driver_id,
-    //                 'pickup_location' => $req->pickup_location,
-    //                 'destination'     => $req->destination,
-    //                 'number_of_seats' => $req->number_of_seats,
-    //                 'budget'          => $req->budget,
-    //                 'status'          => $req->status,
-    //                 'services'        => $req->services ?? [],
-    //                 'ride_date'       => $req->ride_date,
-    //                 'ride_time'       => $req->ride_time,
-    //                 'created_at'      => $req->created_at,
-    //             ];
-    //         });
-
-    //     } else {
-    //         // PASSENGER → Sent = Bookings made or Requests created
-    //         $bookings = \App\Models\RideBooking::with(['ride', 'ride.driver'])
+    //         $requests = \App\Models\PassengerRequest::with(['interests.driver.vehicle'])
     //             ->where('user_id', $user->id)
     //             ->orderBy('created_at', 'desc')
     //             ->get();
 
-    //         $requests = \App\Models\PassengerRequest::where('user_id', $user->id)
-    //             ->orderBy('created_at', 'desc')
-    //             ->get();
-
-    //         $bookingData = $bookings->map(function ($booking) {
-    //             return [
-    //                 'request_id'      => $booking->request_id,
-    //                 'ride_id'         => $booking->ride_id,
-    //                 'driver_id'       => optional($booking->ride)->user_id,
-    //                 'pickup_location' => optional($booking->ride)->pickup_location,
-    //                 'destination'     => optional($booking->ride)->destination,
-    //                 'number_of_seats' => $booking->seats_booked,
-    //                 'budget'          => $booking->price,
-    //                 'status'          => $booking->status,
-    //                 'services'        => $booking->services ?? [],
-    //                 'ride_date'       => $booking->ride_date ?? optional($booking->ride)->ride_date,
-    //                 'ride_time'       => $booking->ride_time ?? optional($booking->ride)->ride_time,
-    //                 'created_at'      => $booking->created_at,
-    //             ];
-    //         });
-
     //         $requestData = $requests->map(function ($req) {
-    //             return [
+    //             // Passenger Request details
+    //             $rideDetails = [
+    //                 'created_by'      => 'driver',
     //                 'request_id'      => $req->id,
-    //                 'driver_id'       => $req->driver_id,
     //                 'pickup_location' => $req->pickup_location,
     //                 'destination'     => $req->destination,
     //                 'number_of_seats' => $req->number_of_seats,
 
-                    
     //                 'pickup_contact_name' => $req->pickup_contact_name,
     //                 'pickup_contact_no' => $req->pickup_contact_no,
     //                 'drop_contact_name' => $req->drop_contact_name,
@@ -994,26 +938,109 @@ class BookingController extends Controller
     //                'parcel_details' => $req->parcel_details,
     //                'parcel_images' => $req->parcel_images,
 
+
     //                 'budget'          => $req->budget,
     //                 'status'          => $req->status,
     //                 'services'        => $req->services ?? [],
     //                 'ride_date'       => $req->ride_date,
     //                 'ride_time'       => $req->ride_time,
     //                 'created_at'      => $req->created_at,
-
-                    
     //             ];
+
+    //             // Interested drivers, mapped as array
+    //             $interestedDrivers = $req->interests->map(function ($interest) use ($rideDetails) {
+    //                 $driver = $interest->driver;
+    //                 if (!$driver) return null;
+
+    //                 $driverData = [
+    //                     'driver_id'        => $driver->id,
+    //                     'name'             => $driver->name,
+    //                     'phone_number'     => $driver->phone_number,
+    //                     'email'            => $driver->email,
+    //                     'image'            => $driver->image,
+    //                     'dob'              => $driver->dob,
+    //                     'gender'           => $driver->gender,
+    //                     'id_verified'      => $driver->id_verified,
+    //                     'is_phone_verify'  => $driver->is_phone_verify,
+    //                     'device_type'      => $driver->device_type,
+    //                     'device_id'        => $driver->device_id,
+    //                 ];
+    //                 $vehicleData = $driver->vehicle ? [
+    //                     'vehicle_number'   => $driver->vehicle->vehicle_number,
+    //                     'vehicle_type'     => $driver->vehicle->vehicle_type,
+    //                 ] : [];
+
+    //                 return array_merge(
+    //                     $rideDetails,
+    //                     [
+    //                         'interest_id' => $interest->id,
+    //                         'request_id'  => $interest->passenger_request_id,
+    //                     ],
+    //                     $driverData,
+    //                     $vehicleData
+    //                 );
+    //             })->filter()->values();
+
+    //             // Attach interested drivers into bookings array
+    //             return array_merge($rideDetails, [
+    //                 'bookings' => $interestedDrivers
+    //             ]);
     //         });
 
-    //         $sentData = $bookingData->merge($requestData);
+    //         // $requestData = $requests->map(function ($req) {
+    //         //     return [
+    //         //         'created_by'      => 'passenger', // 🚩 Requests are created by passengers
+    //         //         'request_id'      => $req->id,
+    //         //         'pickup_location' => $req->pickup_location,
+    //         //         'destination'     => $req->destination,
+    //         //         'number_of_seats' => $req->number_of_seats,
+    //         //         'budget'          => $req->budget,
+    //         //         'status'          => $req->status,
+    //         //         'services'        => $req->services ?? [],
+    //         //         'ride_date'       => $req->ride_date,
+    //         //         'ride_time'       => $req->ride_time,
+    //         //         'created_at'      => $req->created_at,
+    //         //     ];
+    //         // });
+
+    //         $receivedData = [
+    //             'rides_with_bookings' => $rideData,
+    //             'passenger_requests'  => $requestData,
+    //         ];
+    //     } else {
+    //         // PASSENGER → Received requests where driver showed interest
+    //         $receivedRequests = \App\Models\PassengerRequest::where('user_id', $user->id)
+    //             ->whereNotNull('driver_id')
+    //             ->orderBy('created_at', 'desc')
+    //             ->get();
+
+    //         $receivedData = $receivedRequests->map(function ($req) {
+    //             return [
+    //                 'created_by'      => 'passenger', // 🚩 Created by passenger
+    //                 'request_id'      => $req->id,
+    //                 'driver_id'       => $req->driver_id,
+    //                 'pickup_location' => $req->pickup_location,
+    //                 'destination'     => $req->destination,
+    //                 'number_of_seats' => $req->number_of_seats,
+    //                 'budget'          => $req->budget,
+    //                 'status'          => $req->status,
+    //                 'services'        => $req->services ?? [],
+    //                 'ride_date'       => $req->ride_date,
+    //                 'ride_time'       => $req->ride_time,
+    //                 'created_at'      => $req->created_at,
+    //             ];
+    //         });
     //     }
 
     //     return response()->json([
     //         'status'  => true,
-    //         'message' => 'Sent requests fetched successfully',
-    //         'data'    => $sentData
+    //         'message' => 'Received requests fetched successfully',
+    //         'data'    => $receivedData
     //     ]);
     // }
+
+    // nitisha code end here 
+
 
     public function getReceivedResponse(Request $request)
     {
@@ -1065,6 +1092,7 @@ class BookingController extends Controller
                                 // 'is_ride'    =>      $booking->type,
                                 'price'           => $booking->price,
                                 'status'          => $booking->status,
+                                'active_status'          => $booking->active_status,
                                 'services'        => $booking->services ?? [],
                                 'created_at'      => $booking->created_at,
                             ];
@@ -1115,7 +1143,12 @@ class BookingController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get();
 
+
             $requestData = $requests->map(function ($req) {
+                 // ✅ Get active_status from booking table (if exists)
+            $requestBooking = \App\Models\RideBooking::where('request_id', $req->id)
+                                ->whereNotNull('active_status')
+                                ->first();
                 // Passenger Request details
                 $rideDetails = [
                     'created_by'      => 'driver',
@@ -1127,13 +1160,15 @@ class BookingController extends Controller
                     'pickup_contact_name' => $req->pickup_contact_name,
                     'pickup_contact_no' => $req->pickup_contact_no,
                     'drop_contact_name' => $req->drop_contact_name,
-                  'drop_contact_no' => $req->drop_contact_no,
+                   'drop_contact_no' => $req->drop_contact_no,
                    'parcel_details' => $req->parcel_details,
                    'parcel_images' => $req->parcel_images,
 
-
                     'budget'          => $req->budget,
                     'status'          => $req->status,
+
+                    'active_status'       => $requestBooking->active_status ?? null,
+
                     'services'        => $req->services ?? [],
                     'ride_date'       => $req->ride_date,
                     'ride_time'       => $req->ride_time,
@@ -1144,6 +1179,7 @@ class BookingController extends Controller
                 $interestedDrivers = $req->interests->map(function ($interest) use ($rideDetails) {
                     $driver = $interest->driver;
                     if (!$driver) return null;
+
 
                     $driverData = [
                         'driver_id'        => $driver->id,
@@ -1217,6 +1253,9 @@ class BookingController extends Controller
                     'number_of_seats' => $req->number_of_seats,
                     'budget'          => $req->budget,
                     'status'          => $req->status,
+    
+                     'active_status'          => $req->active_status,
+
                     'services'        => $req->services ?? [],
                     'ride_date'       => $req->ride_date,
                     'ride_time'       => $req->ride_time,
@@ -1231,6 +1270,7 @@ class BookingController extends Controller
             'data'    => $receivedData
         ]);
     }
+
 
 
     public function getConfirmationStatus(Request $request)
