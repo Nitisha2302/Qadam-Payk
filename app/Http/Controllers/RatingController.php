@@ -49,7 +49,6 @@ class RatingController extends Controller
 
         // Step 2: Custom validation to check if user has booked this ride
         $bookingExists = \App\Models\RideBooking::where('ride_id', $request->ride_id)
-            ->where('user_id', $user->id)
             ->exists();
 
         if (!$bookingExists) {
