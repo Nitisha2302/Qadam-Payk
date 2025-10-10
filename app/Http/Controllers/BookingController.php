@@ -63,9 +63,9 @@ class BookingController extends Controller
         }
 
         // Prevent duplicate booking: check if user already booked ride OR parcel from this driver
-        $existingBooking = \App\Models\RideBooking::where('driver_id', $ride->user_id)
+        $existingBooking = \App\Models\RideBooking::where('ride_id', $ride->id)
             ->where('user_id', $user->id)
-            ->whereIn('type', [0, 1]) // 0 = ride, 1 = parcel
+            ->whereIn('type', [0, 1])
             ->first();
 
         if ($existingBooking) {
