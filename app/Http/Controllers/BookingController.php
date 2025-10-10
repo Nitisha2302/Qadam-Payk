@@ -845,6 +845,75 @@ class BookingController extends Controller
         ],200);
     }
 
+    // anukool code start here
+    // public function getSendResponse(Request $request)
+    // {
+    //     $user = Auth::guard('api')->user();
+    //     if (!$user) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => 'User not authenticated'
+    //         ], 401);
+    //     }
+
+    //     // Fetch bookings and passenger requests regardless of the user's role
+    //     $bookings = \App\Models\RideBooking::with(['ride', 'ride.driver'])
+    //         ->where('user_id', $user->id)
+    //         ->orderBy('created_at', 'desc')
+    //         ->get();
+
+    //     $requests = \App\Models\PassengerRequest::where('user_id', $user->id)
+    //         ->orderBy('created_at', 'desc')
+    //         ->get();
+
+    //     // Map bookings
+    //     $bookingData = $bookings->map(function ($booking) {
+    //         return [
+    //             'request_id'      => $booking->request_id ?? $booking->id, // fallback to booking id
+    //             'ride_id'         => $booking->ride_id,
+    //             'driver_id'       => optional($booking->ride)->user_id,
+    //             'pickup_location' => optional($booking->ride)->pickup_location,
+    //             'destination'     => optional($booking->ride)->destination,
+    //             'number_of_seats' => $booking->seats_booked,
+    //             'budget'          => $booking->price,
+    //             'status'          => $booking->status,
+    //             'services'        => $booking->services ?? [],
+    //             'ride_date'       => $booking->ride_date ?? optional($booking->ride)->ride_date,
+    //             'ride_time'       => $booking->ride_time ?? optional($booking->ride)->ride_time,
+    //             'created_at'      => $booking->created_at,
+    //             'type'            => 'booking', // Indicate source type
+    //         ];
+    //     });
+
+    //     // Map passenger requests
+    //     $requestData = $requests->map(function ($req) {
+    //         return [
+    //             'request_id'      => $req->id,
+    //             'ride_id'         => $req->ride_id ?? null,
+    //             'driver_id'       => $req->driver_id,
+    //             'pickup_location' => $req->pickup_location,
+    //             'destination'     => $req->destination,
+    //             'number_of_seats' => $req->number_of_seats,
+    //             'budget'          => $req->budget,
+    //             'status'          => $req->status,
+    //             'services'        => $req->services ?? [],
+    //             'ride_date'       => $req->ride_date,
+    //             'ride_time'       => $req->ride_time,
+    //             'created_at'      => $req->created_at,
+    //             'type'            => 'request', // Indicate source type
+    //         ];
+    //     });
+
+    //     // Merge both (no role distinction needed)
+    //     $sentData = $bookingData->merge($requestData);
+
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => 'Sent requests and bookings fetched successfully',
+    //         'data'    => $sentData
+    //     ]);
+    // }
+    // anukool code end here
     public function getSendResponse(Request $request)
     {
         $user = Auth::guard('api')->user();
@@ -868,7 +937,7 @@ class BookingController extends Controller
         // Map bookings
         $bookingData = $bookings->map(function ($booking) {
             return [
-                'request_id'      => $booking->request_id ?? $booking->id, // fallback to booking id
+                'request_id'      => $booking->request_id ?? $booking->id,
                 'ride_id'         => $booking->ride_id,
                 'driver_id'       => optional($booking->ride)->user_id,
                 'pickup_location' => optional($booking->ride)->pickup_location,
@@ -880,7 +949,7 @@ class BookingController extends Controller
                 'ride_date'       => $booking->ride_date ?? optional($booking->ride)->ride_date,
                 'ride_time'       => $booking->ride_time ?? optional($booking->ride)->ride_time,
                 'created_at'      => $booking->created_at,
-                'type'            => 'booking', // Indicate source type
+                'type'            => 'booking',
             ];
         });
 
@@ -899,12 +968,12 @@ class BookingController extends Controller
                 'ride_date'       => $req->ride_date,
                 'ride_time'       => $req->ride_time,
                 'created_at'      => $req->created_at,
-                'type'            => 'request', // Indicate source type
+                'type'            => 'request',
             ];
         });
 
-        // Merge both (no role distinction needed)
-        $sentData = $bookingData->merge($requestData);
+        // Convert to arrays and merge to avoid collection method errors
+        $sentData = array_merge($bookingData->toArray(), $requestData->toArray());
 
         return response()->json([
             'status'  => true,
@@ -912,6 +981,7 @@ class BookingController extends Controller
             'data'    => $sentData
         ]);
     }
+
 
     // nitisha code start here 
 
