@@ -54,26 +54,51 @@ class BookingController extends Controller
         }
 
         $ride = \App\Models\Ride::find($request->ride_id);
-
-        // ❌ Prevent user from booking their own ride
+        // Prevent user from booking their own ride or parcel
         if ($ride->user_id == $user->id) {
             return response()->json([
                 'status'  => false,
-                'message' => 'You cannot book your own ride.'
+                'message' => 'You cannot book your own ride or parcel.'
             ], 201);
         }
 
-        // ❌ Prevent duplicate bookings by same user
-        $existingBooking = \App\Models\RideBooking::where('ride_id', $ride->id)
+        // Prevent duplicate booking: check if user already booked ride OR parcel from this driver
+        $existingBooking = \App\Models\RideBooking::where('driver_id', $ride->user_id)
             ->where('user_id', $user->id)
+            ->whereIn('type', [0, 1]) // 0 = ride, 1 = parcel
             ->first();
 
         if ($existingBooking) {
             return response()->json([
                 'status'  => false,
-                'message' => 'You have already booked this ride.'
+                'message' => 'You have already booked a ride or parcel with this driver.'
             ], 201);
         }
+
+        //Start by anukool
+        // $ride = \App\Models\Ride::find($request->ride_id);
+
+        // // ❌ Prevent user from booking their own ride
+        // if ($ride->user_id == $user->id) {
+        //     return response()->json([
+        //         'status'  => false,
+        //         'message' => 'You cannot book your own ride.'
+        //     ], 201);
+        // }
+
+        // // ❌ Prevent duplicate bookings by same user
+        // $existingBooking = \App\Models\RideBooking::where('ride_id', $ride->id)
+        //     ->where('user_id', $user->id)
+        //     ->first();
+
+        // if ($existingBooking) {
+        //     return response()->json([
+        //         'status'  => false,
+        //         'message' => 'You have already booked this ride.'
+        //     ], 201);
+        // }
+
+        //End by anukool
 
         // if ($request->type == 0) { // Ride booking
         //     $availableSeats = $ride->number_of_seats - $ride->bookings()->sum('seats_booked');
