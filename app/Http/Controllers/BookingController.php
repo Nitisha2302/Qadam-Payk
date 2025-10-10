@@ -1402,6 +1402,7 @@ class BookingController extends Controller
             'source' => $item->ride->user_id == $user->id ? 'driver' : 'passenger',
             'pickup_location' => $item->ride->pickup_location ?? null,
             'destination' => $item->ride->destination ?? null,
+            'ride_id' => $item->ride_id,
             'ride_date' => $item->ride_date,
             'ride_time' => $item->ride_time,
             'price' => $item->price,
