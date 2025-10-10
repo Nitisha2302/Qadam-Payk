@@ -1221,6 +1221,7 @@ class BookingController extends Controller
 
         // Check if user is Driver (created rides)
         $driverRides = \App\Models\Ride::with(['rideBookings.user', 'vehicle'])->where('user_id', $user->id)->get();
+        $passengerRides = \App\Models\PassengerRequest::with(['rideBookings.user', 'vehicle'])->where('user_id', $user->id)->get();
 
         if ($driverRides->isNotEmpty()) {
             // DRIVER
@@ -1335,7 +1336,9 @@ class BookingController extends Controller
                 'rides_with_bookings' => $rideData,
                 'passenger_requests' => $requestData,
             ];
-        } else {
+        } 
+        
+        if($passengerRides->isNotEmpty()) {
             // PASSENGER → Received requests where driver showed interest
             $receivedRequests = \App\Models\PassengerRequest::where('user_id', $user->id)
                 ->whereNotNull('driver_id')
