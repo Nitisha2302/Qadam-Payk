@@ -21,7 +21,7 @@ class RatingController extends Controller
             ], 401);
         }
 
-        // Custom validation messages
+        // Step 1: Basic validation
         $validator = Validator::make($request->all(), [
             'ride_id' => 'required|exists:rides,id',
             'reviewed_id' => 'required|exists:users,id',
@@ -47,31 +47,33 @@ class RatingController extends Controller
             ], 422);
         }
 
+        // Step 2: Custom validation to check if user has booked this ride
         $bookingExists = \App\Models\RideBooking::where('ride_id', $request->ride_id)
-                ->where('reviewer_id', $user->id)
-                ->where('reviewed_id', $request->reviewed_id)
-                ->exists();
+            ->where('user_id', $user->id)
+            ->exists();
 
         if (!$bookingExists) {
             return response()->json([
                 'status' => false,
-                'message' => 'You have already rated this ride/user.'
+                'message' => 'You have not booked this ride and cannot review it.'
             ], 422);
         }
-        // Prevent duplicate rating for same ride/user
-        // $existing = Rating::where('ride_id', $request->ride_id)
-        //     ->where('reviewer_id', $user->id)
-        //     ->where('reviewed_id', $request->reviewed_id)
-        //     ->first();
 
-        // if ($existing) {
-        //     return response()->json([
-        //         'status' => false,
-        //         'message' => 'You have already rated this ride/user.'
-        //     ], 409);
-        // }
+        // Step 3: Prevent duplicate rating for same ride/reviewer/reviewed combo
+        $existing = \App\Models\Rating::where('ride_id', $request->ride_id)
+            ->where('reviewer_id', $user->id)
+            ->where('reviewed_id', $request->reviewed_id)
+            ->first();
 
-        $rating = Rating::create([
+        if ($existing) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You have already rated this ride/user.'
+            ], 409);
+        }
+
+        // Step 4: Create rating
+        $rating = \App\Models\Rating::create([
             'ride_id' => $request->ride_id,
             'reviewer_id' => $user->id,
             'reviewed_id' => $request->reviewed_id,
@@ -85,6 +87,71 @@ class RatingController extends Controller
             'data' => $rating
         ], 201);
     }
+
+    // Start by anukkol
+    // public function store(Request $request)
+    // {
+    //     $user = Auth::guard('api')->user();
+    //     if (!$user) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'User not authenticated'
+    //         ], 401);
+    //     }
+
+    //     // Custom validation messages
+    //     $validator = Validator::make($request->all(), [
+    //         'ride_id' => 'required|exists:rides,id',
+    //         'reviewed_id' => 'required|exists:users,id',
+    //         'rating' => 'required|integer|min:1|max:5',
+    //         'review' => 'nullable|string|max:500',
+    //     ], [
+    //         'ride_id.required' => 'Please provide a valid ride.',
+    //         'ride_id.exists' => 'The selected ride does not exist.',
+    //         'reviewed_id.required' => 'Please select a user to review.',
+    //         'reviewed_id.exists' => 'The selected user does not exist.',
+    //         'rating.required' => 'Rating is required.',
+    //         'rating.integer' => 'Rating must be a number.',
+    //         'rating.min' => 'Rating must be at least 1 star.',
+    //         'rating.max' => 'Rating cannot exceed 5 stars.',
+    //         'review.string' => 'Review must be text.',
+    //         'review.max' => 'Review cannot exceed 500 characters.'
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => $validator->errors()->first()
+    //         ], 422);
+    //     }
+
+    //     // Prevent duplicate rating for same ride/user
+    //     $existing = Rating::where('ride_id', $request->ride_id)
+    //         ->where('reviewer_id', $user->id)
+    //         ->where('reviewed_id', $request->reviewed_id)
+    //         ->first();
+
+    //     if ($existing) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'You have already rated this ride/user.'
+    //         ], 409);
+    //     }
+
+    //     $rating = Rating::create([
+    //         'ride_id' => $request->ride_id,
+    //         'reviewer_id' => $user->id,
+    //         'reviewed_id' => $request->reviewed_id,
+    //         'rating' => $request->rating,
+    //         'review' => $request->review ?? null
+    //     ]);
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'Rating submitted successfully.',
+    //         'data' => $rating
+    //     ], 201);
+    // }
 
     // List ratings received by the authenticated user
     // public function list(Request $request)
