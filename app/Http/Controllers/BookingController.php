@@ -1261,8 +1261,8 @@ class BookingController extends Controller
                     'budget'          => $req->budget,
                     'status'          => $req->status,
 
-                    'active_status'       => $requestBooking->active_status ?? null,
-                    'comment'          => $requestBooking->comment,
+                    'active_status'   => $requestBooking->active_status ?? null,
+                    'comment'         => $requestBooking->comment ?? null,
 
                     'services'        => $req->services ?? [],
                     'ride_date'       => $req->ride_date,
@@ -1349,8 +1349,8 @@ class BookingController extends Controller
                     'budget'          => $req->budget,
                     'status'          => $req->status,
     
-                     'active_status'          => $req->active_status,
-                     'comment'          => $requestBooking->comment,
+                     'active_status'    => $req->active_status,
+                     'comment'          => $requestBooking->comment ?? null,
 
                     'services'        => $req->services ?? [],
                     'ride_date'       => $req->ride_date,
