@@ -47,6 +47,16 @@ class RatingController extends Controller
             ], 422);
         }
 
+        $bookingExists = \App\Models\RideBooking::where('ride_id', $request->ride_id)
+                ->where('user_id', auth()->id())
+                ->exists();
+
+        if (!$bookingExists) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You have not booked this ride and cannot review it.'
+            ], 422);
+        }
         // Prevent duplicate rating for same ride/user
         $existing = Rating::where('ride_id', $request->ride_id)
             ->where('reviewer_id', $user->id)
