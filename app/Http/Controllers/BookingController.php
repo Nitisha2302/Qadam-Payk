@@ -53,7 +53,9 @@ class BookingController extends Controller
             ], 201);
         }
 
+        // Find the ride
         $ride = \App\Models\Ride::find($request->ride_id);
+
         // Prevent user from booking their own ride or parcel
         if ($ride->user_id == $user->id) {
             return response()->json([
@@ -62,18 +64,36 @@ class BookingController extends Controller
             ], 201);
         }
 
-        // Prevent duplicate booking: check if user already booked ride OR parcel from this driver
-        $existingBooking = \App\Models\RideBooking::where('ride_id', $ride->id)
+        // Check existing bookings for this ride by the user
+        $bookedRide   = \App\Models\RideBooking::where('ride_id', $ride->id)
             ->where('user_id', $user->id)
-            ->whereIn('type', [0, 1])
+            ->where('type', 0)   // 0 = ride
             ->first();
 
-        if ($existingBooking) {
+        $bookedParcel = \App\Models\RideBooking::where('ride_id', $ride->id)
+            ->where('user_id', $user->id)
+            ->where('type', 1)  // 1 = parcel
+            ->first();
+
+        // If user already booked both ride and parcel, do not allow booking
+        if ($bookedRide && $bookedParcel) {
             return response()->json([
                 'status'  => false,
-                'message' => 'You have already booked a ride or parcel with this driver.'
+                'message' => 'You have already booked ride and parcel.'
             ], 201);
         }
+
+        // Now, allow booking **only for the missing type**
+        // For example, if $request->type == 0 (ride) but $bookedRide exists, do not allow ride booking again
+        if (($request->type == 0 && $bookedRide) || ($request->type == 1 && $bookedParcel)) {
+            return response()->json([
+                'status'  => false,
+                'message' => $request->type == 0 
+                    ? 'You have already booked this ride.'
+                    : 'You have already booked this parcel.'
+            ], 201);
+        }
+
 
         //Start by anukool
         // $ride = \App\Models\Ride::find($request->ride_id);
