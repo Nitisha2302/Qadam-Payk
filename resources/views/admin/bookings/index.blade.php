@@ -9,7 +9,7 @@
                 <div id="successMessage" class="alert alert-success d-none"></div>
             </div>
             <form method="GET" action="{{ route('dashboard.admin.bookings.index') }}" class="d-flex gap-2">
-                <input type="text" name="search" class="form-control" placeholder="Search by user, driver, location" value="{{ request('search') }}">
+                <input type="text" name="search" class="form-control" placeholder="Search by passenger, driver, location" value="{{ request('search') }}">
                 <select name="status" class="form-control">
                     <option value="">All Status</option>
                     <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
@@ -45,8 +45,8 @@
                             <td>{{ $booking->id }}</td>
                             <td>{{ $booking->user->name ?? 'N/A' }}</td>
                             <td>{{ $booking->driver->name ?? 'N/A' }}</td>
-                            <td>{{ $booking->pickup_location ?? $booking->ride->pickup_location ?? '-' }}</td>
-                             <td>{{ $booking->destination ?? $booking->ride->destination ?? '-' }}</td>
+                          <td>{{ $booking->pickup_location ?? $booking->ride?->pickup_location ?? $booking->request?->pickup_location ?? '-' }}</td>
+                         <td>{{ $booking->destination ?? $booking->ride?->destination ?? $booking->request?->destination ?? '-' }}</td>
                            <td>
                                 @foreach ($booking->services_details as $service)
                                     <span class="badge bg-info">{{ $service->service_name }}</span>
@@ -55,18 +55,19 @@
                             <!-- <td><span class="badge bg-info">{{ ucfirst($booking->status) }}</span></td> -->
 
                             <td>
-                                @if ($booking->status == 'pending')
-                                    <span class="badge bg-warning text-dark">Pending</span>
-                                @elseif ($booking->status == 'confirmed')
-                                    <span class="badge bg-success">Confirmed</span>
-                                @elseif ($booking->status == 'cancelled')
+                                @if($booking->status === 'cancelled')
                                     <span class="badge bg-danger">Cancelled</span>
-                                @elseif ($booking->status == 'completed')
-                                    <span class="badge bg-primary">Completed</span>
+                                @elseif($booking->status === 'confirmed' && $booking->active_status == 0)
+                                    <span class="badge bg-warning text-dark">Confirmed</span>
+                                @elseif($booking->active_status == 1)
+                                    <span class="badge bg-info">Active</span>
+                                @elseif($booking->active_status == 2)
+                                    <span class="badge bg-success">Completed</span>
                                 @else
-                                    <span class="badge bg-secondary">{{ ucfirst($booking->status ?? 'Unknown') }}</span>
+                                    <span class="badge bg-secondary">Pending</span>
                                 @endif
                             </td>
+
                             <td>{{ $booking->created_at->format('d M Y') }}</td>
                             <td>
                                 <div class="d-flex align-items-center gap-2">

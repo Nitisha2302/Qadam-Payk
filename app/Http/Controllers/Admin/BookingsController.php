@@ -16,7 +16,8 @@ class BookingsController extends Controller
      */
     public function index(Request $request)
     {
-        $query = RideBooking::with(['user', 'driver', 'service'])->orderBy('id', 'desc');
+        $query = RideBooking::with(['user', 'rideDriver', 'requestDriver'])->orderBy('id', 'desc');
+
 
 
         // Optional filters
@@ -26,12 +27,17 @@ class BookingsController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('user', fn($sub) => $sub->where('name', 'like', "%$search%"))
-                    ->orWhereHas('driver', fn($sub) => $sub->where('name', 'like', "%$search%"))
-                    ->orWhere('pickup_location', 'like', "%$search%")
-                    ->orWhere('destination', 'like', "%$search%");
-            });
+        $query->where(function ($q) use ($search) {
+    $q->whereHas('user', fn($sub) => $sub->where('name', 'like', "%$search%"))
+      ->orWhereHas('rideDriver', fn($sub) => $sub->where('name', 'like', "%$search%"))
+      ->orWhereHas('requestDriver', fn($sub) => $sub->where('name', 'like', "%$search%"))
+      ->orWhereHas('ride', fn($sub) => $sub->where('pickup_location', 'like', "%$search%")
+                                          ->orWhere('destination', 'like', "%$search%"))
+      ->orWhereHas('request', fn($sub) => $sub->where('pickup_location', 'like', "%$search%")
+                                              ->orWhere('destination', 'like', "%$search%"));
+});
+
+
         }
 
         if ($request->filled('from_date') && $request->filled('to_date')) {
