@@ -1473,9 +1473,7 @@ class BookingController extends Controller
                 'rides_with_bookings' => $rideData,
                 'passenger_requests' => $requestData,
             ];
-        } 
-        
-        if($passengerRides->isNotEmpty()) {
+        } else if($passengerRides->isNotEmpty()) {
             // PASSENGER → Received requests where driver showed interest
             $receivedRequests = \App\Models\PassengerRequest::where('user_id', $user->id)
                 ->whereNotNull('driver_id')
