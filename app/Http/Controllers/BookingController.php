@@ -838,99 +838,205 @@ class BookingController extends Controller
 
     // with creted rides
 
-    public function getSendResponse(Request $request)
-    {
-        $user = Auth::guard('api')->user();
-        if (!$user) {
-            return response()->json([
-                'status'  => false,
-                'message' => 'User not authenticated'
-            ], 401);
-        }
+    // public function getSendResponse(Request $request)
+    // {
+    //     $user = Auth::guard('api')->user();
+    //     if (!$user) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => 'User not authenticated'
+    //         ], 401);
+    //     }
 
-        // Fetch bookings and passenger requests regardless of the user's role
-        $bookings = \App\Models\RideBooking::with(['ride', 'ride.driver'])
-            ->where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+    //     // Fetch bookings and passenger requests regardless of the user's role
+    //     $bookings = \App\Models\RideBooking::with(['ride', 'ride.driver'])
+    //         ->where('user_id', $user->id)
+    //         ->orderBy('created_at', 'desc')
+    //         ->get();
        
-        $requests = \App\Models\PassengerRequest::where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+    //     $requests = \App\Models\PassengerRequest::where('user_id', $user->id)
+    //         ->orderBy('created_at', 'desc')
+    //         ->get();
 
-        // Fetch rides created by the user (if driver)
-        $rides = \App\Models\Ride::where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+    //     // Fetch rides created by the user (if driver)
+    //     $rides = \App\Models\Ride::where('user_id', $user->id)
+    //         ->orderBy('created_at', 'desc')
+    //         ->get();
 
-        // Map bookings
-        $bookingData = $bookings->map(function ($booking) {
-            return [
-                'request_id'      => $booking->request_id ?? $booking->id, // fallback to booking id
-                'ride_id'         => $booking->ride_id,
-                'driver_id'       => optional($booking->ride)->user_id,
-                'pickup_location' => optional($booking->ride)->pickup_location,
-                'destination'     => optional($booking->ride)->destination,
-                'number_of_seats' => $booking->seats_booked,
-                'budget'          => $booking->price,
-                'status'          => $booking->status,
-                'services'        => $booking->services ?? [],
-                'ride_date'       => $booking->ride_date ?? optional($booking->ride)->ride_date,
-                'ride_time'       => $booking->ride_time ?? optional($booking->ride)->ride_time,
-                'created_at'      => $booking->created_at,
-                'type'            => 'booking', // Indicate source type
-            ];
-        });
+    //     // Map bookings
+    //     $bookingData = $bookings->map(function ($booking) {
+    //         return [
+    //             'request_id'      => $booking->request_id ?? $booking->id, // fallback to booking id
+    //             'ride_id'         => $booking->ride_id,
+    //             'driver_id'       => optional($booking->ride)->user_id,
+    //             'pickup_location' => optional($booking->ride)->pickup_location,
+    //             'destination'     => optional($booking->ride)->destination,
+    //             'number_of_seats' => $booking->seats_booked,
+    //             'budget'          => $booking->price,
+    //             'status'          => $booking->status,
+    //             'services'        => $booking->services ?? [],
+    //             'ride_date'       => $booking->ride_date ?? optional($booking->ride)->ride_date,
+    //             'ride_time'       => $booking->ride_time ?? optional($booking->ride)->ride_time,
+    //             'created_at'      => $booking->created_at,
+    //             'type'            => 'booking', // Indicate source type
+    //         ];
+    //     });
 
-        // Map passenger requests
-        $requestData = $requests->map(function ($req) {
-            return [
-                'request_id'      => $req->id,
-                'ride_id'         => $req->ride_id ?? null,
-                'driver_id'       => $req->driver_id,
-                'pickup_location' => $req->pickup_location,
-                'destination'     => $req->destination,
-                'number_of_seats' => $req->number_of_seats,
-                'budget'          => $req->budget,
-                'status'          => $req->status,
-                'services'        => $req->services ?? [],
-                'ride_date'       => $req->ride_date,
-                'ride_time'       => $req->ride_time,
-                'created_at'      => $req->created_at,
-                'type'            => 'request', // Indicate source type
-            ];
-        });
+    //     // Map passenger requests
+    //     $requestData = $requests->map(function ($req) {
+    //         return [
+    //             'request_id'      => $req->id,
+    //             'ride_id'         => $req->ride_id ?? null,
+    //             'driver_id'       => $req->driver_id,
+    //             'pickup_location' => $req->pickup_location,
+    //             'destination'     => $req->destination,
+    //             'number_of_seats' => $req->number_of_seats,
+    //             'budget'          => $req->budget,
+    //             'status'          => $req->status,
+    //             'services'        => $req->services ?? [],
+    //             'ride_date'       => $req->ride_date,
+    //             'ride_time'       => $req->ride_time,
+    //             'created_at'      => $req->created_at,
+    //             'type'            => 'request', // Indicate source type
+    //         ];
+    //     });
 
-         // Map rides created by the user (as driver)
-        $rideData = $rides->map(function ($ride) {
-            return [
-                'request_id'      => null,
-                'ride_id'         => $ride->id,
-                'driver_id'       => $ride->user_id,
-                'pickup_location' => $ride->pickup_location,
-                'destination'     => $ride->destination,
-                'number_of_seats' => $ride->available_seats,
-                'budget'          => $ride->price ?? null,
-                'status'          => $ride->status ?? 'active',
-                'services'        => $ride->services ?? [],
-                'ride_date'       => $ride->ride_date,
-                'ride_time'       => $ride->ride_time,
-                'created_at'      => $ride->created_at,
-                'type'            => 'ride', // indicate this is a ride created by driver
-            ];
-        });
+    //      // Map rides created by the user (as driver)
+    //     $rideData = $rides->map(function ($ride) {
+    //         return [
+    //             'request_id'      => null,
+    //             'ride_id'         => $ride->id,
+    //             'driver_id'       => $ride->user_id,
+    //             'pickup_location' => $ride->pickup_location,
+    //             'destination'     => $ride->destination,
+    //             'number_of_seats' => $ride->available_seats,
+    //             'budget'          => $ride->price ?? null,
+    //             'status'          => $ride->status ?? 'active',
+    //             'services'        => $ride->services ?? [],
+    //             'ride_date'       => $ride->ride_date,
+    //             'ride_time'       => $ride->ride_time,
+    //             'created_at'      => $ride->created_at,
+    //             'type'            => 'ride', // indicate this is a ride created by driver
+    //         ];
+    //     });
 
-        // Merge both (no role distinction needed)
-       $sentData = $bookingData
-        ->merge($requestData)
-        ->merge($rideData);
+    //     // Merge both (no role distinction needed)
+    //    $sentData = $bookingData
+    //     ->merge($requestData)
+    //     ->merge($rideData);
 
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => 'Sent requests and bookings fetched successfully',
+    //         'data'    => $sentData
+    //     ]);
+    // }
+
+
+    // new 
+
+    public function getSendResponse(Request $request)
+{
+    $user = Auth::guard('api')->user();
+    if (!$user) {
         return response()->json([
-            'status'  => true,
-            'message' => 'Sent requests and bookings fetched successfully',
-            'data'    => $sentData
-        ]);
+            'status'  => false,
+            'message' => 'User not authenticated'
+        ], 401);
     }
+
+    // Fetch bookings
+    $bookings = \App\Models\RideBooking::with(['ride', 'ride.driver'])
+        ->where('user_id', $user->id)
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    // Fetch passenger requests
+    $requests = \App\Models\PassengerRequest::where('user_id', $user->id)
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    // Fetch rides created by the user (driver)
+    $rides = \App\Models\Ride::where('user_id', $user->id)
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    // Map bookings to array
+    $bookingData = $bookings->map(function ($booking) {
+        return [
+            'request_id'      => $booking->request_id ?? $booking->id,
+            'ride_id'         => $booking->ride_id,
+            'driver_id'       => optional($booking->ride)->user_id,
+            'pickup_location' => optional($booking->ride)->pickup_location,
+            'destination'     => optional($booking->ride)->destination,
+            'number_of_seats' => $booking->seats_booked,
+            'budget'          => $booking->price,
+            'status'          => $booking->status,
+            'services'        => $booking->services ?? [],
+            'ride_date'       => $booking->ride_date ?? optional($booking->ride)->ride_date,
+            'ride_time'       => $booking->ride_time ?? optional($booking->ride)->ride_time,
+            'created_at'      => $booking->created_at,
+            'type'            => 'booking',
+        ];
+    });
+
+    // Map passenger requests to array
+    $requestData = $requests->map(function ($req) {
+        // Get active_status and comment from RideBooking if exists
+        $requestBooking = \App\Models\RideBooking::where('request_id', $req->id)->first();
+
+        return [
+            'request_id'      => $req->id,
+            'ride_id'         => $req->ride_id ?? null,
+            'driver_id'       => $req->driver_id,
+            'pickup_location' => $req->pickup_location,
+            'destination'     => $req->destination,
+            'number_of_seats' => $req->number_of_seats,
+            'budget'          => $req->budget,
+            'status'          => $req->status,
+            'services'        => $req->services ?? [],
+            'ride_date'       => $req->ride_date,
+            'ride_time'       => $req->ride_time,
+            'created_at'      => $req->created_at,
+            'active_status'   => optional($requestBooking)->active_status,
+            'comment'         => optional($requestBooking)->comment,
+            'type'            => 'request',
+        ];
+    });
+
+    // Map rides created by user (driver) to array
+    $rideData = $rides->map(function ($ride) {
+        return [
+            'request_id'      => null,
+            'ride_id'         => $ride->id,
+            'driver_id'       => $ride->user_id,
+            'pickup_location' => $ride->pickup_location,
+            'destination'     => $ride->destination,
+            'number_of_seats' => $ride->available_seats,
+            'budget'          => $ride->price ?? null,
+            'status'          => $ride->status ?? 'active',
+            'services'        => $ride->services ?? [],
+            'ride_date'       => $ride->ride_date,
+            'ride_time'       => $ride->ride_time,
+            'created_at'      => $ride->created_at,
+            'type'            => 'ride',
+        ];
+    });
+
+    // Merge all three safely
+    $sentData = collect($bookingData)
+        ->merge($requestData)
+        ->merge($rideData)
+        ->sortByDesc('created_at') // optional: latest first
+        ->values(); // reset numeric keys
+
+    return response()->json([
+        'status'  => true,
+        'message' => 'Sent requests, bookings, and rides fetched successfully',
+        'data'    => $sentData
+    ]);
+}
+
 
  
 
