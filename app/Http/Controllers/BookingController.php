@@ -194,7 +194,7 @@ class BookingController extends Controller
                 'ride_time'    => $ride->ride_time, // copy from ride
                 'created_at'   => $booking->created_at,
                 'updated_at'   => $booking->updated_at,
-                 'comment'      => $request->comment ?? null,
+                 'comment'      => $request->comment,
                 // ✅ Replace services with full details
                 'services'     => $booking->services_details->map(function ($service) {
                     return [
@@ -250,7 +250,7 @@ class BookingController extends Controller
                 'price'         => $booking->price,
                 'status'        => $booking->status,
                 'type'          => $booking->type,
-                'comment'          => $booking->comment ?? null,
+                'comment'          => $booking->comment,
                 'services'      => $booking->services_details->map(function ($service) {
                     return [
                         'id'            => $service->id,
@@ -327,6 +327,85 @@ class BookingController extends Controller
             'data'    => $data
         ], 200);
     }
+
+
+    // api for confirm search ride by driver side
+    // public function confirmBooking(Request $request)
+    // {
+    //     $driver = Auth::guard('api')->user();
+    //     if (!$driver) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Driver not authenticated'
+    //         ], 401);
+    //     }
+
+    //     // Validation with custom messages
+    //     $validator = Validator::make($request->all(), [
+    //         'booking_id' => 'required|exists:ride_bookings,id',
+    //         'status'     => 'required|in:confirmed,cancelled',
+    //     ], [
+    //         'booking_id.required' => 'Booking ID is required.',
+    //         'booking_id.exists'   => 'This booking does not exist.',
+    //         'status.required'     => 'Status is required to update the booking.',
+    //         'status.in'           => 'Status must be either "confirmed" or "cancelled".',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => $validator->errors()->first()
+    //         ], 201);
+    //     }
+
+
+    //     $booking = RideBooking::with('ride')->find($request->booking_id);
+
+    //     // Check if this booking belongs to a ride of this driver
+    //     if (!$booking->ride || $booking->ride->user_id != $driver->id) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'You are not authorized to update this booking'
+    //         ], 201);
+    //     }
+
+    //     // Update booking status
+    //     $booking->status = $request->status;
+    //     $booking->save();
+
+    //     // ----------------------
+    //     // ✅ Send notification to passenger
+    //     // ----------------------
+    //     $passenger = $booking->user; // passenger who booked
+    
+    //     if ($passenger && $passenger->device_token) {
+    //         $fcmService = new \App\Services\FCMService();
+
+    //         $statusText = $booking->status == 'confirmed' ? 'confirmed' : 'cancelled';
+    //         $pickup = $booking->ride->pickup_location;
+    //         $destination = $booking->ride->destination;
+
+    //         $notificationData = [
+    //             'notification_type' => 2, // booking status update
+    //             'title' => "Booking {$statusText}",
+    //             'body'  => "Your booking for ride from {$pickup} to {$destination} has been {$statusText} by the {$driver->name}.",
+    //         ];
+
+    //         $fcmService->sendNotification([
+    //             [
+    //                 'device_token' => $passenger->device_token,
+    //                 'device_type'  => $passenger->device_type ?? 'android',
+    //                 'user_id'      => $passenger->id,
+    //             ]
+    //         ], $notificationData);
+    //     }
+
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => 'Booking ' . $request->status . ' successfully',
+    //         'data'    => $booking
+    //     ],200);
+    // }
 
 
     public function confirmBooking(Request $request)
@@ -446,7 +525,7 @@ class BookingController extends Controller
                     'message' => 'User not authenticated.',
                 ], 401);
             }
-        
+
 
             // Validate input
             $validator = Validator::make($request->all(), [
@@ -766,7 +845,7 @@ class BookingController extends Controller
         ],200);
     }
 
-    
+
     // public function getSendResponse(Request $request)
     // {
     //     $user = Auth::guard('api')->user();
@@ -853,6 +932,7 @@ class BookingController extends Controller
             ->where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
+
        
         $requests = \App\Models\PassengerRequest::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
@@ -921,19 +1001,19 @@ class BookingController extends Controller
         });
 
         // Merge both (no role distinction needed)
+        $sentData = $bookingData->merge($requestData);
        $sentData = $bookingData
         ->merge($requestData)
         ->merge($rideData);
 
-            return response()->json([
-                'status'  => true,
-                'message' => 'Sent requests and bookings fetched successfully',
-                'data'    => $sentData
-            ]);
-        }
+        return response()->json([
+            'status'  => true,
+            'message' => 'Sent requests and bookings fetched successfully',
+            'data'    => $sentData
+        ]);
     }
 
- 
+
 
 
     public function getReceivedResponse(Request $request)
@@ -987,6 +1067,7 @@ class BookingController extends Controller
                                 'price'           => $booking->price,
                                 'status'          => $booking->status,
                                 'active_status'          => $booking->active_status,
+                                 'comment'          => $booking->comment,
                                   'comment'          => optional($booking)->comment,
                                 'services'        => $booking->services ?? [],
                                 'created_at'      => $booking->created_at,
@@ -1063,6 +1144,7 @@ class BookingController extends Controller
                     'status'          => $req->status,
 
                     'active_status'       => $requestBooking->active_status ?? null,
+                    'comment'          => $requestBooking->comment,
            
                       'comment'          => optional($requestBooking)->comment,
 
@@ -1150,7 +1232,7 @@ class BookingController extends Controller
                     'number_of_seats' => $req->number_of_seats,
                     'budget'          => $req->budget,
                     'status'          => $req->status,
-    
+
                      'active_status'          => $req->active_status,
                     //  'comment'          => $requestBooking->comment,
 
@@ -1168,7 +1250,7 @@ class BookingController extends Controller
             'data'    => $receivedData
         ]);
     }
-   
+
 
 
     public function getConfirmationStatus(Request $request)
@@ -1230,5 +1312,25 @@ class BookingController extends Controller
             'data' => $data
         ], 200);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }
