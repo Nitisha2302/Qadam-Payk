@@ -13,6 +13,11 @@ class PassengerRequestDriverInterest extends Model
         return $this->belongsTo(User::class, 'driver_id');
     }
 
+    public function passengerRequest()
+    {
+        return $this->belongsTo(PassengerRequest::class, 'passenger_request_id');
+    }
+
 
 }
 
