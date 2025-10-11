@@ -1219,64 +1219,64 @@ class BookingController extends Controller
    
 
 
-    // public function getConfirmationStatus(Request $request)
-    // {
-    //     $user = Auth::guard('api')->user();
-    //     if (!$user) {
-    //         return response()->json(['status' => false, 'message' => 'User not authenticated'], 401);
-    //     }
+    public function getConfirmationStatus(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+        if (!$user) {
+            return response()->json(['status' => false, 'message' => 'User not authenticated'], 401);
+        }
 
-    //     $statusType = $request->query('status_type', 'active'); // active / completed / cancelled
+        $statusType = $request->query('status_type', 'active'); // active / completed / cancelled
 
-    //     $ridesQuery = \App\Models\RideBooking::with(['ride', 'ride.driver', 'user'])
-    //         ->where(function ($q) use ($user) {
-    //             // Driver rides
-    //             $q->whereHas('ride', fn($q2) => $q2->where('user_id', $user->id))
-    //             // Passenger rides
-    //             ->orWhere('user_id', $user->id);
-    //         });
+        $ridesQuery = \App\Models\RideBooking::with(['ride', 'ride.driver', 'user'])
+            ->where(function ($q) use ($user) {
+                // Driver rides
+                $q->whereHas('ride', fn($q2) => $q2->where('user_id', $user->id))
+                // Passenger rides
+                ->orWhere('user_id', $user->id);
+            });
 
-    //     // Apply status filter
-    //     if ($statusType === 'active') {
-    //         $ridesQuery->where('active_status', 1);
-    //     } elseif ($statusType === 'completed') {
-    //         $ridesQuery->where('active_status', 2);
-    //     } elseif ($statusType === 'cancelled') {
-    //         $ridesQuery->whereIn('status', ['cancelled', 'declined']);
-    //     }
+        // Apply status filter
+        if ($statusType === 'active') {
+            $ridesQuery->where('active_status', 1);
+        } elseif ($statusType === 'completed') {
+            $ridesQuery->where('active_status', 2);
+        } elseif ($statusType === 'cancelled') {
+            $ridesQuery->whereIn('status', ['cancelled', 'declined']);
+        }
 
-    //     $rides = $ridesQuery->orderByDesc('created_at')->get();
+        $rides = $ridesQuery->orderByDesc('created_at')->get();
 
-    //     $data = $rides->map(fn($item) => [
-    //         'booking_id' => $item->id,
-    //         'source' => $item->ride->user_id == $user->id ? 'driver' : 'passenger',
-    //         'pickup_location' => $item->ride->pickup_location ?? null,
-    //         'destination' => $item->ride->destination ?? null,
-    //         'ride_id' => $item->ride_id,
-    //         'ride_date' => $item->ride_date,
-    //         'ride_time' => $item->ride_time,
-    //         'price' => $item->price,
-    //         'status' => $item->status,
-    //         'active_status' => $item->active_status,
-    //         'seats_booked' => $item->seats_booked,
-    //         'services' => \App\Models\Service::whereIn('id', $item->services ?? [])->get(['id','service_name','service_image']),
-    //         // Driver info
-    //         'driver_id' => $item->ride->user_id ?? null,
-    //         'driver_name' => $item->ride->driver->name ?? null,
-    //         'driver_phone' => $item->ride->driver->phone_number ?? null,
-    //         'driver_image' => $item->ride->driver->image ?? null,
-    //         // Passenger info
-    //         'passenger_id' => $item->user_id,
-    //         'passenger_name' => $item->user->name ?? null,
-    //         'passenger_phone' => $item->user->phone_number ?? null,
-    //         'passenger_image' => $item->user->image ?? null,
-    //     ]);
+        $data = $rides->map(fn($item) => [
+            'booking_id' => $item->id,
+            'source' => $item->ride->user_id == $user->id ? 'driver' : 'passenger',
+            'pickup_location' => $item->ride->pickup_location ?? null,
+            'destination' => $item->ride->destination ?? null,
+            'ride_id' => $item->ride_id,
+            'ride_date' => $item->ride_date,
+            'ride_time' => $item->ride_time,
+            'price' => $item->price,
+            'status' => $item->status,
+            'active_status' => $item->active_status,
+            'seats_booked' => $item->seats_booked,
+            'services' => \App\Models\Service::whereIn('id', $item->services ?? [])->get(['id','service_name','service_image']),
+            // Driver info
+            'driver_id' => $item->ride->user_id ?? null,
+            'driver_name' => $item->ride->driver->name ?? null,
+            'driver_phone' => $item->ride->driver->phone_number ?? null,
+            'driver_image' => $item->ride->driver->image ?? null,
+            // Passenger info
+            'passenger_id' => $item->user_id,
+            'passenger_name' => $item->user->name ?? null,
+            'passenger_phone' => $item->user->phone_number ?? null,
+            'passenger_image' => $item->user->image ?? null,
+        ]);
 
-    //     return response()->json([
-    //         'status' => true,
-    //         'message' => 'Rides fetched successfully',
-    //         'data' => $data
-    //     ], 200);
-    // }
+        return response()->json([
+            'status' => true,
+            'message' => 'Rides fetched successfully',
+            'data' => $data
+        ], 200);
+    }
 
 }
