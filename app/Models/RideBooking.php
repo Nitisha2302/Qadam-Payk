@@ -34,6 +34,25 @@ class RideBooking extends Model
 
 
 
+    public function driver()
+    {
+        return $this->hasOneThrough(
+            User::class,   // Final model
+            Ride::class,   // Intermediate model
+            'id',          // Foreign key on rides table (local key in Ride)
+            'id',          // Foreign key on users table
+            'ride_id',     // Local key on ride_bookings table
+            'user_id'      // Local key on rides table
+        );
+    }
+
+
+public function service()
+{
+    return $this->belongsTo(Service::class, 'service_id');
+}
+
+
 
     
 }

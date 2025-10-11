@@ -65,6 +65,15 @@
                 </a>
             </li>
 
+            <!-- <li class="@if (Route::currentRouteName() == 'dashboard.admin.bookings.index') active @endif">
+                <a href="{{ route('dashboard.admin.bookings.index') }}">
+                    <span class="d-flex gap-3 align-items-end">
+                        <i class="fas fa-car icon-font-size"></i>
+                        <span class="nav-content-menu">Bookings management</span>
+                    </span>
+                </a>
+            </li> -->
+
             <li class="@if (Route::currentRouteName() == 'dashboard.admin.all-query') active @endif">
                 <a href="{{ route('dashboard.admin.all-query') }}">
                     <span class="d-flex gap-3 align-items-end">
