@@ -1550,7 +1550,6 @@ class BookingController extends Controller
                                 'price'           => $booking->price,
                                 'status'          => $booking->status,
                                 'active_status'          => $booking->active_status,
-                                 'comment'          => $booking->comment,
                                   'comment'          => optional($booking)->comment,
                                 'services'        => $booking->services ?? [],
                                 'created_at'      => $booking->created_at,
@@ -1626,10 +1625,8 @@ class BookingController extends Controller
                     'budget'          => $req->budget,
                     'status'          => $req->status,
 
-                    'active_status'       => $requestBooking->active_status ?? null,
-                    'comment'          => $requestBooking->comment,
-           
-                      'comment'          => optional($requestBooking)->comment,
+                    'active_status'    => $requestBooking->active_status ?? null,
+                    'comment'          => optional($requestBooking)->comment,
 
                     'services'        => $req->services ?? [],
                     'ride_date'       => $req->ride_date,
@@ -1716,9 +1713,7 @@ class BookingController extends Controller
                     'budget'          => $req->budget,
                     'status'          => $req->status,
 
-                     'active_status'          => $req->active_status,
-                    //  'comment'          => $requestBooking->comment,
-
+                    'active_status'   => $req->active_status,
                     'services'        => $req->services ?? [],
                     'ride_date'       => $req->ride_date,
                     'ride_time'       => $req->ride_time,
