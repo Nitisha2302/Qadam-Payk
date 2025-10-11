@@ -194,7 +194,7 @@ class BookingController extends Controller
                 'ride_time'    => $ride->ride_time, // copy from ride
                 'created_at'   => $booking->created_at,
                 'updated_at'   => $booking->updated_at,
-                 'comment'      => $request->comment,
+                 'comment'      => $request->comment ?? null,
                 // ✅ Replace services with full details
                 'services'     => $booking->services_details->map(function ($service) {
                     return [
@@ -250,7 +250,7 @@ class BookingController extends Controller
                 'price'         => $booking->price,
                 'status'        => $booking->status,
                 'type'          => $booking->type,
-                'comment'          => $booking->comment,
+                'comment'          => $booking->comment ?? null,
                 'services'      => $booking->services_details->map(function ($service) {
                     return [
                         'id'            => $service->id,
@@ -1035,8 +1035,8 @@ class BookingController extends Controller
                                 // 'is_ride'    =>      $booking->type,
                                 'price'           => $booking->price,
                                 'status'          => $booking->status,
-                                'active_status'          => $booking->active_status,
-                                 'comment'          => $booking->comment,
+                                'active_status'    => $booking->active_status,
+                                 'comment'          => $booking->comment ?? null,
                                 'services'        => $booking->services ?? [],
                                 'created_at'      => $booking->created_at,
                             ];
@@ -1112,7 +1112,7 @@ class BookingController extends Controller
                     'status'          => $req->status,
 
                     'active_status'       => $requestBooking->active_status ?? null,
-                    'comment'          => $requestBooking->comment,
+                    'comment'          => $requestBooking->comment ?? null,
 
                     'services'        => $req->services ?? [],
                     'ride_date'       => $req->ride_date,
