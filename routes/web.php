@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\CityController;
 use App\Http\Controllers\Admin\CarController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\EnquiryController;
+use App\Http\Controllers\Admin\BookingsController;
 
 
 Route::fallback(function () {
@@ -78,6 +79,11 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
         Route::post('update-privacy-policy', [EnquiryController::class, 'updatePrvacyPolicy'])->name('privacy-policy.update');
         Route::get('edit-terms-conditions', [EnquiryController::class, 'editTermsConditions'])->name('terms-comditions-edit');
         Route::post('update-terms-conditions', [EnquiryController::class, 'updateTermsConditions'])->name('update-terms-comditions');
+
+           Route::get('bookings', [BookingsController::class, 'index'])->name('bookings.index');
+    Route::get('bookings/{id}', [BookingsController::class, 'show'])->name('bookings.show');
+    Route::post('bookings/{id}/status', [BookingsController::class, 'updateStatus'])->name('bookings.updateStatus');
+    Route::delete('bookings/{id}', [BookingsController::class, 'destroy'])->name('bookings.destroy');
 
     });
 
