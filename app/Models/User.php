@@ -67,4 +67,6 @@ class User extends Authenticatable
         return $value ? Carbon::parse($value)->format('d-m-Y') : null;
     }
 
+    
+
 }
