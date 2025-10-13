@@ -119,6 +119,17 @@ class UserController extends Controller
 
         // Toggle blocked status
         $user->is_blocked = !$user->is_blocked;
+        // If the user is being blocked, log them out (clear tokens & device info)
+        if ($user->is_blocked) {
+            $user->api_token      = null;
+            $user->google_token   = null;
+            $user->facebook_token = null;
+            $user->apple_token    = null;
+            $user->device_token   = null;
+            $user->device_type    = null;
+            $user->device_id      = null;
+            $user->is_social      = 0;
+        }
         $user->save();
 
         return response()->json([
