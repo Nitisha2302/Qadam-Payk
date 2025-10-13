@@ -877,7 +877,8 @@ class BookingController extends Controller
 
         $data = $rides->map(fn($item) => [
             'booking_id' => $item->id,
-            'source' => $item->ride->user_id == $user->id ? 'driver' : 'passenger',
+            'source' => ($item->ride && $item->ride->user_id == $user->id) ? 'driver' : 'passenger',
+            // 'source' => $item->ride->user_id == $user->id ? 'driver' : 'passenger',
             'pickup_location' => $item->ride->pickup_location ?? null,
             'destination' => $item->ride->destination ?? null,
             'ride_id' => $item->ride_id,
