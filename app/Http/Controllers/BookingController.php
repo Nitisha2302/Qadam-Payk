@@ -1297,6 +1297,8 @@ class BookingController extends Controller
                 'request_id'       => $req->id,
                 'passenger_id'     => $req->user_id,
                 'passenger_name'   => optional($req->user)->name,
+                'passenger_img'      => optional($req->user)->img,
+                'passenger_dob'      => optional($req->user)->dob,
                 'pickup_location'  => $req->pickup_location,
                 'destination'      => $req->destination,
                 'number_of_seats'  => $req->number_of_seats,
