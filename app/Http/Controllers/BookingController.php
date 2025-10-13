@@ -1256,6 +1256,7 @@ class BookingController extends Controller
             $ride = $booking->ride;
             return [
                 'type'             => 'booking',
+                'booking_id'       => $booking->id,
                 'request_id'       => $booking->request_id ?? $booking->id,
                 'ride_id'          => $booking->ride_id,
                 'driver_id'        => optional($ride)->user_id,
@@ -1296,6 +1297,7 @@ class BookingController extends Controller
 
             return [
                 'type'             => 'request_interest',
+                 'booking_id'       => $booking->id ?? null,
                 'request_id'       => $req->id,
                 'passenger_id'     => $req->user_id,
                 'passenger_name'   => optional($req->user)->name,
