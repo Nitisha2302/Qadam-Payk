@@ -1244,7 +1244,7 @@ class BookingController extends Controller
         }
 
         //  1. Bookings: user booked someone else's ride
-        $bookings = \App\Models\RideBooking::with(['ride', 'ride.user'])
+        $bookings = RideBooking::with(['ride', 'ride.user'])
             ->where('user_id', $user->id)
             ->whereHas('ride', fn($q) => $q->where('user_id', '!=', $user->id))
             ->where('active_status', '!=', 2) // ✅ exclude completed bookings
@@ -1262,6 +1262,8 @@ class BookingController extends Controller
                 'ride_id'          => $booking->ride_id,
                 'driver_id'        => optional($ride)->user_id,
                 'driver_name'      => optional($ride->user)->name,
+                'driver_img'      => optional($ride->user)->image,
+                'driver_dob'      => optional($ride->user)->dob,
                 'pickup_location'  => optional($ride)->pickup_location,
                 'destination'      => optional($ride)->destination,
                 'number_of_seats'  => $booking->seats_booked,
