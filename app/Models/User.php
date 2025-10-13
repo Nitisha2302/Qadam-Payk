@@ -62,10 +62,29 @@ class User extends Authenticatable
     }
 
         // ✅ Accessor to format DOB
-    public function getDobAttribute($value)
-    {
-        return $value ? Carbon::parse($value)->format('d-m-Y') : null;
-    }
+        public function getDobAttribute($value)
+        {
+            return $value ? Carbon::parse($value)->format('d-m-Y') : null;
+        }
+        // Passenger who created ride/parcel requests
+        public function passengerRequests()
+        {
+            return $this->hasMany(PassengerRequest::class, 'user_id');
+        }
+
+        // 🚘 Driver assigned to passenger requests
+        public function passengerRequestsAsDriver()
+        {
+            return $this->hasMany(PassengerRequest::class, 'driver_id');
+        }
+
+
+        // ❤️ Driver showed interest in passenger requests
+        public function driverInterests()
+        {
+            return $this->hasMany(PassengerRequestDriverInterest::class, 'driver_id');
+        }
+
 
     
 

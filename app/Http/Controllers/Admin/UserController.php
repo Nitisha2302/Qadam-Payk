@@ -12,7 +12,16 @@ class UserController extends Controller
 
     public function driversList(Request $request)
     {
-        $query = User::whereHas('rides'); // only drivers who have rides
+        // $query = User::whereHas('rides'); // only drivers who have rides
+
+         $query = User::where(function ($q) {
+            $q->whereHas('rides')
+            ->orWhereHas('passengerRequestsAsDriver')
+            ->orWhereHas('driverInterests')
+            ->orWhereHas('rideBookings', function ($sub) {
+                $sub->whereNotNull('request_id');
+            });
+        });
 
         // 🔍 Search by name or phone number
         if ($request->filled('search')) {
@@ -46,7 +55,21 @@ class UserController extends Controller
 
     public function passengersList(Request $request)
     {
-        $query = User::whereHas('rideBookings'); // only passengers who have booked rides
+        // $query = User::whereHas('rideBookings'); // only passengers who have booked rides
+
+        // $query = User::where(function ($q) {
+        //     // Passengers who booked rides
+        //     $q->whereHas('rideBookings')
+        //     // OR passengers who created ride/parcel requests
+        //     ->orWhereHas('passengerRequests');
+        // });
+
+        $query = User::where(function ($q) {
+            $q->whereHas('passengerRequests')
+            ->orWhereHas('rideBookings', function ($sub) {
+                $sub->whereNotNull('ride_id');
+            });
+        });
 
         // 🔍 Search by name or phone
         if ($request->filled('search')) {
