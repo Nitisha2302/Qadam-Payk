@@ -10,15 +10,24 @@ use App\Models\TermsCondition;
 class EnquiryController extends Controller
 {
     // Show all enquiries in admin panel
-    public function allQueries()
+    public function allQueries(Request $request)
     {
-        // Get all enquiries with user info (including phone number)
-        $enquiries = Enquiry::with('user') // eager load user
-            ->latest()
-            ->paginate(5); // paginate 5 per page
+        $query = Enquiry::with('user'); // eager load related user
 
-        return view('admin.enquiry.allQuery', compact('enquiries'));
+        // 🔍 Search only by phone number
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->whereHas('user', function($q) use ($search) {
+                $q->where('phone_number', 'like', "%{$search}%");
+            });
+        }
+
+        $enquiries = $query->latest()->paginate(5);
+
+        return view('admin.enquiry.allQuery', compact('enquiries'))
+                ->with('search', $request->input('search'));
     }
+
 
 
     public function deleteQuery(Request $request)

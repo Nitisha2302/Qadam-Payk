@@ -6,6 +6,25 @@
        <div class="ai-training-data-wrapper d-flex align-items-baseline justify-content-between">
          <div class="heading-content-box">
             <h2>City Listing</h2>
+            <form method="GET" action="{{ route('dashboard.admin.all-cities') }}" class="d-flex gap-2 mb-3">
+                <input type="text" name="search" class="form-control" placeholder="Search by city or country" value="{{ request('search') }}">
+
+                <select name="country_filter" class="form-control">
+                    <option value="">All Countries</option>
+                    @foreach($countries as $country)
+                        <option value="{{ $country }}" {{ request('country_filter') == $country ? 'selected' : '' }}>
+                            {{ $country }}
+                        </option>
+                    @endforeach
+                </select>
+
+                <button type="submit" class="btn btn-success">Filter</button>
+
+                @if(request()->hasAny(['search','country_filter']))
+                    <a href="{{ route('dashboard.admin.all-cities') }}" class="btn btn-secondary">Reset</a>
+                @endif
+            </form>
+
             <div id="successMessage" class="alert alert-success d-none"></div>
             @if (session('success'))
                 <div class="alert alert-success" role="alert" id="success-message">

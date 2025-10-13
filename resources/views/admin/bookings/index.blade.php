@@ -17,9 +17,18 @@
                     <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
                     <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                 </select>
-                <input type="date" name="from_date" class="form-control" value="{{ request('from_date') }}">
-                <input type="date" name="to_date" class="form-control" value="{{ request('to_date') }}">
+                 <select name="type" class="form-control">
+                    <option value="">All Types</option>
+                    <option value="0" {{ request('type') === '0' ? 'selected' : '' }}>Ride</option>
+                    <option value="1" {{ request('type') === '1' ? 'selected' : '' }}>Parcel</option>
+                </select>
+                <input type="date" name="ride_date" class="form-control" value="{{ request('ride_date') }}">
+    
+               
                 <button type="submit" class="btn btn-success">Filter</button>
+                @if(request()->hasAny(['search', 'status', 'type', 'ride_date']) && collect(request()->only(['search', 'status', 'type', 'ride_date']))->filter()->isNotEmpty())
+                    <a href="{{ route('dashboard.admin.bookings.index') }}" class="btn btn-secondary">Reset</a>
+                @endif
             </form>
         </div>
 
@@ -27,33 +36,43 @@
             <table class="table table-striped table-bordered table-notification-list">
                 <thead>
                     <tr>
-                        <th>#</th>
                         <th>Passenger</th>
                         <th>Driver</th>
                         <th>Pickup</th>
                         <th>Destination</th>
                         <th>Service</th>
+                        <th>Type</th>
                         <th>Status</th>
-                        <th>Created</th>
+                        <th>Date</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                  
                     @forelse($bookings as $booking)
                         <tr>
-                            <td>{{ $booking->id }}</td>
-                            <td>{{ $booking->user->name ?? 'N/A' }}</td>
+                            <td>{{ $booking->passenger?->name ?? 'N/A' }}</td>
                             <td>{{ $booking->driver->name ?? 'N/A' }}</td>
                           <td>{{ $booking->pickup_location ?? $booking->ride?->pickup_location ?? $booking->request?->pickup_location ?? '-' }}</td>
                          <td>{{ $booking->destination ?? $booking->ride?->destination ?? $booking->request?->destination ?? '-' }}</td>
-                           <td>
+                         <td>
+                            @if (!empty($booking->services_details) && count($booking->services_details) > 0)
                                 @foreach ($booking->services_details as $service)
-                                    <span class="badge bg-info">{{ $service->service_name }}</span>
+                                    <span class="badge bg-info">{{ $service->service_name ?? 'N/A' }}</span>
                                 @endforeach
-                            </td>
+                            @else
+                                <span class="">N/A</span>
+                            @endif
+                         </td>
                             <!-- <td><span class="badge bg-info">{{ ucfirst($booking->status) }}</span></td> -->
-
+                           <td>
+                                @if ($booking->type == 0)
+                                    <span class="badge bg-success">Ride</span>
+                                @elseif ($booking->type == 1)
+                                    <span class="badge bg-warning text-dark">Parcel</span>
+                                @else
+                                    <span class="badge bg-secondary">N/A</span>
+                                @endif
+                            </td>
                             <td>
                                 @if($booking->status === 'cancelled')
                                     <span class="badge bg-danger">Cancelled</span>
@@ -68,14 +87,18 @@
                                 @endif
                             </td>
 
-                            <td>{{ $booking->created_at->format('d M Y') }}</td>
+                           <td>{{ \Carbon\Carbon::parse($booking->ride_date)->format('d-M-Y') }}</td>
                             <td>
                                 <div class="d-flex align-items-center gap-2">
-                                    <!-- <button class="btn btn-sm btn-primary view-booking" data-id="{{ $booking->id }}">
+                                    <a href="javascript:;" 
+                                    class="action-btn me-3 view-booking-details"
+                                    data-user='@json($booking)'
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#userModal">
                                         <i class="fa fa-eye"></i>
-                                    </button> -->
-                                    <button class="btn btn-sm btn-danger delete-booking" data-id="{{ $booking->id }}">
-                                        <i class="fa fa-trash"></i>
+                                    </a>
+                                    <button  class="dropdown-item delete-btn-design delete-booking-btn d-flex justify-content-center" data-booking-id="{{ $booking->id }}" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                                        <i class="fa fa-regular fa-trash"></i>
                                     </button>
                                 </div>
                             </td>
@@ -118,65 +141,65 @@
 </div>
 
 {{-- View Booking Modal --}}
-<div class="modal fade" id="bookingModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" style="font-weight:800;color:#86c349;font-size:24px;">Booking Details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <table class="table table-bordered">
-          <tbody>
-            <tr><th>User</th><td id="b-user">-</td></tr>
-            <tr><th>Driver</th><td id="b-driver">-</td></tr>
-            <tr><th>Pickup</th><td id="b-pickup">-</td></tr>
-            <tr><th>Destination</th><td id="b-destination">-</td></tr>
-            <tr><th>Service</th><td id="b-service">-</td></tr>
-            <tr><th>Status</th><td id="b-status">-</td></tr>
-            <tr><th>Created At</th><td id="b-created">-</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-      </div>
+
+    <div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="userModalLabel" style="font-weight:800;color:#86c349;font-size:24px;">
+            Driver Details
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+            <table class="table table-striped table-bordered table-notification-list">
+                <tbody>
+                    <!-- <tr><th>Booking ID</th><td id="modal-id">-</td></tr> -->
+                        <tr><th>Passenger Name</th><td id="modal-passenger">-</td></tr>
+                        <tr><th>Driver Name</th><td id="modal-driver">-</td></tr>
+                        <tr><th>Pickup Location</th><td id="modal-pickup">-</td></tr>
+                        <tr><th>Destination</th><td id="modal-destination">-</td></tr>
+                        <tr><th>Service</th><td id="modal-service">-</td></tr>
+                        <tr><th>Type</th><td id="modal-type">-</td></tr>
+                        <tr><th>Status</th><td id="modal-status">-</td></tr>
+                        <tr><th>Date</th><td id="modal-date">-</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="delete-confirmation-popup-btn btn w-auto px-3" data-bs-dismiss="modal">Close</button>
+        </div>
+        </div>
     </div>
-  </div>
-</div>
+    </div>
+
+   <!-- delete-confirmation-popup -->
+        <section class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header border-0">
+                        <h2 class="delete-confirmation-popup-title delete-user-confirmation-popup-title" id="staticBackdropLabel">Are you sure?</h2>
+                        <button type="button" class="btn-close cancel-popup-btnbox" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body delete-confirmation-popup-body ">
+                            <p class="delete-confirmation-popup-text delete-user-confirmation-popup-text">Do you really want to delete this booking?</p>
+                    </div>
+                    <div class="modal-footer border-0 delete-confirmation-popup-footer delete-user-confirmation-popup-footer">
+                        <button class="delete-confirmation-popup-btn btn" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
+                        <button class="delete-confirmation-popup-btn btn delete-confirmation-popup-delete-btn delete-booking-confirmation-popup-delete-btn" data-booking-id="">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    <!-- delete-confirmation-popup-->
 
 {{-- AJAX --}}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 const csrfToken = "{{ csrf_token() }}";
-const showUrl = "{{ route('dashboard.admin.bookings.show', ':id') }}";
-const deleteUrl = "{{ route('dashboard.admin.bookings.destroy', ':id') }}";
+const deleteBookingUrl = "{{ route('dashboard.admin.deleteBooking') }}";
 
-$(document).on('click', '.view-booking', function() {
-    const id = $(this).data('id');
-    $.get(showUrl.replace(':id', id), function(res) {
-        $('#b-user').text(res.user?.name ?? 'N/A');
-        $('#b-driver').text(res.driver?.name ?? 'N/A');
-        $('#b-pickup').text(res.pickup_location);
-        $('#b-destination').text(res.destination);
-        $('#b-service').text(res.service?.name ?? 'N/A');
-        $('#b-status').text(res.status);
-        $('#b-created').text(res.created_at);
-        $('#bookingModal').modal('show');
-    });
-});
-
-$(document).on('click', '.delete-booking', function() {
-    if (!confirm('Are you sure you want to delete this booking?')) return;
-    const id = $(this).data('id');
-    $.ajax({
-        url: deleteUrl.replace(':id', id),
-        type: 'DELETE',
-        data: {_token: csrfToken},
-        success: function(res) {
-            if (res.success) location.reload();
-        }
-    });
-});
 </script>
 @endsection

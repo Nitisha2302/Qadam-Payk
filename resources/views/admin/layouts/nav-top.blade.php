@@ -9,16 +9,14 @@
               </button> -->
               <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <form class="me-auto mb-0 mb-lg-0 d-flex gap-3 align-items-center" role="search" id="searchForm" method="GET" action="{{ route('global-search') }}">
-                   <!-- <button >        -->
                     <div class="slide-nav" id="nav_slidebar">
                       <span></span> 
                     </div>
-                    <!-- </button> -->
-                  <div class="d-flex search-box">
+                  <!-- <div class="d-flex search-box">
                       <input class="form-control me-2" type="search" placeholder="search here" aria-label="Search" name="search" id="project_name" value="{{ request('search') }}">
                       
                       <button type="submit"><i class="fas fa-search"></i></button>
-                  </div>
+                  </div> -->
                 </form>
                 
                 <div class="d-flex align-items-center gap-4">

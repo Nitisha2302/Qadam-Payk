@@ -6,6 +6,18 @@
        <div class="ai-training-data-wrapper d-flex align-items-baseline justify-content-between">
          <div class="heading-content-box">
             <h2>All Queries</h2>
+            <div class="d-flex align-items-center gap-2">
+                 <form method="GET" action="{{ route('dashboard.admin.all-query') }}" class="d-flex gap-2 mb-3">
+                <input type="text" name="search" class="form-control" placeholder="Search by phone number" value="{{ request('search') }}">
+
+                <button type="submit" class="btn btn-success">Filter</button>
+
+                @if(request()->hasAny(['search']))
+                    <a href="{{ route('dashboard.admin.all-query') }}" class="btn btn-secondary">Reset</a>
+                @endif
+            </form>
+            </div>
+
             <div id="answerSuccessMessage" class="alert alert-success d-none"></div>
             <div id="successMessage" class="alert alert-success d-none"></div>
             @if (session('success'))

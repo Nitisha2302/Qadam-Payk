@@ -270,9 +270,61 @@ $(document).on('click', '.delete-query-confirmation-popup-delete-btn', function 
     });
 });
 
-
-
 // delete query on confirm end
+
+// delete booking on confirm start
+
+// When trash icon clicked, set city id to modal confirm button
+$(document).on('click', '.delete-booking-btn', function () {
+    let bookingId = $(this).data('booking-id');
+    $('.delete-booking-confirmation-popup-delete-btn').data('booking-id', bookingId);
+});
+
+$(document).on('click', '.delete-booking-confirmation-popup-delete-btn', function () {
+    let bookingId = $(this).data('booking-id');
+
+    $.ajax({
+        url: deleteBookingUrl,
+        type: 'DELETE',
+        data: {
+            booking_id: bookingId,
+            
+            _token: csrfToken
+        },
+        success: function (response) {
+            let $msgBox = $('#notificationMessage');
+            $('.delete-booking-confirmation-popup').fadeOut(); // Hide popup
+
+            if (response.success) {
+                // Optionally remove user row or reload
+                location.reload(); 
+            } else {
+                $msgBox
+                    .removeClass('d-none alert-success')
+                    .addClass('alert-danger')
+                    .text(response.message || 'Could not delete booking.');
+            }
+
+            // Auto-hide message
+            setTimeout(() => {
+                $msgBox.addClass('d-none').text('');
+            }, 4000);
+        },
+        error: function () {
+            $('#notificationMessage')
+                .removeClass('d-none alert-success')
+                .addClass('alert-danger')
+                .text('Error deleting booking.');
+
+            setTimeout(() => {
+                $('#notificationMessage').addClass('d-none').text('');
+            }, 4000);
+        }
+    });
+});
+
+
+// delete booking on confirm end
 
 
 // verify or Reject user profile js start
@@ -347,6 +399,59 @@ $(document).on('click', '.reject-user-btn', function () {
 // verify or Reject user profile js end
 
 
+// block unblock user startt
+
+// When Block/Unblock button clicked
+// When the block/unblock button is clicked, open the modal and set user id
+ // Open modal when block/unblock button clicked
+    $(document).on('click', '.toggle-block-btn', function () {
+        let userId = $(this).data('user-id');
+        $('.confirm-block-unblock-btn').data('user-id', userId);
+        $('#blockUnblockModal').modal('show');
+    });
+
+    // Confirm block/unblock
+    $(document).on('click', '.confirm-block-unblock-btn', function () {
+        let userId = $(this).data('user-id');
+
+        $.ajax({
+            url: toggleBlockUserUrl,
+            type: 'POST',
+            data: {
+                user_id: userId,
+                _token: csrfToken
+            },
+            success: function (response) {
+                if (response.success) {
+                    let btn = $(`.toggle-block-btn[data-user-id='${userId}']`);
+
+                    if (response.is_blocked) {
+                        btn.text('Unblock').removeClass('btn-danger').addClass('btn-warning');
+                    } else {
+                        btn.text('Block').removeClass('btn-warning').addClass('btn-danger');
+                    }
+
+                    // Hide modal
+                    $('#blockUnblockModal').modal('hide');
+
+                    // Show success message
+                    let msgBox = $('#successMessage');
+                    msgBox.text(response.message).removeClass('d-none');
+                    setTimeout(() => msgBox.addClass('d-none').text(''), 4000);
+                } else {
+                    alert(response.message || 'Something went wrong!');
+                }
+            },
+            error: function () {
+                alert('Error occurred!');
+            }
+        });
+    });
+
+
+// block unblock user end 
+
+
 $(document).ready(function(){
     
     // js for the view driver details 
@@ -367,6 +472,84 @@ $(document).ready(function(){
 
 });
 
+// view booking details 
+$(document).ready(function() {
+    $(document).on('click', '.view-booking-details', function() {
+        let payload = $(this).attr('data-user');
+        let booking;
+
+        try {
+            booking = (typeof payload === 'string') ? JSON.parse(payload) : payload;
+        } catch (e) {
+            booking = $(this).data('user') || {};
+        }
+
+        // Passenger & Driver
+        let passenger = booking.passenger?.name || booking.user?.name || 'N/A';
+        let driver = booking.driver?.name || 'N/A';
+        let passengerPhone = booking.passenger?.phone_number || booking.user?.phone_number || '-';
+        let driverPhone = booking.driver?.phone_number || '-';
+
+        // Pickup / Destination
+        let pickup = booking.pickup_location || booking.ride?.pickup_location || booking.request?.pickup_location || '-';
+        let destination = booking.destination || booking.ride?.destination || booking.request?.destination || '-';
+
+        // Services
+        let services = 'N/A';
+        if (booking.services_details?.length > 0) {
+            services = booking.services_details.map(s => {
+                let icon = s.service_image ? `<img src="/${s.service_image}" width="20" height="20" class="me-1" />` : '';
+                return icon + s.service_name;
+            }).join(', ');
+        }
+
+        // Type
+        let type = booking.type == 0 ? 'Ride' : (booking.type == 1 ? 'Parcel' : 'N/A');
+
+        // Seats & Price
+        let seats = booking.seats_booked || '-';
+        let price = booking.price ? `₹${booking.price}` : '-';
+
+        // Status
+        let status = 'Pending';
+        if (booking.status === 'cancelled') status = 'Cancelled';
+        else if (booking.status === 'confirmed' && booking.active_status == 0) status = 'Confirmed';
+        else if (booking.active_status == 1) status = 'Active';
+        else if (booking.active_status == 2) status = 'Completed';
+
+        // Date & Time
+        let date = booking.ride_date
+            ? new Date(booking.ride_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            : '-';
+        let time = booking.ride_time || '-';
+
+        // Fill modal
+        $('#userModalLabel').text('Booking Details');
+        $('#modal-id').text(booking.id || '-');
+        $('#modal-passenger').html(`${passenger} <br><small>${passengerPhone}</small>`);
+        $('#modal-driver').html(`${driver} <br><small>${driverPhone}</small>`);
+        $('#modal-pickup').text(pickup);
+        $('#modal-destination').text(destination);
+        $('#modal-service').html(services);
+        $('#modal-type').text(type);
+        $('#modal-status').text(status);
+        $('#modal-date').html(`${date} ${time !== '-' ? '(' + time + ')' : ''}`);
+
+        // Optional: Add price & seat info below existing fields
+        if ($('#modal-price').length === 0) {
+            $('#userModal table tbody').append(`
+                <tr><th>Seats</th><td id="modal-seats">${seats}</td></tr>
+                <tr><th>Price</th><td id="modal-price">${price}</td></tr>
+            `);
+        } else {
+            $('#modal-seats').text(seats);
+            $('#modal-price').text(price);
+        }
+    });
+});
+
+
+
 // Show the custom delete popup
 $(document).on('click', '.delete-plan-btn', function () {
     selectedUserId = $(this).data('user-id');
@@ -374,6 +557,8 @@ $(document).on('click', '.delete-plan-btn', function () {
     $('.delete-plan-confirmation-popup').fadeIn(); // Show the popup
     $('.delete-plan-confirmation-popup-delete-btn').data('user-id', selectedUserId); // Set user ID on confirm button
 });
+
+
 $(document).on('click', '.cancel-popup-btnbox', function () {
     $('.delete-plan-confirmation-popup').fadeOut();
 });

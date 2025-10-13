@@ -19,7 +19,7 @@
                 </a>
             </li>
     
-            <li class="@if (Route::currentRouteName() == 'dashboard.admin.all-drivers') active @endif">
+           <li class="@if (in_array(Route::currentRouteName(), ['dashboard.admin.all-drivers', 'dashboard.admin.driverRideHistory'])) active @endif">
                 <a href="{{ route('dashboard.admin.all-drivers') }}">
                     <span class="d-flex gap-3 align-items-end">
                         <i class="fa fa-users icon-font-size"></i>
@@ -65,14 +65,14 @@
                 </a>
             </li>
 
-            <!-- <li class="@if (Route::currentRouteName() == 'dashboard.admin.bookings.index') active @endif">
+            <li class="@if (Route::currentRouteName() == 'dashboard.admin.bookings.index') active @endif">
                 <a href="{{ route('dashboard.admin.bookings.index') }}">
                     <span class="d-flex gap-3 align-items-end">
-                        <i class="fas fa-car icon-font-size"></i>
+                        <i class="fas fa-calendar-check icon-font-size"></i>
                         <span class="nav-content-menu">Bookings management</span>
                     </span>
                 </a>
-            </li> -->
+            </li>
 
             <li class="@if (Route::currentRouteName() == 'dashboard.admin.all-query') active @endif">
                 <a href="{{ route('dashboard.admin.all-query') }}">
@@ -100,6 +100,7 @@
                     </span>
                 </a>
             </li>
+
 
         @endif
     </ul>
