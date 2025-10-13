@@ -6,6 +6,15 @@
        <div class="ai-training-data-wrapper d-flex align-items-baseline justify-content-between">
          <div class="heading-content-box">
             <h2>All Services</h2>
+             <form method="GET" action="{{ route('dashboard.admin.all-services') }}" class="d-flex gap-2 mb-3">
+                <input type="text" name="search" class="form-control" placeholder="Search by services" value="{{ request('search') }}">
+
+                <button type="submit" class="btn btn-success">Filter</button>
+
+                @if(request()->hasAny(['search']))
+                    <a href="{{ route('dashboard.admin.all-services') }}" class="btn btn-secondary">Reset</a>
+                @endif
+            </form>
             <div id="successMessage" class="alert alert-success d-none"></div>
             @if (session('success'))
                 <div class="alert alert-success" role="alert" id="success-message">

@@ -6,6 +6,32 @@
        <div class="ai-training-data-wrapper d-flex align-items-baseline justify-content-between">
          <div class="heading-content-box">
             <h2>Car Listing</h2>
+
+            <form method="GET" action="{{ route('dashboard.admin.all-cars') }}" class="d-flex gap-2 mb-3">
+                <input 
+                    type="text" 
+                    name="search" 
+                    class="form-control" 
+                    placeholder="Search by model or brand"
+                    value="{{ request('search') }}"
+                >
+
+                <select name="seats_filter" class="form-control">
+                    <option value="">All Seats</option>
+                    @foreach($seatOptions as $seat)
+                        <option value="{{ $seat }}" {{ request('seats_filter') == $seat ? 'selected' : '' }}>
+                            {{ $seat }} Seats
+                        </option>
+                    @endforeach
+                </select>
+
+                <button type="submit" class="btn btn-success">Filter</button>
+
+                @if(request()->hasAny(['search','seats_filter']))
+                    <a href="{{ route('dashboard.admin.all-cars') }}" class="btn btn-secondary">Reset</a>
+                @endif
+            </form>
+
             <div id="successMessage" class="alert alert-success d-none"></div>
             @if (session('success'))
                 <div class="alert alert-success" role="alert" id="success-message">

@@ -10,11 +10,33 @@ use App\Models\Service;
 
 class CarController extends Controller
 {
-    public function carList() {
-        // Fetch cities (latest first, 5 per page)
-        $cars = CarModel::orderBy('id', 'desc')->paginate(10);
-        // Return Blade view with cities data
-        return view('admin.car.carListing', compact('cars'));
+    public function carList(Request $request)
+    {
+        $query = CarModel::query();
+
+        // 🔍 Search by car model or brand
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('model_name', 'like', "%{$search}%")
+                ->orWhere('brand', 'like', "%{$search}%");
+            });
+        }
+
+        // 🚗 Optional filter by seat count
+        if ($request->filled('seats_filter')) {
+            $query->where('seats', $request->seats_filter);
+        }
+
+        $cars = $query->orderBy('id', 'desc')->paginate(10);
+
+        // Distinct seat numbers for dropdown
+        $seatOptions = CarModel::select('seats')
+            ->whereNotNull('seats')
+            ->distinct()
+            ->pluck('seats');
+
+        return view('admin.car.carListing', compact('cars', 'seatOptions'));
     }
 
     public function addCar(){
@@ -109,12 +131,22 @@ class CarController extends Controller
     }
 
 
-    public function servicesList() {
-        // Fetch cities (latest first, 5 per page)
-        $services = Service::orderBy('id', 'desc')->paginate(10);
-        // Return Blade view with cities data
-        return view('admin.services.servicesListing', compact('services'));
+   public function servicesList(Request $request)
+{
+    $query = Service::query();
+
+    // Search by service name
+    if ($request->filled('search')) {
+        $search = $request->input('search');
+        $query->where('service_name', 'like', "%{$search}%");
     }
+
+    $services = $query->orderBy('id', 'desc')->paginate(10);
+
+    return view('admin.services.servicesListing', compact('services'))
+            ->with('search', $request->input('search'));
+}
+
 
     public function addService(){
       return view('admin.services.addService');

@@ -6,6 +6,20 @@
        <div class="ai-training-data-wrapper d-flex align-items-baseline justify-content-between">
            <div class="heading-content-box">
                 <h2>All Passengers</h2>
+                <form method="GET" action="{{ route('dashboard.admin.all-passengers') }}" class="d-flex gap-2 mb-3">
+                    <input type="text" name="search" class="form-control" placeholder="Search by name or phone" value="{{ request('search') }}">
+                     <!-- <select name="blocked" class="form-control">
+                        <option value="">All</option>
+                        <option value="0" {{ request()->get('blocked') === '0' ? 'selected' : '' }}>Unblocked</option>
+                        <option value="1" {{ request()->get('blocked') === '1' ? 'selected' : '' }}>Blocked</option>
+                    </select> -->
+
+                    <button type="submit" class="btn btn-success">Filter</button>
+                     @if(request()->hasAny(['search']))
+                        <a href="{{ route('dashboard.admin.all-passengers') }}" class="btn btn-secondary">Reset</a>
+                    @endif
+                </form>
+
                 <div id="successMessage" class="alert alert-success d-none"></div>
                 @if (session('success'))
                     <div class="alert alert-success" role="alert" id="success-message">
@@ -49,6 +63,10 @@
                                 data-bs-target="#userModal">
                                     <i class="fa fa-eye"></i>
                                 </a>
+                                 <button class="btn btn-sm toggle-block-btn {{ $user->is_blocked ? 'btn-warning' : 'btn-danger' }}" 
+                                        data-user-id="{{ $user->id }}">
+                                    {{ $user->is_blocked ? 'Unblock' : 'Block' }}
+                                </button>
                                 <button  class="dropdown-item delete-btn-design delete-user-btn d-flex justify-content-center" data-user-id="{{ $user->id }}" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
                                     <i class="fa fa-regular fa-trash"></i>
                                 </button>
@@ -142,7 +160,24 @@
     <!-- delete-confirmation-popup-->
 
 
-<!-- delete-confirmation-popup-->
+    <!-- Block/Unblock Confirmation Modal -->
+    <section class="modal fade" id="blockUnblockModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="blockUnblockLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h2 class="modal-title" id="blockUnblockLabel">Are you sure?</h2>
+                    <button type="button" class="btn-close cancel-popup-btnbox" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="block-unblock-text">Do you really want to block/unblock this user?</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button class="btn btn-secondary delete-confirmation-popup-btn btn" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary delete-confirmation-popup-btn btn delete-confirmation-popup-delete-btn confirm-block-unblock-btn" data-user-id="">Yes</button>
+                </div>
+            </div>
+        </div>
+    </section>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
@@ -150,6 +185,7 @@
     const deleteUserUrl = "{{ route('dashboard.admin.deleteUser') }}";
     const verifyUserUrl = "{{ url('dashboard/admin/verify-user') }}";
     const rejectUserUrl = "{{ url('dashboard/admin/reject-user') }}";
+     const toggleBlockUserUrl = "{{ route('dashboard.admin.toggleBlockUser') }}";
 
 </script>
 

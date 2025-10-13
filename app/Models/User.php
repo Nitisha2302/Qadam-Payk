@@ -41,6 +41,7 @@ class User extends Authenticatable
         'api_token',
         'vehicle_number', // only for drivers
         'vehicle_type',   // car, bike, van (for parcel)
+        'is_blocked', 
     ];
 
     public function rides()

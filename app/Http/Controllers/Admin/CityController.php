@@ -8,11 +8,30 @@ use App\Models\City;
 
 class CityController extends Controller
 {
-    public function cityList() {
-        // Fetch cities (latest first, 5 per page)
-        $cities = City::orderBy('id', 'desc')->paginate(10);
-        // Return Blade view with cities data
-        return view('admin.city.cityListing', compact('cities'));
+    public function cityList(Request $request)
+    {
+        $query = City::query();
+
+        // 🔍 Search by city name or country
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('city_name', 'like', "%{$search}%")
+                  ->orWhere('country', 'like', "%{$search}%");
+            });
+        }
+
+        // 🌍 Optional country filter
+        if ($request->filled('country_filter')) {
+            $query->where('country', $request->country_filter);
+        }
+
+        $cities = $query->orderBy('id', 'desc')->paginate(10);
+
+        // Distinct list of countries for dropdown
+        $countries = City::select('country')->whereNotNull('country')->distinct()->pluck('country');
+
+        return view('admin.city.cityListing', compact('cities', 'countries'));
     }
 
     public function addCity(){

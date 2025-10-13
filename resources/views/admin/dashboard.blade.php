@@ -171,26 +171,32 @@
 <script>
 $(document).ready(function() {
 
-    // Existing chart
-    const ctx1 = document.getElementById('userVerificationChart').getContext('2d');
-    new Chart(ctx1, {
-        type: 'bar',
+    const ctxVerification = document.getElementById('userVerificationChart').getContext('2d');
+
+    new Chart(ctxVerification, {
+        type: 'line',
         data: {
             labels: ['Pending', 'Verified', 'Rejected'],
             datasets: [{
                 label: 'Drivers',
                 data: {!! json_encode([$pendingDrivers, $verifiedDrivers, $rejectedDrivers]) !!},
-                backgroundColor: [
-                    'rgba(255, 193, 7, 0.7)',   // warning yellow
-                    'rgba(40, 167, 69, 0.7)',   // success green
-                    'rgba(220, 53, 69, 0.7)'    // danger red
+                fill: false,
+                borderColor: 'rgba(0,0,0,0.5)', // line color
+                backgroundColor: 'rgba(0,0,0,0.5)',
+                tension: 0.3,
+                pointRadius: 7,
+                pointHoverRadius: 10,
+                // ✅ Different color per point
+                pointBackgroundColor: [
+                    'rgba(255, 193, 7, 1)',   // Pending - yellow
+                    'rgba(40, 167, 69, 1)',   // Verified - green
+                    'rgba(220, 53, 69, 1)'    // Rejected - red
                 ],
-                borderColor: [
+                pointBorderColor: [
                     'rgba(255, 193, 7, 1)',
                     'rgba(40, 167, 69, 1)',
                     'rgba(220, 53, 69, 1)'
-                ],
-                borderWidth: 1
+                ]
             }]
         },
         options: {
@@ -200,45 +206,43 @@ $(document).ready(function() {
                 tooltip: { enabled: true }
             },
             scales: {
-                y: { beginAtZero: true, precision: 0 }
+                y: { beginAtZero: true, precision: 0 },
+                x: { beginAtZero: true }
             }
         }
     });
 
-    // New chart for Total Users & Passengers
-   const ctx = document.getElementById('totalsChart').getContext('2d');
 
-    new Chart(ctx, {
-        type: 'bar',
+    const ctxTotals = document.getElementById('totalsChart').getContext('2d');
+
+    new Chart(ctxTotals, {
+        type: 'line', // change from 'bar' to 'line'
         data: {
             labels: ['Users', 'Drivers', 'Passengers'],
             datasets: [{
                 label: 'Count',
-                data: {!! json_encode([$userCount, $driversCount, $passengersCount]) !!}, // Replace 0 with $passengersCount if available
-                backgroundColor: [
-                    'rgba(54, 162, 235, 0.7)',   // blue for Users
-                    'rgba(40, 167, 69, 0.7)',    // green for Drivers
-                    'rgba(255, 99, 132, 0.7)'    // red/pink for Passengers
-                ],
-                borderColor: [
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(40, 167, 69, 1)',
-                    'rgba(255, 99, 132, 1)'
-                ],
-                borderWidth: 1
+                data: {!! json_encode([$userCount, $driversCount, $passengersCount]) !!},
+                fill: false, // no fill under the line
+                borderColor: 'rgba(54, 162, 235, 1)', // line color
+                backgroundColor: 'rgba(54, 162, 235, 0.7)', // point color
+                tension: 0.3, // smooth curve (0 for straight lines)
+                pointRadius: 5,
+                pointHoverRadius: 7,
             }]
         },
         options: {
             responsive: true,
             plugins: {
-                legend: { display: false },
+                legend: { display: true, position: 'top' },
                 tooltip: { enabled: true }
             },
             scales: {
-                y: { beginAtZero: true, precision: 0 }
+                y: { beginAtZero: true, precision: 0 },
+                x: { beginAtZero: true }
             }
         }
     });
+
 
 });
 </script>

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CarController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\EnquiryController;
 use App\Http\Controllers\Admin\BookingsController;
+use App\Http\Controllers\Admin\ReportsController;
 
 
 Route::fallback(function () {
@@ -43,10 +44,10 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
         Route::delete('delete-user', [UserController::class, 'deleteUser'])->name('deleteUser');
         Route::post('verify-user', [UserController::class, 'verifyUser'])->name('verifyUser');
         Route::post('reject-user', [UserController::class, 'rejectUser'])->name('rejectUser');
-
         Route::post('verify-user', [UserController::class, 'verifyUser']);
         Route::post('reject-user', [UserController::class, 'rejectUser']);
-
+        Route::post('toggle-block-user', [UserController::class, 'toggleBlockUser'])->name('toggleBlockUser');
+        Route::get('driver/{driver_id}/rides', [UserController::class, 'driverRideHistory'])->name('driverRideHistory');
 
         Route::get('all-cities', [CityController::class, 'cityList'])->name('all-cities');
         Route::get('cities', [CityController::class, 'addCity'])->name('cities');
@@ -80,12 +81,14 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
         Route::get('edit-terms-conditions', [EnquiryController::class, 'editTermsConditions'])->name('terms-comditions-edit');
         Route::post('update-terms-conditions', [EnquiryController::class, 'updateTermsConditions'])->name('update-terms-comditions');
 
-           Route::get('bookings', [BookingsController::class, 'index'])->name('bookings.index');
-    Route::get('bookings/{id}', [BookingsController::class, 'show'])->name('bookings.show');
-    Route::post('bookings/{id}/status', [BookingsController::class, 'updateStatus'])->name('bookings.updateStatus');
-    Route::delete('bookings/{id}', [BookingsController::class, 'destroy'])->name('bookings.destroy');
+        Route::get('bookings', [BookingsController::class, 'index'])->name('bookings.index');
+        Route::post('bookings/{id}/status', [BookingsController::class, 'updateStatus'])->name('bookings.updateStatus');
+        Route::delete('delete-booking', [BookingsController::class, 'deleteBooking'])->name('deleteBooking');
 
-    });
+
+      
+
+    });  
 
     
 

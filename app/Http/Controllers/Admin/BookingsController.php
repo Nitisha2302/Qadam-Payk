@@ -16,32 +16,62 @@ class BookingsController extends Controller
      */
     public function index(Request $request)
     {
-        $query = RideBooking::with(['user', 'rideDriver', 'requestDriver'])->orderBy('id', 'desc');
+        $query = RideBooking::with(['user', 'rideDriver', 'requestDriver', 'ride', 'request'])
+            ->orderBy('id', 'desc');
 
-
-
-        // Optional filters
+        // Status filter
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            switch ($request->status) {
+                case 'pending':
+                    // Active status 0 and not cancelled
+                    $query->where('active_status', 0)
+                        ->where('status', '!=', 'cancelled');
+                    break;
+                case 'confirmed':
+                    $query->where('status', 'confirmed')
+                        ->where('active_status', 0);
+                    break;
+                case 'active':
+                    $query->where('active_status', 1);
+                    break;
+                case 'completed':
+                    $query->where('active_status', 2);
+                    break;
+                case 'cancelled':
+                    $query->where('status', 'cancelled');
+                    break;
+            }
         }
 
+        // Search filter
         if ($request->filled('search')) {
             $search = $request->search;
-        $query->where(function ($q) use ($search) {
-    $q->whereHas('user', fn($sub) => $sub->where('name', 'like', "%$search%"))
-      ->orWhereHas('rideDriver', fn($sub) => $sub->where('name', 'like', "%$search%"))
-      ->orWhereHas('requestDriver', fn($sub) => $sub->where('name', 'like', "%$search%"))
-      ->orWhereHas('ride', fn($sub) => $sub->where('pickup_location', 'like', "%$search%")
-                                          ->orWhere('destination', 'like', "%$search%"))
-      ->orWhereHas('request', fn($sub) => $sub->where('pickup_location', 'like', "%$search%")
-                                              ->orWhere('destination', 'like', "%$search%"));
-});
-
-
+            $query->where(function ($q) use ($search) {
+                // Passenger via ride
+                $q->whereHas('user', fn($sub) => $sub->where('name', 'like', "%$search%"))
+                // Passenger via request
+                ->orWhereHas('request.user', fn($sub) => $sub->where('name', 'like', "%$search%"))
+                // Driver via ride
+                ->orWhereHas('rideDriver', fn($sub) => $sub->where('name', 'like', "%$search%"))
+                // Driver via request
+                ->orWhereHas('requestDriver', fn($sub) => $sub->where('name', 'like', "%$search%"))
+                // Pickup/destination via ride
+                ->orWhereHas('ride', fn($sub) => $sub->where('pickup_location', 'like', "%$search%")
+                                                    ->orWhere('destination', 'like', "%$search%"))
+                // Pickup/destination via request
+                ->orWhereHas('request', fn($sub) => $sub->where('pickup_location', 'like', "%$search%")
+                                                        ->orWhere('destination', 'like', "%$search%"));
+            });
         }
 
-        if ($request->filled('from_date') && $request->filled('to_date')) {
-            $query->whereBetween(DB::raw('DATE(created_at)'), [$request->from_date, $request->to_date]);
+        // Ride date filter
+        if ($request->filled('ride_date')) {
+            $query->whereDate('ride_date', $request->ride_date);
+        }
+
+        // Type filter
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
         }
 
         $bookings = $query->paginate(10);
@@ -49,14 +79,6 @@ class BookingsController extends Controller
         return view('admin.bookings.index', compact('bookings'));
     }
 
-    /**
-     * Show details of a single booking
-     */
-    public function show($id)
-    {
-        $booking = RideBooking::with(['user', 'driver', 'service'])->findOrFail($id);
-        return response()->json($booking);
-    }
 
     /**
      * Update booking status
@@ -77,11 +99,20 @@ class BookingsController extends Controller
     /**
      * Delete a booking
      */
-    public function destroy($id)
-    {
-        $booking = RideBooking::findOrFail($id);
-        $booking->delete();
 
-        return response()->json(['success' => true, 'message' => 'Booking deleted successfully.']);
+    public function deleteBooking(Request $request)
+    {
+        $request->validate([
+            'booking_id' => 'required|exists:ride_bookings,id',
+        ]);
+
+        $rideBooking = RideBooking::find($request->booking_id);
+
+        if ($rideBooking) {
+            $rideBooking->delete();
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'booking not found']);
     }
 }

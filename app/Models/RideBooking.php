@@ -25,6 +25,8 @@ class RideBooking extends Model
         'services' => 'array', // ensures services JSON is cast to array
     ];
 
+
+
     /**
      * Relation to the ride (if booking is linked to a ride)
      */
@@ -67,30 +69,48 @@ class RideBooking extends Model
     /**
      * Relation to driver if booking is linked to a request
      */
-public function requestDriver()
-{
-    return $this->hasOneThrough(
-        \App\Models\User::class,             // final model (User)
-        \App\Models\PassengerRequest::class, // intermediate model
-        'id',       // passenger_requests.id (foreign key on intermediate table)
-        'id',       // users.id (foreign key on final table)
-        'request_id', // ride_bookings.request_id
-        'driver_id'  // passenger_requests.driver_id
-    );
-}
+    public function requestDriver()
+    {
+        return $this->hasOneThrough(
+            \App\Models\User::class,             // final model (User)
+            \App\Models\PassengerRequest::class, // intermediate model
+            'id',       // passenger_requests.id (foreign key on intermediate table)
+            'id',       // users.id (foreign key on final table)
+            'request_id', // ride_bookings.request_id
+            'driver_id'  // passenger_requests.driver_id
+        );
+    }
 
 
     /**
      * Helper accessor to get the driver dynamically
      */
-    public function getDriverAttribute()
+    // Accessor to get driver (depends on source: ride or request)
+   public function getDriverAttribute()
     {
-        if ($this->ride_id) {
-            return $this->rideDriver()->first();
+        // Case 1: Booking created from a ride (driver comes from ride table)
+        if ($this->ride_id && $this->ride?->user) {
+            return $this->ride->user;
         }
 
-        if ($this->request_id) {
-            return $this->requestDriver()->first();
+        // Case 2: Booking created from a passenger request (user_id = driver)
+        if ($this->request_id && $this->user) {
+            return $this->user;
+        }
+
+        return null;
+    }
+
+    public function getPassengerAttribute()
+    {
+        // Case 1: Booking created from a ride (user_id = passenger)
+        if ($this->ride_id && $this->user) {
+            return $this->user;
+        }
+
+        // Case 2: Booking created from a passenger request (passenger in request)
+        if ($this->request_id && $this->request?->user) {
+            return $this->request->user;
         }
 
         return null;
@@ -161,4 +181,7 @@ public function requestDriver()
     //         default => ['text' => 'Pending', 'class' => 'bg-warning text-dark'],
     //     };
     // }
+
+    protected $appends = ['services_details', 'driver', 'passenger', 'pickup_location', 'destination'];
+
 }

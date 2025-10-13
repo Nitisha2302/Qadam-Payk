@@ -215,6 +215,36 @@ button.delete-confirmation-popup-btn.delete-confirmation-popup-delete-btn.delete
     color: #ffffff;
 }
 
+
+button.delete-confirmation-popup-btn.delete-confirmation-popup-delete-btn.delete-booking-confirmation-popup-delete-btn {
+    background: #ffffff;
+    width: 30%;
+    border: 1px solid #dd0505;
+    color: #dd0505;
+}
+
+button.delete-confirmation-popup-btn.delete-confirmation-popup-delete-btn.delete-booking-confirmation-popup-delete-btn:hover {
+    background: #dd0505;
+    width: 30%;
+    border: 1px solid #dd0505;
+    color: #ffffff;
+}
+
+button.delete-confirmation-popup-btn.delete-confirmation-popup-delete-btn.confirm-block-unblock-btn{
+    background: #ffffff;
+    width: 30%;
+    border: 1px solid #dd0505;
+    color: #dd0505;
+}
+
+button.delete-confirmation-popup-btn.delete-confirmation-popup-delete-btn.confirm-block-unblock-btn:hover {
+    background: #dd0505;
+    width: 30%;
+    border: 1px solid #dd0505;
+    color: #ffffff;
+}
+
+
 /* file ocntainer  */
 
 /* .grid-imgbox {
@@ -666,3 +696,15 @@ a.action-btn:hover{
 
 
 /* side bar scroleer end here  */
+
+
+.btn-ride-history {
+    background-color: #008955;
+    color: #fff;
+    border: none;
+}
+
+.btn-ride-history:hover {
+    background-color: #00663d;
+    color: #fff;
+}
