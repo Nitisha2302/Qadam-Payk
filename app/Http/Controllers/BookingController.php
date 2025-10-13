@@ -878,8 +878,8 @@ class BookingController extends Controller
         $data = $rides->map(fn($item) => [
             'booking_id' => $item->id,
             // 'source' => ($item->ride && $item->ride->user_id == $user->id) ? 'driver' : 'passenger',
-            'source' => $item->rides->user_id == $user->id ? 'driver' : 'passenger',
-            'pickup_location' => $item->rides->pickup_location ?? null,
+            // 'source' => $item->ride->user_id == $user->id ? 'driver' : 'passenger',
+            'pickup_location' => $item->ride->pickup_location ?? null,
             'destination' => $item->ride->destination ?? null,
             'ride_id' => $item->ride_id,
             'ride_date' => $item->ride_date,
@@ -888,7 +888,7 @@ class BookingController extends Controller
             'status' => $item->status,
             'active_status' => $item->active_status,
             'seats_booked' => $item->seats_booked,
-            'services' => \App\Models\Service::whereIn('id', $item->services ?? [])->get(['id','service_name','service_image']),
+            // 'services' => \App\Models\Service::whereIn('id', $item->services ?? [])->get(['id','service_name','service_image']),
             // Driver info
             'driver_id' => $item->ride->user_id ?? null,
             'driver_name' => $item->ride->driver->name ?? null,
