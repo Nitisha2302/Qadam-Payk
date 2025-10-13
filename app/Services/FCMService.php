@@ -103,4 +103,38 @@ class FCMService
 
         Log::info("✅ FCMService: sendNotification finished");
     }
+
+public function sendAdminNotification($title, $description, $userIds = [])
+{
+    if (in_array('all', $userIds)) {
+        $users = \App\Models\User::all();
+    } else {
+        $users = \App\Models\User::whereIn('id', $userIds)->get();
+    }
+
+    $tokens = [];
+    foreach ($users as $user) {
+        if (!empty($user->device_token)) { // use device_token from DB
+            $tokens[] = [
+                'user_id' => $user->id,
+                'device_type' => strtolower($user->device_type ?? ''),
+                'device_token' => $user->device_token,
+                'name' => $user->name,
+            ];
+        }
+    }
+
+    if (empty($tokens)) {
+        return ['status' => false, 'message' => 'No valid FCM tokens found.'];
+    }
+
+    $data = [
+        'notification_type' => 99,
+        'title' => $title,
+        'body' => $description,
+    ];
+
+    return $this->sendNotification($tokens, $data);
+}
+
 }

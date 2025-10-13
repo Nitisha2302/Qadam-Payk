@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\EnquiryController;
 use App\Http\Controllers\Admin\BookingsController;
 use App\Http\Controllers\Admin\ReportsController;
+use App\Http\Controllers\Admin\AdminNotificationController;
 
 
 Route::fallback(function () {
@@ -84,6 +85,9 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
         Route::get('bookings', [BookingsController::class, 'index'])->name('bookings.index');
         Route::post('bookings/{id}/status', [BookingsController::class, 'updateStatus'])->name('bookings.updateStatus');
         Route::delete('delete-booking', [BookingsController::class, 'deleteBooking'])->name('deleteBooking');
+
+        Route::get('notifications/send', [AdminNotificationController::class, 'sendNotification'])->name('notifications.send');
+        Route::post('notifications/store', [AdminNotificationController::class, 'store'])->name('notifications.store');
 
 
       
