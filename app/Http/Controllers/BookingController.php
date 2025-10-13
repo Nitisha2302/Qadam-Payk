@@ -1194,7 +1194,7 @@ class BookingController extends Controller
                 'ride_time'        => optional($ride)->ride_time,
                 'created_at'       => $booking->created_at,
             ];
-        });
+        })->filter(); // ✅ remove null entries
 
         // 2. Passenger Requests: user showed interest as driver in others’ requests
         $interests = \App\Models\PassengerRequestDriverInterest::with(['passengerRequest.user'])
