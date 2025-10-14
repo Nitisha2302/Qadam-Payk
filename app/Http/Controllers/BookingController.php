@@ -515,6 +515,172 @@ class BookingController extends Controller
     }
 
 
+    // public function updateBookingActiveStatus(Request $request)
+    //     {
+    //         // ✅ Get authenticated driver
+    //         $driver = Auth::guard('api')->user();
+    //         if (!$driver) {
+    //             return response()->json([
+    //                 'status'  => false,
+    //                 'message' => 'User not authenticated.',
+    //             ], 401);
+    //         }
+
+
+    //         // Validate input
+    //         $validator = Validator::make($request->all(), [
+    //             'booking_id' => 'required|exists:ride_bookings,id',
+    //         ], [
+    //             'booking_id.required' => 'Booking ID is required.',
+    //             'booking_id.exists'   => 'Booking does not exist.',
+    //         ]);
+
+    //         if ($validator->fails()) {
+    //             return response()->json([
+    //                 'status'  => false,
+    //                 'message' => $validator->errors()->first(),
+    //             ], 422);
+    //         }
+
+    //         // Find the booking
+    //         $booking = RideBooking::find($request->booking_id);
+    //         if (!$booking) {
+    //             return response()->json([
+    //                 'status'  => false,
+    //                 'message' => 'Booking not found.',
+    //             ], 404);
+    //         }
+
+
+    //         // Update booking status to active
+    //         $booking->active_status = '1';
+    //         $booking->save();
+
+    //     // ✅ Send notification to passenger
+    //     $passenger = $booking->user;
+    //     if ($passenger && $passenger->device_token) {
+    //         $fcmService = new \App\Services\FCMService();
+
+    //         $ride = $booking->ride;
+    //         $pickup = $ride->pickup_location ?? '';
+    //         $destination = $ride->destination ?? '';
+
+    //         $notificationData = [
+    //             'notification_type' => 2,
+    //             'title' => "Booking Activated",
+    //             'body'  => "Your booking for the ride from {$pickup} to {$destination} has been started.",
+    //         ];
+
+    //         $fcmService->sendNotification([
+    //             [
+    //                 'device_token' => $passenger->device_token,
+    //                 'device_type'  => $passenger->device_type ?? 'android',
+    //                 'user_id'      => $passenger->id,
+    //             ]
+    //         ], $notificationData);
+    //     }
+
+    //         return response()->json([
+    //             'status'  => true,
+    //             'message' => 'Booking status updated to active successfully.',
+    //             'data'    => [
+    //                 'booking_id'    => $booking->id,
+    //                 'ride_id'       => $booking->ride_id,
+    //                 'driver_id'     => $driver->id,
+    //                 'active_status' => $booking->active_status,
+    //             ],
+    //         ], 200);
+    // }
+
+
+    // public function updateBookingCompleteStatus(Request $request)
+    // {
+    //     // ✅ Get authenticated driver
+    //     $driver = Auth::guard('api')->user();
+    //     if (!$driver) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => 'User not authenticated.',
+    //         ], 401);
+    //     }
+
+    //     // Validate input
+    //     $validator = Validator::make($request->all(), [
+    //         'booking_id' => 'required|exists:ride_bookings,id',
+    //     ], [
+    //         'booking_id.required' => 'Booking ID is required.',
+    //         'booking_id.exists'   => 'Booking does not exist.',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => $validator->errors()->first(),
+    //         ], 422);
+    //     }
+
+    //     // Find the booking
+    //     $booking = RideBooking::find($request->booking_id);
+    //     if (!$booking) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => 'Booking not found.',
+    //         ], 404);
+    //     }
+
+    //     // // Get the ride and check if the authenticated user is the driver
+    //     // $ride = Ride::find($booking->ride_id);
+    //     // if (!$ride || $ride->user_id != $driver->id) {
+    //     //     return response()->json([
+    //     //         'status'  => false,
+    //     //         'message' => 'You are not authorized to complete this booking.',
+    //     //     ], 403);
+    //     // }
+
+    //     // Update booking status to complete
+    //     $booking->active_status = '2';
+    //     $booking->save();
+
+    //     // ✅ Send notification to passenger
+    //     $passenger = $booking->user;
+    //     if ($passenger && $passenger->device_token) {
+    //         $fcmService = new \App\Services\FCMService();
+
+    //         $ride = $booking->ride;
+    //         $pickup = $ride->pickup_location ?? '';
+    //         $destination = $ride->destination ?? '';
+
+    //         $notificationData = [
+    //             'notification_type' => 2,
+    //             'title' => "Booking Completed",
+    //             'body'  => "Your booking for the ride from {$pickup} to {$destination} has been  completed.",
+    //         ];
+
+    //         $fcmService->sendNotification([
+    //             [
+    //                 'device_token' => $passenger->device_token,
+    //                 'device_type'  => $passenger->device_type ?? 'android',
+    //                 'user_id'      => $passenger->id,
+    //             ]
+    //         ], $notificationData);
+    //     }
+
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => 'Booking status updated to complete successfully.',
+    //         'data'    => [
+    //             'booking_id'    => $booking->id,
+    //             'ride_id'       => $booking->ride_id,
+    //             'driver_id'     => $driver->id,
+    //             'active_status' => $booking->active_status,
+    //         ],
+    //     ], 200);
+    // }
+
+
+    // with notification correct 
+
+
     public function updateBookingActiveStatus(Request $request)
         {
             // ✅ Get authenticated driver
@@ -541,6 +707,7 @@ class BookingController extends Controller
                     'message' => $validator->errors()->first(),
                 ], 422);
             }
+            
 
             // Find the booking
             $booking = RideBooking::find($request->booking_id);
@@ -551,14 +718,36 @@ class BookingController extends Controller
                 ], 404);
             }
 
-            // Get the ride and check if the authenticated user is the driver
-            // $ride = Ride::find($booking->ride_id);
-            // if (!$ride || $ride->user_id != $driver->id) {
-            //     return response()->json([
-            //         'status'  => false,
-            //         'message' => 'You are not authorized to confirm this booking.',
-            //     ], 403);
-            // }
+                // ✅ Determine the driver and passenger properly
+            if ($booking->ride_id) {
+                // Booking created from a Ride → driver is from Ride table, passenger = booking.user
+                $ride = $booking->ride;
+                $isDriverAuthorized = $ride && $ride->user_id == $driver->id;
+                $passenger = $booking->user;
+                $pickup = $ride?->pickup_location ?? '';
+                $destination = $ride?->destination ?? '';
+            } elseif ($booking->request_id) {
+                // Booking created from a Request → driver is booking.user, passenger = request.user
+                $requestData = $booking->request;
+                $isDriverAuthorized = $booking->user_id == $driver->id;
+                $passenger = $requestData?->user;
+                $pickup = $requestData?->pickup_location ?? '';
+                $destination = $requestData?->destination ?? '';
+            } else {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Invalid booking structure (missing ride or request).',
+                ], 400);
+            }
+
+            // ✅ Check authorization
+            if (!$isDriverAuthorized) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'You are not authorized to start this booking.',
+                ], 403);
+            }
+
 
             // Update booking status to active
             $booking->active_status = '1';
@@ -635,6 +824,37 @@ class BookingController extends Controller
                 'message' => 'Booking not found.',
             ], 404);
         }
+
+        // ✅ Determine driver and passenger based on type
+        if ($booking->ride_id) {
+            // Booking created from a Ride → driver = rides.user_id, passenger = booking.user
+            $ride = $booking->ride;
+            $isDriverAuthorized = $ride && $ride->user_id == $driver->id;
+            $passenger = $booking->user;
+            $pickup = $ride?->pickup_location ?? '';
+            $destination = $ride?->destination ?? '';
+        } elseif ($booking->request_id) {
+            // Booking created from a Request → driver = booking.user_id, passenger = request.user
+            $requestData = $booking->request;
+            $isDriverAuthorized = $booking->user_id == $driver->id;
+            $passenger = $requestData?->user;
+            $pickup = $requestData?->pickup_location ?? '';
+            $destination = $requestData?->destination ?? '';
+        } else {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Invalid booking structure (missing ride or request).',
+            ], 400);
+        }
+
+        // ✅ Check authorization
+        if (!$isDriverAuthorized) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'You are not authorized to complete this booking.',
+            ], 403);
+        }
+
 
         // // Get the ride and check if the authenticated user is the driver
         // $ride = Ride::find($booking->ride_id);
