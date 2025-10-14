@@ -1323,6 +1323,7 @@ class BookingController extends Controller
             ->where('user_id', $user->id)
             ->whereHas('ride', fn($q) => $q->where('user_id', '!=', $user->id))
             ->where('active_status', '!=', 2) // ✅ exclude completed bookings
+            ->where('status', '!=', 'cancelled')
             ->orderBy('created_at', 'desc')
             ->get();
             
@@ -1361,8 +1362,9 @@ class BookingController extends Controller
             $req = $interest->passengerRequest;
             $booking = RideBooking::where('request_id', $req->id)->first();
             $activeStatus = $booking->active_status ?? 0;
+            $status = $interest->status ?? $req->status;
 
-            if ($activeStatus == 2) return null;
+            if ($activeStatus == 2 || $status === 'cancelled') return null;
 
             return [
                 'type'             => 'request_interest',
@@ -1779,7 +1781,7 @@ class BookingController extends Controller
 
                 // Filter out completed bookings
                 $filteredBookings = $ride->rideBookings
-                    ->filter(fn($b) => $b->active_status != 2)
+                     ->filter(fn($b) => $b->active_status != 2 && $b->status != 'cancelled')
                     ->map(function ($booking) {
                         return [
                             'created_by'      => 'passenger',
@@ -1826,11 +1828,11 @@ class BookingController extends Controller
             $requestData = $requests->map(function ($req) {
                 $requestBooking = \App\Models\RideBooking::where('request_id', $req->id)->first();
 
-                // Skip completed requests
-                if ($requestBooking && $requestBooking->active_status == 2) {
+                // ✅ Skip completed or cancelled requests
+                if (
+                    ($requestBooking && $requestBooking->active_status == 2) || $req->status == 'cancelled') {
                     return null;
                 }
-
                 $rideDetails = [
                     'created_by'          => 'driver',
                     'request_id'          => $req->id,
@@ -1900,9 +1902,10 @@ class BookingController extends Controller
             $passengerRequests = $receivedRequests
                 ->filter(function ($req) {
                     
-                    $booking = RideBooking::where('request_id', $req->id)->first();
-                    dd($req->id,$booking);
-                    return !$booking || $booking->active_status != 2;
+                    $booking = \App\Models\RideBooking::where('request_id', $req->id)->first();
+                    
+                    // ✅ skip completed or cancelled
+                   return (!$booking || $booking->active_status != 2) && $req->status != 'cancelled';
                 })
                 ->map(function ($req) {
                     return [
