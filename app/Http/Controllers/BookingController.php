@@ -2236,7 +2236,9 @@ class BookingController extends Controller
     // }
 
 
-     public function getReceivedResponse(Request $request)
+
+    
+    public function getReceivedResponse(Request $request)
     {
         $user = Auth::guard('api')->user();
         if (!$user) {
