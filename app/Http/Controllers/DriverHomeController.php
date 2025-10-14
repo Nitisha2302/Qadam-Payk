@@ -471,6 +471,11 @@ class DriverHomeController extends Controller
                     ->orderBy('ride_time', 'asc')
                     ->get();
 
+           // Filter out rides where ANY booking has active_status = 2
+            $rides = $rides->filter(function ($ride) {
+                return $ride->rideBookings->every(fn($b) => $b->active_status != 2);
+            })->values();
+
         $ridesData = $rides->map(function ($ride) use ($request) {
             $vehicle = Vehicle::find($ride->vehicle_id);
             $driver  = $vehicle ? User::find($vehicle->user_id) : null;
@@ -593,6 +598,10 @@ class DriverHomeController extends Controller
         $rides = $query->orderBy('ride_date', 'asc')
                     ->orderBy('ride_time', 'asc')
                     ->get();
+
+        // Filter out rides where any booking has active_status = 2
+        $rides = $rides->filter(fn($ride) => $ride->rideBookings->every(fn($b) => $b->active_status != 2))
+                    ->values();
 
         $ridesData = $rides->map(function ($ride) use ($request) {
             $vehicle = Vehicle::find($ride->vehicle_id);

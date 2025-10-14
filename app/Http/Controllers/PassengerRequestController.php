@@ -170,6 +170,7 @@ class PassengerRequestController extends Controller
         ], 200);
     }
 
+    
     // Get all ride requests (type = 0) with user info merged 
     public function getAllRideRequests(Request $request)
     {
@@ -361,6 +362,207 @@ class PassengerRequestController extends Controller
             'data'    => $parcelsData,
         ],200);
     }
+
+
+    // with not show completed ride 
+
+    // public function getAllRideRequests(Request $request)
+    // {
+    //     // ✅ Read filters from query parameters
+    //     $pickup_location = $request->query('pickup_location');
+    //     $destination     = $request->query('destination');
+    //     $ride_date       = $request->query('ride_date');
+    //     $number_of_seats = $request->query('number_of_seats', 1); // default 1
+
+    //     // ✅ Validate inputs
+    //     $validator = Validator::make([
+    //         'pickup_location' => $pickup_location,
+    //         'destination'     => $destination,
+    //         'ride_date'       => $ride_date,
+    //         'number_of_seats' => $number_of_seats,
+    //     ], [
+    //         'pickup_location' => 'required|string|max:255',
+    //         'destination'     => 'required|string|max:255',
+    //         'ride_date'       => 'required|date_format:d-m-Y|after_or_equal:today',
+    //         'number_of_seats' => 'nullable|integer|min:1',
+    //     ], [
+    //         'pickup_location.required' => 'Pickup location is required.',
+    //         'destination.required'     => 'Destination is required.',
+    //         'ride_date.required'       => 'Ride date is required.',
+    //         'number_of_seats.integer'  => 'Number of seats must be a valid number.',
+    //         'number_of_seats.min'      => 'Number of seats must be at least 1.',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => $validator->errors()->first(),
+    //         ], 201);
+    //     }
+
+    //     $query = PassengerRequest::with('user')
+    //         ->where('type', 0)
+    //         ->where('status', 'pending')
+    //         ->where('pickup_location', 'like', '%'.$pickup_location.'%')
+    //         ->where('destination', 'like', '%'.$destination.'%')
+    //         ->where('number_of_seats', '>=', $number_of_seats);
+
+    //     // ✅ Filter by ride_date
+    //     try {
+    //         $rideDate = Carbon::createFromFormat('d-m-Y', $ride_date)->format('Y-m-d');
+    //         $query->whereDate('ride_date', $rideDate);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => 'Invalid ride_date format. Use DD-MM-YYYY.',
+    //         ], 422);
+    //     }
+
+    //     $rides = $query->orderBy('ride_date', 'asc')
+    //                 ->orderBy('ride_time', 'asc')
+    //                 ->get();
+
+    //      // Filter out requests that have any booking with active_status = 2
+    //     $rides = $rides->filter(function ($ride) {
+    //         return $ride->rideBookings->every(fn($b) => $b->active_status != 2);
+    //     })->values();
+
+    //     $ridesData = $rides->map(function ($ride) {
+    //         $rideArray = [
+    //             'id'              => $ride->id,
+    //             'pickup_location' => $ride->pickup_location,
+    //             'destination'     => $ride->destination,
+    //             'ride_date'       => $ride->ride_date,
+    //             'number_of_seats' => $ride->number_of_seats,
+    //             'services'        => $ride->services_details,
+    //             'budget'          => $ride->budget,
+    //             'preferred_time'  => $ride->preferred_time,
+    //             'type'            => $ride->type,
+    //             'status'          => $ride->status,
+    //             'created_at'      => $ride->created_at,
+    //             'updated_at'      => $ride->updated_at,
+    //             'user_id'         => $ride->user_id, // keep user_id
+    //         ];
+
+    //         // Merge user fields directly into ride array
+    //         if ($ride->user) {
+    //             $userData = $ride->user->only([
+    //                 'image','name','phone_number','is_phone_verify','email',
+    //                 'role','dob','gender','government_id','id_verified',
+    //                 'vehicle_number','vehicle_type'
+    //             ]);
+    //             $rideArray = array_merge($rideArray, $userData);
+    //         }
+
+    //         return $rideArray;
+    //     });
+
+
+
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => 'Ride requests retrieved successfully.',
+    //         'data'    => $ridesData,
+    //     ],200);
+    // }
+
+    // public function getAllParcelRequests(Request $request)
+    // {
+    //     // ✅ Read filters from query parameters
+    //     $pickup_location = $request->query('pickup_location');
+    //     $destination     = $request->query('destination');
+    //     $ride_date       = $request->query('ride_date');
+    //     $number_of_seats = $request->query('number_of_seats', 1);
+
+    //     // ✅ Validate inputs
+    //     $validator = Validator::make([
+    //         'pickup_location' => $pickup_location,
+    //         'destination'     => $destination,
+    //         'ride_date'       => $ride_date,
+    //         'number_of_seats' => $number_of_seats,
+    //     ], [
+    //         'pickup_location' => 'required|string|max:255',
+    //         'destination'     => 'required|string|max:255',
+    //         'ride_date'       => 'required|date_format:d-m-Y|after_or_equal:today',
+    //         'number_of_seats' => 'nullable|integer|min:1',
+    //     ], [
+    //         'pickup_location.required' => 'Pickup location is required.',
+    //         'destination.required'     => 'Destination is required.',
+    //         'ride_date.required'       => 'Ride date is required.',
+    //         'number_of_seats.integer'  => 'Number of seats must be a valid number.',
+    //         'number_of_seats.min'      => 'Number of seats must be at least 1.',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => $validator->errors()->first(),
+    //         ], 201);
+    //     }
+
+    //     $query = PassengerRequest::with('user')
+    //         ->where('type', 1)
+    //         ->where('status', 'pending')
+    //         ->where('pickup_location', 'like', '%'.$pickup_location.'%')
+    //         ->where('destination', 'like', '%'.$destination.'%')
+    //         ->where('number_of_seats', '>=', $number_of_seats);
+
+    //     // ✅ Filter by ride_date
+    //     try {
+    //         $rideDate = Carbon::createFromFormat('d-m-Y', $ride_date)->format('Y-m-d');
+    //         $query->whereDate('ride_date', $rideDate);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => 'Invalid ride_date format. Use DD-MM-YYYY.',
+    //         ], 422);
+    //     }
+
+    //     $parcels = $query->orderBy('ride_date', 'asc')
+    //                     ->orderBy('ride_time', 'asc')
+    //                     ->get();
+
+    //     // Filter out requests with any completed bookings
+    //     $parcels = $parcels->filter(fn($parcel) => $parcel->rideBookings->every(fn($b) => $b->active_status != 2))
+    //                     ->values();
+
+    //        $parcelsData = $parcels->map(function ($parcel) {
+    //         $parcelArray = [
+    //             'id'              => $parcel->id,
+    //             'pickup_location' => $parcel->pickup_location,
+    //             'destination'     => $parcel->destination,
+    //             'ride_date'       => $parcel->ride_date,
+    //             'number_of_seats' => $parcel->number_of_seats,
+    //             'services'        => $parcel->services_details,
+    //             'budget'          => $parcel->budget,
+    //             'preferred_time'  => $parcel->preferred_time,
+    //             'type'            => $parcel->type,
+    //             'status'          => $parcel->status,
+    //             'created_at'      => $parcel->created_at,
+    //             'updated_at'      => $parcel->updated_at,
+    //             'user_id'         => $parcel->user_id, // keep user_id
+    //         ];
+
+    //         // Merge user fields directly into ride array
+    //         if ($parcel->user) {
+    //             $userData = $parcel->user->only([
+    //                 'image','name','phone_number','is_phone_verify','email',
+    //                 'role','dob','gender','government_id','id_verified',
+    //                 'vehicle_number','vehicle_type'
+    //             ]);
+    //             $parcelArray = array_merge($parcelArray, $userData);
+    //         }
+
+    //         return $parcelArray;
+    //     });
+
+
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => 'Parcel requests retrieved successfully.',
+    //         'data'    => $parcelsData,
+    //     ],200);
+    // }
 
 
     // List all requests of the current passenger
