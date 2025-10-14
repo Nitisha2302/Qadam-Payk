@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\EnquiryController;
 use App\Http\Controllers\Admin\BookingsController;
 use App\Http\Controllers\Admin\ReportsController;
 use App\Http\Controllers\Admin\AdminNotificationController;
+use App\Http\Controllers\PrivacyPolicyController;
 
 
 Route::fallback(function () {
@@ -97,7 +98,6 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
     
 
 });
-
 
 Route::get('/privacy-policy', [PrivacyPolicyController::class, 'show'])->name('privacy.policy');
 
