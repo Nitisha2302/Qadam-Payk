@@ -44,6 +44,7 @@ Route::get('get-profile', [AuthController::class, 'getProfile']);
 Route::post('update-profile', [AuthController::class, 'updateProfile']);
 Route::post('update-language', [AuthController::class, 'updateLanguage'])->name('update-language');
 Route::get('get-language', [AuthController::class, 'getLanguage'])->name('get-language');
+Route::post('delete-account', [AuthController::class, 'deleteAccount'])->name('delete-account');
 
 Route::post('/driver/add-vehicle', [DriverHomeController::class, 'addVehicle']);
 Route::get('/driver/get-vehicles', [DriverHomeController::class, 'getVehicles']);

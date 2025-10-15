@@ -1017,7 +1017,6 @@ class BookingController extends Controller
 
 
 
-
     // latest
     public function getSendResponse(Request $request)
     {
@@ -1111,7 +1110,6 @@ class BookingController extends Controller
     }
 
    
-
     // latest 
     
     // public function getReceivedResponse(Request $request)
@@ -1323,18 +1321,18 @@ class BookingController extends Controller
             ], 401);
         }
 
-        // ✅ DRIVER VIEW: rides created by the driver
+        //  DRIVER VIEW: rides created by the driver
         $driverRides = \App\Models\Ride::with(['rideBookings.user', 'vehicle'])
             ->where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // ✅ If driver has rides
+        //  If driver has rides
         if ($driverRides->isNotEmpty()) {
             $rideData = $driverRides->map(function ($ride) {
                 $vehicle = $ride->vehicle;
 
-                // ✅ Filter out completed & cancelled bookings
+                //  Filter out completed & cancelled bookings
                 $filteredBookings = $ride->rideBookings
                     ->filter(fn($b) => $b->active_status != 2 && $b->status != 'cancelled')
                     ->map(function ($booking) {
@@ -1356,10 +1354,16 @@ class BookingController extends Controller
                     })
                     ->values();
 
-                // ✅ Skip rides that have no valid bookings
+                //  Skip rides that have no valid bookings
                 // if ($filteredBookings->isEmpty()) {
                 //     return null;
                 // }
+
+                //  Skip ride only if it had bookings and all are completed
+               // Skip ride ONLY if it had bookings and ALL are completed
+                if ($ride->rideBookings->isNotEmpty() && $filteredBookings->isEmpty()) {
+                    return null; // ride fully completed, skip it
+                }
 
                 return [
                     'created_by'      => 'driver',
@@ -1540,6 +1544,8 @@ class BookingController extends Controller
             'data'    => $receivedData
         ]);
     }
+
+
 
 
 

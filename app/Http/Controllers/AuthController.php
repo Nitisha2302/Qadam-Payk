@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
-
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;  // ← Correct
@@ -14,7 +13,6 @@ use Carbon\Carbon;
 
 class AuthController extends Controller
 {
-
 
     // public function register(Request $request)
     // {
@@ -378,6 +376,14 @@ class AuthController extends Controller
             ], 403); // 403 Forbidden
         }
 
+        // ✅ Check if user deleted their account
+        if ($user->is_deleted) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'This account has been deleted.',
+            ], 403);
+        }
+
         // Decide message based on new or existing
         $message = $user->wasRecentlyCreated
             ? 'OTP sent successfully. Please verify OTP to complete registration.'
@@ -676,6 +682,36 @@ class AuthController extends Controller
     }
 
 
+    public function deleteAccount(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+        if (!$user) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'User not authenticated'
+            ], 401);
+        }
+
+        // Soft delete the user
+        $user->is_deleted = true;
+
+        // Nullify all tokens & device info
+        $user->api_token      = null;
+        $user->google_token   = null;
+        $user->facebook_token = null;
+        $user->apple_token    = null;
+        $user->device_token   = null;
+        $user->device_type    = null;
+        $user->device_id      = null;
+        $user->is_social      = 0;
+
+        $user->save();
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Your account has been deleted successfully.',
+        ]);
+    }
 
 
 
