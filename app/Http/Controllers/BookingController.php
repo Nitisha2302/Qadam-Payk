@@ -1313,7 +1313,7 @@ class BookingController extends Controller
     // }
 
 
-   public function getReceivedResponse(Request $request)
+    public function getReceivedResponse(Request $request)
     {
         $user = Auth::guard('api')->user();
         if (!$user) {
@@ -1357,9 +1357,9 @@ class BookingController extends Controller
                     ->values();
 
                 // ✅ Skip rides that have no valid bookings
-                if ($filteredBookings->isEmpty()) {
-                    return null;
-                }
+                // if ($filteredBookings->isEmpty()) {
+                //     return null;
+                // }
 
                 return [
                     'created_by'      => 'driver',
