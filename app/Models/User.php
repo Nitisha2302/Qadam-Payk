@@ -86,6 +86,12 @@ class User extends Authenticatable
             return $this->hasMany(PassengerRequestDriverInterest::class, 'driver_id');
         }
 
+        // app/Models/User.php
+        public function langs()
+        {
+            return $this->hasMany(UserLang::class);
+        }
+
 
     
 
