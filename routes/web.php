@@ -34,6 +34,10 @@ Route::get('/home', [DashboardController::class, 'appHome'])->name('app-home');
 Route::get('/privacy-policy', [DashboardController::class, 'appPrivacyPolicy'])->name('app-privacy-policy');
 Route::get('/term-conditions', [DashboardController::class, 'appTermCondition'])->name('app-term-services');
 
+Route::get('/delete-account/{id?}', [AdminAuthController::class, 'showDeleteAccountPage'])->name('delete-account.page');
+
+Route::post('/delete-account-confirm', [AdminAuthController::class, 'confirmDeleteAccount'])->name('delete-account.confirm');
+
 
 
 // Routes with the same prefix for both Admin and Investor

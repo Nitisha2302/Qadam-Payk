@@ -141,6 +141,51 @@ class AdminAuthController extends Controller
         return redirect()->route('login')->with('success', 'Your password has been successfully changed!');
     }
 
+
+    public function showDeleteAccountPage($id = null)
+    {
+        $user = null;
+
+        if ($id) {
+            $user = \App\Models\User::find($id);
+        }
+
+        // If user not found or ID not provided
+        if (!$user) {
+            return view('Admin.auth.deleteAccount', ['user' => (object)['id' => null]]);
+        }
+
+        return view('Admin.auth.deleteAccount', compact('user'));
+    }
+
+
+
+    public function confirmDeleteAccount(Request $request)
+    {
+        $user = \App\Models\User::find($request->user_id);
+
+        if (!$user) {
+            return redirect()->back()->with('error', 'User not found.');
+        }
+
+        // Mark user as deleted (soft delete simulation)
+        $user->is_deleted = true;
+
+        // Nullify tokens
+        $user->api_token      = null;
+        $user->google_token   = null;
+        $user->facebook_token = null;
+        $user->apple_token    = null;
+        $user->device_token   = null;
+        $user->device_type    = null;
+        $user->device_id      = null;
+        $user->is_social      = 0;
+
+        $user->save();
+
+        return redirect()->back()->with('success', 'Your account has been deleted successfully.');
+    }
+
     
     
    
