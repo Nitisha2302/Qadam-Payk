@@ -152,10 +152,10 @@ class AdminAuthController extends Controller
 
         // If user not found or ID not provided
         if (!$user) {
-            return view('Admin.auth.deleteAccount', ['user' => (object)['id' => null]]);
+            return view('admin.auth.deleteAccount', ['user' => (object)['id' => null]]);
         }
 
-        return view('Admin.auth.deleteAccount', compact('user'));
+        return view('admin.auth.deleteAccount', compact('user'));
     }
 
 
