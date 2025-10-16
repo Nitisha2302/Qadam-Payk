@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delete Account - QADAMPAYK</title>
+    <title>Удаление аккаунта - QADAMPAYK</title>
     <link rel="icon" href="{{ asset('favicon-qadampayk.png') }}" type="image/x-icon">
 
     <!-- Bootstrap CSS -->
@@ -83,14 +83,14 @@
     <!-- HEADER SECTION -->
     <div class="qadam-policy-head">
         <div class="qadam-logo">
-            <img src="{{ asset('assets/admin/images/qadampayk-dash.png') }}" alt="QADAMPAYK Logo">
+            <img src="{{ asset('assets/admin/images/qadampayk-dash.png') }}" alt="QADAMPAYK Логотип">
         </div>
     </div>
 
     <!-- MAIN CONTENT -->
     <div class="qadam-policy-container">
 
-        {{-- ✅ SUCCESS / ERROR MESSAGES --}}
+        {{-- SUCCESS / ERROR MESSAGES --}}
         @if(session('success'))
             <div class="alert alert-success text-center" id="alert-box">
                 {{ session('success') }}
@@ -103,32 +103,38 @@
             </div>
         @endif
 
-        <h3 class="text-center text-danger">Do you want to delete your account?</h3>
+        <h3 class="text-center text-danger">Вы уверены, что хотите удалить свой аккаунт?</h3>
         <p class="text-center text-muted">
-           We're sorry to see you go. Please note once your account is deleted:
+           Нам жаль, что вы уходите. Пожалуйста, обратите внимание, что после удаления аккаунта:
         </p>
 
         <ul class="list-group mb-4">
-            <li class="list-group-item">• We will no longer have any record of your orders or messages with your support team.</li>
-            <li class="list-group-item">• Your bookings, history, and saved preferences will be removed.</li>
-            <li class="list-group-item">• This action cannot be undone.</li>
+            <li class="list-group-item">• Мы больше не будем хранить записи о ваших заказах или переписке с командой поддержки.</li>
+            <li class="list-group-item">• Ваши бронирования, история и сохраненные настройки будут удалены.</li>
+            <li class="list-group-item">• Это действие необратимо.</li>
         </ul>
 
         <div class="text-center">
+            @if(!empty($user->id))
             <form method="POST" action="{{ route('delete-account.confirm') }}">
                 @csrf
                 <input type="hidden" name="user_id" value="{{ $user->id }}">
                 <button type="submit" class="btn btn-danger btn-lg">
-                    I'm sure, delete my account
+                    Да, удалить мой аккаунт
                 </button>
             </form>
+            @else
+            <div class="alert alert-info">
+                Пользователь не найден. Пожалуйста, убедитесь, что вы вошли в систему или предоставили правильную ссылку.
+            </div>
+            @endif
         </div>
     </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    {{-- ✅ Auto-hide alert after 4 seconds --}}
+    {{-- Auto-hide alert --}}
     <script>
         setTimeout(() => {
             const alertBox = document.getElementById('alert-box');
