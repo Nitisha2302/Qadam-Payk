@@ -79,8 +79,12 @@ return [
     ],
 
      'bookRideOrParcel' => [
-        'user_not_authenticated' => 'User not authenticated.',
-        'booking_created' => 'Booking created successfully.',
+         'user_not_authenticated' => 'Шумо тасдиқ нашудаед. Лутфан ворид шавед.',
+        'booking_created' => 'Брон муваффақона эҷод шуд.',
+        'notification' => [
+            'title' => 'Брони нави сафар',
+            'body' => ':passenger сафари шуморо аз :pickup то :destination брон кард. Лутфан тасдиқ кунед!',
+        ],
         'validation' => [
             'ride_id_required' => 'Лутфан ID-и сафарро нишон диҳед.',
             'ride_not_exist' => 'Сафар интихобшуда пайдо нашуд.',
@@ -94,9 +98,10 @@ return [
             'comment_invalid' => 'Шарҳ бояд матн бошад.',
             'comment_max' => 'Шарҳ набояд аз 500 аломат зиёд бошад.',
             'cannot_book_own' => 'Шумо наметавонед сафарҳои худро брон кунед.',
-            'already_booked_both' => 'You have already booked ride and parcel.',
-            'already_booked_ride' => 'You have already booked this ride.',
-            'already_booked_parcel' => 'You have already booked this parcel.',
+            'already_booked_both'   => 'Шумо аллакай ҳам сафар ва ҳам борро брон кардаед.',
+            'already_booked_ride'   => 'Шумо аллакай ин сафарро брон кардаед.',
+            'already_booked_parcel' => 'Шумо аллакай ин борро брон кардаед.',
+
         ],
     ],
 
@@ -330,7 +335,7 @@ return [
             'vehicle_not_found'      => 'Мошин ёфт нашуд ё ба шумо тааллуқ надорад.',
             'validation' => [
                 'vehicle_id_required'   => 'ID мошин лозим аст.',
-                'vehicle_not_found'     => 'Vehicle not found.',
+                'vehicle_not_found'     => 'Мошин ёфт нашуд ё ба шумо тааллуқ надорад..',
                 'brand_required'        => 'Номи бренди нақлиет ҳатмист.',
                 'model_required'        => 'Модели нақлиетро ворид кунед.',
                 'number_plate_required' => 'Рақами қайди нақлиет лозим аст.',
@@ -471,7 +476,7 @@ return [
 
     'createParcelRequest' => [
         'user_not_authenticated' => 'Шумо тасдиқ нашудаед. Лутфан ворид шавед.',
-        'success' => 'Parcel request created successfully.',
+        'success' => 'Дархости бор бо муваффақият эҷод шуд.',
         'validation' => [
             'pickup_location_required' => 'Ҷойи гирифтани мусофир лозим аст.',
             'pickup_location_string' => 'Ҷойи гирифтани мусофир бояд дуруст ворид шавад.',

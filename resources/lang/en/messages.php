@@ -85,7 +85,11 @@ return [
     'bookRideOrParcel' => [
         'user_not_authenticated' => 'User not authenticated.',
         'booking_created' => 'Booking created successfully.',
-        
+         'notification' => [
+            'title' => 'New Ride Booking',
+            'body' => ':passenger booked your ride from :pickup to :destination. Please confirm!',
+        ],
+            
         'validation' => [
             'ride_id_required' => 'Ride ID is required.',
             'ride_not_exist' => 'Selected ride does not exist.',

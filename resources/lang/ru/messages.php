@@ -81,8 +81,12 @@ return [
     ],
 
      'bookRideOrParcel' => [
-        'user_not_authenticated' => 'User not authenticated.',
-        'booking_created' => 'Booking created successfully.',
+        'user_not_authenticated' => 'Вы не авторизованы. Пожалуйста, войдите в систему.',
+        'booking_created' => 'Бронирование успешно создано.',
+        'notification' => [
+            'title' => 'Новое бронирование поездки',
+            'body' => ':passenger забронировал вашу поездку из :pickup в :destination. Пожалуйста, подтвердите!',
+        ],
         'validation' => [
             'ride_id_required' => 'Пожалуйста, укажите ID поездки.',
             'ride_not_exist' => 'Выбранная поездка не найдена.',
@@ -96,9 +100,9 @@ return [
             'comment_invalid' => 'Комментарий должен быть текстом.',
             'comment_max' => 'Комментарий не должен превышать 500 символов.',
             'cannot_book_own' => 'Вы не можете забронировать свою поездку.',
-            'already_booked_both' => 'You have already booked ride and parcel.',
-            'already_booked_ride' => 'You have already booked this ride.',
-            'already_booked_parcel' => 'You have already booked this parcel.',
+           'already_booked_both'   => 'Вы уже забронировали поездку и посылку.',
+            'already_booked_ride'   => 'Вы уже забронировали эту поездку.',
+            'already_booked_parcel' => 'Вы уже забронировали эту посылку.',
         ],
     ],
 
@@ -474,7 +478,7 @@ return [
 
     'createParcelRequest' => [
        'user_not_authenticated' => 'Вы не авторизованы. Пожалуйста, войдите в систему.',
-        'success' => 'Parcel request created successfully.',
+        'success' => 'Заявка на посылку успешно создана.',
         'validation' => [
            'pickup_location_required' => 'Укажите место отправления.',
             'pickup_location_string' => 'Адрес отправления должен быть корректным.',

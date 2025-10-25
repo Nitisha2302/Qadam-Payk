@@ -168,25 +168,39 @@ class BookingController extends Controller
         // Notify driver
         $driver = $ride->driver;
         $passengerName = $user->name ?: 'A passenger'; 
-        if ($driver && $driver->device_token) {
-            $tokens = [
-                [
-                    'device_token' => $driver->device_token,
-                    'device_type' => $driver->device_type ?? 'android',
-                    'user_id' => $driver->id,
-                ]
-            ];
+         if ($driver && $driver->device_token) {
+
+            // ✅ Find driver's language
+            $driverLang = UserLang::where('user_id', $driver->id)
+                ->where('device_id', $driver->device_id)
+                ->where('device_type', $driver->device_type)
+                ->first();
+
+            $driverLocale = $driverLang->language ?? 'ru';
+            $originalLocale = app()->getLocale();
+            app()->setLocale($driverLocale);
 
             $notificationData = [
                 'notification_type' => 1,
-                'title' => '🚖 New Ride Booking',
-                'body' => "📍 {$passengerName} booked your ride from {$ride->pickup_location} to {$ride->destination}. Please confirm!",
+                'title' => __('messages.bookRideOrParcel.notification.title'),
+                'body'  => __('messages.bookRideOrParcel.notification.body', [
+                    'passenger' => $passengerName,
+                    'pickup'    => $ride->pickup_location,
+                    'destination' => $ride->destination,
+                ]),
             ];
 
-            // ✅ Use FCMService
             $fcmService = new FCMService();
-            $fcmService->sendNotification($tokens, $notificationData);
+            $fcmService->sendNotification([[
+                'device_token' => $driver->device_token,
+                'device_type'  => $driver->device_type ?? 'android',
+                'user_id'      => $driver->id,
+            ]], $notificationData);
+
+            // ✅ Restore original API language (user language)
+            app()->setLocale($originalLocale);
         }
+
 
 
         return response()->json([
@@ -443,30 +457,36 @@ class BookingController extends Controller
 
         // Send notification to passenger
         $passenger = $booking->user; 
+        // ✅ Send notification to passenger in THEIR own language
         if ($passenger && $passenger->device_token) {
             $fcmService = new \App\Services\FCMService();
 
-            $statusText = $booking->status;
-            $pickup = $ride->pickup_location;
-            $destination = $ride->destination;
+            // 🔹 Detect passenger's preferred language
+            $passengerLang = UserLang::where('user_id', $passenger->id)
+                ->where('device_id', $passenger->device_id)
+                ->where('device_type', $passenger->device_type)
+                ->first();
+
+            $recipientLocale = $passengerLang->language ?? 'ru'; // Default Russian if none found
+            $originalLocale = app()->getLocale(); // Save current locale (driver's language)
+
+            app()->setLocale($recipientLocale); // 🔄 Switch to passenger language temporarily
+            // ✅ Define pickup & destination correctly
+            $pickup = $booking->pickup_location ?? $ride->pickup_location;
+            $destination = $booking->destination ?? $ride->destination;
 
             $notificationData = [
                 'notification_type' => 2,
-                'title' => "Booking {$statusText}",
-                'body'  => "Your booking for ride from {$pickup} to {$destination} has been {$statusText} by the {$driver->name}.",
+                'title' => __('messages.confirmBooking.notification.title', ['status' => $booking->status]),
+                'body'  => __('messages.confirmBooking.notification.body', [
+                    'pickup'      => $pickup,
+                    'destination' => $destination,
+                    'driver'      => $driver->name,
+                    'status'      => $booking->status
+                ]),
             ];
 
-            // $notificationData = [
-            // 'notification_type' => 2,
-            // 'title' => __('messages.confirmBooking.notification_title', ['status' => ucfirst($statusText)]),
-            // 'body'  => __('messages.confirmBooking.notification_body', [
-            //         'pickup' => $pickup,
-            //         'destination' => $destination,
-            //         'status' => $statusText,
-            //         'driver' => $driver->name
-            //     ]),
-            // ];
-
+            // ✅ Send FCM notification
             $fcmService->sendNotification([
                 [
                     'device_token' => $passenger->device_token,
@@ -474,6 +494,9 @@ class BookingController extends Controller
                     'user_id'      => $passenger->id,
                 ]
             ], $notificationData);
+
+            // 🔁 Restore locale back to driver's for API response
+            app()->setLocale($originalLocale);
         }
 
         return response()->json([
