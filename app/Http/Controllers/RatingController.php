@@ -7,6 +7,7 @@ use App\Models\Rating;
 use App\Models\Ride;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use App\Models\UserLang;
 
 class RatingController extends Controller
 {
@@ -17,9 +18,18 @@ class RatingController extends Controller
         if (!$user) {
             return response()->json([
                 'status' => false,
-                'message' => 'User not authenticated'
+                 'message' => __('messages.rating.user_not_authenticated')
             ], 401);
         }
+
+        // 🔹 Detect user's preferred language from UserLang table
+            $userLang = UserLang::where('user_id', $user->id)
+                ->where('device_id', $user->device_id)
+                ->where('device_type', $user->device_type)
+                ->first();
+
+            $lang = $userLang->language ?? 'ru'; // fallback to Russian
+            app()->setLocale($lang);
 
         // Step 1: Basic validation
         $validator = Validator::make($request->all(), [
@@ -28,17 +38,17 @@ class RatingController extends Controller
             'rating' => 'required|integer|min:1|max:5',
             'review' => 'nullable|string|max:500',
         ], [
-            'ride_id.required' => 'Please provide a valid ride.',
-            'ride_id.exists' => 'The selected ride does not exist.',
-            'reviewed_id.required' => 'Please select a user to review.',
-            'reviewed_id.exists' => 'The selected user does not exist.',
-            'rating.required' => 'Rating is required.',
-            'rating.integer' => 'Rating must be a number.',
-            'rating.min' => 'Rating must be at least 1 star.',
-            'rating.max' => 'Rating cannot exceed 5 stars.',
-            'review.string' => 'Review must be text.',
-            'review.max' => 'Review cannot exceed 500 characters.'
-        ]);
+             'ride_id.required' => __('messages.rating.validation.ride_id_required'),
+            'ride_id.exists' => __('messages.rating.validation.ride_id_exists'),
+            'reviewed_id.required' => __('messages.rating.validation.reviewed_id_required'),
+            'reviewed_id.exists' => __('messages.rating.validation.reviewed_id_exists'),
+            'rating.required' => __('messages.rating.validation.rating_required'),
+            'rating.integer' => __('messages.rating.validation.rating_integer'),
+            'rating.min' => __('messages.rating.validation.rating_min'),
+            'rating.max' => __('messages.rating.validation.rating_max'),
+            'review.string' => __('messages.rating.validation.review_string'),
+            'review.max' => __('messages.rating.validation.review_max'),
+            ]);
 
         if ($validator->fails()) {
             return response()->json([
@@ -54,7 +64,7 @@ class RatingController extends Controller
         if (!$bookingExists) {
             return response()->json([
                 'status' => false,
-                'message' => 'You have not booked this ride and cannot review it.'
+                'message' => __('messages.rating.booking_required')
             ], 422);
         }
 
@@ -67,7 +77,7 @@ class RatingController extends Controller
         if ($existing) {
             return response()->json([
                 'status' => false,
-                'message' => 'You have already rated this ride/user.'
+                 'message' => __('messages.rating.already_rated')
             ], 409);
         }
 
@@ -82,7 +92,7 @@ class RatingController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Rating submitted successfully.',
+           'message' => __('messages.rating.success'),
             'data' => $rating
         ], 201);
     }
@@ -194,9 +204,18 @@ class RatingController extends Controller
         if (!$user) {
             return response()->json([
                 'status' => false,
-                'message' => 'User not authenticated'
+                'message' => __('messages.rating.user_not_authenticated')
             ], 401);
         }
+
+        // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         // Fetch all ratings for this user
         $ratings = Rating::with('reviewer','ride')
@@ -222,7 +241,7 @@ class RatingController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Ratings fetched successfully.',
+            'message' => __('messages.rating.fetch_success'),
             'average_rating' => $averageRating,
             'data' => $ratings
         ], 200);

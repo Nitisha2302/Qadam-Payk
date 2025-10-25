@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon; // ✅ Add this line
 use App\Services\FCMService;
+use App\Models\UserLang;
 
 class BookingController extends Controller
 {
@@ -20,9 +21,18 @@ class BookingController extends Controller
         if (!$user) {
             return response()->json([
                 'status'  => false,
-                'message' => 'User not authenticated'
+                'message' =>  __('messages.bookRideOrParcel.user_not_authenticated'),
             ], 401);
         }
+
+        // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         // ✅ Validation
         $validator = Validator::make($request->all(), [
@@ -33,17 +43,17 @@ class BookingController extends Controller
             'type'         => 'required|in:0,1', // 0 = ride, 1 = parcel
             'comment'      => 'nullable|string|max:2000', // ✅ new validation
         ], [
-            'ride_id.required'      => 'Ride ID is required.',
-            'ride_id.exists'        => 'Selected ride does not exist.',
-            'seats_booked.required_if' => 'Number of seats is required for rides.',
-            'seats_booked.integer'  => 'Seats must be a valid number.',
-            'seats_booked.min'      => 'Seats must be at least 1.',
-            'services.array'        => 'Services must be an array.',
-            'services.*.exists'     => 'Selected service is invalid.',
-            'type.required'         => 'Booking type is required.',
-            'type.in'               => 'Type must be 0 (ride) or 1 (parcel).',
-            'comment.string'        => 'Comment must be a valid text.',
-            'comment.max'           => 'Comment cannot exceed 500 characters.',
+            'ride_id.required'      => __('messages.bookRideOrParcel.validation.ride_id_required'),
+            'ride_id.exists'        => __('messages.bookRideOrParcel.validation.ride_not_exist'),
+            'seats_booked.required_if' => __('messages.bookRideOrParcel.validation.seats_required'),
+            'seats_booked.integer'  => __('messages.bookRideOrParcel.validation.seats_invalid'),
+            'seats_booked.min'      => __('messages.bookRideOrParcel.validation.seats_min'),
+            'services.array'        => __('messages.bookRideOrParcel.validation.services_array'),
+            'services.*.exists'     => __('messages.bookRideOrParcel.validation.service_invalid'),
+            'type.required'         => __('messages.bookRideOrParcel.validation.type_required'),
+            'type.in'               => __('messages.bookRideOrParcel.validation.type_invalid'),
+            'comment.string'        => __('messages.bookRideOrParcel.validation.comment_invalid'),
+            'comment.max'           => __('messages.bookRideOrParcel.validation.comment_max'),
         ]);
 
         if ($validator->fails()) {
@@ -60,7 +70,7 @@ class BookingController extends Controller
         if ($ride->user_id == $user->id) {
             return response()->json([
                 'status'  => false,
-                'message' => 'You cannot book your own ride or parcel.'
+                'message' => __('messages.bookRideOrParcel.validation.cannot_book_own'),
             ], 201);
         }
 
@@ -79,7 +89,7 @@ class BookingController extends Controller
         if ($bookedRide && $bookedParcel) {
             return response()->json([
                 'status'  => false,
-                'message' => 'You have already booked ride and parcel.'
+                'message' =>  __('messages.bookRideOrParcel.validation.already_booked_both'),
             ], 201);
         }
 
@@ -89,8 +99,8 @@ class BookingController extends Controller
             return response()->json([
                 'status'  => false,
                 'message' => $request->type == 0 
-                    ? 'You have already booked this ride.'
-                    : 'You have already booked this parcel.'
+                    ?  __('messages.bookRideOrParcel.validation.already_booked_ride')
+                    :  __('messages.bookRideOrParcel.validation.already_booked_parcel')
             ], 201);
         }
 
@@ -181,7 +191,7 @@ class BookingController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'Booking created successfully',
+            'message' => __('messages.bookRideOrParcel.booking_created'),
             'data'    => [
                 'id'           => $booking->id,
                 'ride_id'      => $booking->ride_id,
@@ -217,9 +227,18 @@ class BookingController extends Controller
         if (!$driver) {
             return response()->json([
                 'status'  => false,
-                'message' => 'Driver not authenticated'
+                'message' =>  __('messages.getDriverBookings.driver_not_authenticated'),
             ], 401);
         }
+
+        // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $driver->id)
+            ->where('device_id', $driver->device_id)
+            ->where('device_type', $driver->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         // Validate optional ride_id parameter
         $rideId = $request->query('ride_id');
@@ -269,7 +288,7 @@ class BookingController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'Bookings retrieved successfully',
+            'message' => __('messages.getDriverBookings.success'),
             'data'    => $data
         ], 200);
     }
@@ -283,9 +302,18 @@ class BookingController extends Controller
         if (!$passenger) {
             return response()->json([
                 'status'  => false,
-                'message' => 'Passenger not authenticated'
+                'message' => __('messages.getPassengerBookingRequests.passenger_not_authenticated'),
             ], 401);
         }
+
+        // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $passenger->id)
+            ->where('device_id', $passenger->device_id)
+            ->where('device_type', $passenger->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         // Fetch bookings made by this passenger
         $bookings = \App\Models\RideBooking::with(['ride', 'ride.driver'])
@@ -323,7 +351,7 @@ class BookingController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'Your ride requests retrieved successfully',
+            'message' => __('messages.getPassengerBookingRequests.success'),
             'data'    => $data
         ], 200);
     }
@@ -335,19 +363,28 @@ class BookingController extends Controller
         if (!$driver) {
             return response()->json([
                 'status' => false,
-                'message' => 'Driver not authenticated'
+               'message' => __('messages.confirmBooking.driver_not_authenticated')
             ], 401);
         }
+
+        // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $driver->id)
+            ->where('device_id', $driver->device_id)
+            ->where('device_type', $driver->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         // Validation
         $validator = Validator::make($request->all(), [
             'booking_id' => 'required|exists:ride_bookings,id',
             'status'     => 'required|in:confirmed,cancelled',
         ], [
-            'booking_id.required' => 'Booking ID is required.',
-            'booking_id.exists'   => 'This booking does not exist.',
-            'status.required'     => 'Status is required to update the booking.',
-            'status.in'           => 'Status must be either "confirmed" or "cancelled".',
+            'booking_id.required' => __('messages.confirmBooking.validation.booking_id_required'),
+            'booking_id.exists'   => __('messages.confirmBooking.validation.booking_not_exist'),
+            'status.required'     => __('messages.confirmBooking.validation.status_required'),
+            'status.in'           => __('messages.confirmBooking.validation.status_invalid'),
         ]);
 
         if ($validator->fails()) {
@@ -363,7 +400,7 @@ class BookingController extends Controller
         if (!$booking->ride || $booking->ride->user_id != $driver->id) {
             return response()->json([
                 'status' => false,
-                'message' => 'You are not authorized to update this booking'
+                'message' => __('messages.confirmBooking.unauthorized')
             ], 201);
         }
 
@@ -381,7 +418,7 @@ class BookingController extends Controller
 
                 return response()->json([
                     'status'  => false,
-                    'message' => 'Not enough seats available. Booking automatically cancelled.',
+                    'message' => __('messages.confirmBooking.not_enough_seats'),
                     'data'    => $booking
                 ], 201);
             }
@@ -419,6 +456,17 @@ class BookingController extends Controller
                 'body'  => "Your booking for ride from {$pickup} to {$destination} has been {$statusText} by the {$driver->name}.",
             ];
 
+            // $notificationData = [
+            // 'notification_type' => 2,
+            // 'title' => __('messages.confirmBooking.notification_title', ['status' => ucfirst($statusText)]),
+            // 'body'  => __('messages.confirmBooking.notification_body', [
+            //         'pickup' => $pickup,
+            //         'destination' => $destination,
+            //         'status' => $statusText,
+            //         'driver' => $driver->name
+            //     ]),
+            // ];
+
             $fcmService->sendNotification([
                 [
                     'device_token' => $passenger->device_token,
@@ -430,7 +478,7 @@ class BookingController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'Booking ' . $booking->status . ' successfully',
+             'message' => __('messages.confirmBooking.success', ['status' => $booking->status]),
             'data'    => $booking
         ],200);
     }
@@ -608,26 +656,38 @@ class BookingController extends Controller
         if (!$driver) {
             return response()->json([
                 'status'  => false,
-                'message' => 'User not authenticated.',
+                 'message' => __('messages.updateBookingActiveStatus.driver_not_authenticated'),
             ], 401);
         }
 
+        // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $driver->id)
+            ->where('device_id', $driver->device_id)
+            ->where('device_type', $driver->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
+
         $validator = Validator::make($request->all(), [
-            'booking_id' => 'required|exists:ride_bookings,id',
+        'booking_id' => 'required|exists:ride_bookings,id',
+        ], [
+            'booking_id.required' => __('messages.updateBookingActiveStatus.validation.booking_id_required'),
+            'booking_id.exists'   => __('messages.updateBookingActiveStatus.validation.booking_not_exist'),
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'status'  => false,
                 'message' => $validator->errors()->first(),
-            ], 422);
+            ], 201);
         }
 
         $booking = RideBooking::find($request->booking_id);
         if (!$booking) {
             return response()->json([
                 'status'  => false,
-                'message' => 'Booking not found.',
+                 'message' => __('messages.updateBookingActiveStatus.booking_not_found'),
             ], 404);
         }
 
@@ -647,7 +707,7 @@ class BookingController extends Controller
         } else {
             return response()->json([
                 'status'  => false,
-                'message' => 'Invalid booking structure (missing ride or request).',
+                'message' => __('messages.updateBookingActiveStatus.invalid_structure'),
             ], 400);
         }
 
@@ -656,7 +716,7 @@ class BookingController extends Controller
         if (!$isDriverAuthorized) {
             return response()->json([
                 'status'  => false,
-                'message' => 'You are not authorized to start this booking.',
+                'message' => __('messages.updateBookingActiveStatus.unauthorized'),
             ], 403);
         }
 
@@ -664,24 +724,72 @@ class BookingController extends Controller
         $booking->save();
         
         // ✅ Send notification to passenger
+        // if ($passenger && $passenger->device_token) {
+        //     $fcmService = new \App\Services\FCMService();
+        //     $notificationData = [
+        //         'notification_type' => 2,
+        //         'title' => "Booking Activated",
+        //         'body'  => "Your booking for the ride from {$pickup} to {$destination} has been started.",
+        //     ];
+
+        //         //  $notificationData = [
+        //         //     'notification_type' => 2,
+        //         //     'title' => __('messages.updateBookingActiveStatus.notification.title'),
+        //         //     'body'  => __('messages.updateBookingActiveStatus.notification.body', [
+        //         //         'pickup' => $pickup,
+        //         //         'destination' => $destination,
+        //         //     ]),
+        //         // ];
+
+        //     $fcmService->sendNotification([[
+        //         'device_token' => $passenger->device_token,
+        //         'device_type'  => $passenger->device_type ?? 'android',
+        //         'user_id'      => $passenger->id,
+        //     ]], $notificationData);
+        // }
+
+
+        // ✅ Send notification to passenger (in their language)
         if ($passenger && $passenger->device_token) {
-            $fcmService = new \App\Services\FCMService();
+
+            // 🔹 Get passenger language
+            $passengerLang = UserLang::where('user_id', $passenger->id)
+                ->where('device_id', $passenger->device_id)
+                ->where('device_type', $passenger->device_type)
+                ->first();
+
+            $passengerLocale = $passengerLang->language ?? 'ru'; // default if missing
+            $originalLocale = app()->getLocale(); // store driver's locale to restore later
+
+            // 🔹 Switch to passenger's language for notification
+            app()->setLocale($passengerLocale);
+
+            // 🔹 Prepare translated notification
             $notificationData = [
                 'notification_type' => 2,
-                'title' => "Booking Activated",
-                'body'  => "Your booking for the ride from {$pickup} to {$destination} has been started.",
+                'title' => __('messages.updateBookingActiveStatus.notification.title'),
+                'body'  => __('messages.updateBookingActiveStatus.notification.body', [
+                    'pickup'      => $pickup,
+                    'destination' => $destination,
+                ]),
             ];
 
-            $fcmService->sendNotification([[
-                'device_token' => $passenger->device_token,
-                'device_type'  => $passenger->device_type ?? 'android',
-                'user_id'      => $passenger->id,
-            ]], $notificationData);
+            $fcmService = new \App\Services\FCMService();
+            $fcmService->sendNotification([
+                [
+                    'device_token' => $passenger->device_token,
+                    'device_type'  => $passenger->device_type ?? 'android',
+                    'user_id'      => $passenger->id,
+                ]
+            ], $notificationData);
+
+            // 🔹 Restore driver's original locale
+            app()->setLocale($originalLocale);
         }
 
         return response()->json([
             'status'  => true,
-            'message' => 'Booking status updated to active successfully.',
+           'message' => __('messages.updateBookingActiveStatus.success'),
             'data'    => [
                 'booking_id'    => $booking->id,
                 'ride_id'       => $booking->ride_id,
@@ -698,26 +806,37 @@ class BookingController extends Controller
         if (!$driver) {
             return response()->json([
                 'status'  => false,
-                'message' => 'User not authenticated.',
+                'message' => __('messages.updateBookingCompleteStatus.driver_not_authenticated'),
             ], 401);
         }
 
+         // Detect language
+        $userLang = UserLang::where('user_id', $driver->id)
+            ->where('device_id', $driver->device_id)
+            ->where('device_type', $driver->device_type)
+            ->first();
+        $lang = $userLang->language ?? 'ru';
+        app()->setLocale($lang);
+
+        // Validation
         $validator = Validator::make($request->all(), [
             'booking_id' => 'required|exists:ride_bookings,id',
+        ], [
+            'booking_id.required' => __('messages.updateBookingCompleteStatus.validation.booking_id_required'),
+            'booking_id.exists'   => __('messages.updateBookingCompleteStatus.validation.booking_not_exist'),
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'status'  => false,
                 'message' => $validator->errors()->first(),
-            ], 422);
+            ], 201);
         }
 
         $booking = RideBooking::find($request->booking_id);
         if (!$booking) {
             return response()->json([
-                'status'  => false,
-                'message' => 'Booking not found.',
+                 'message' => __('messages.updateBookingCompleteStatus.booking_not_found'),
             ], 404);
         }
 
@@ -737,14 +856,14 @@ class BookingController extends Controller
         } else {
             return response()->json([
                 'status'  => false,
-                'message' => 'Invalid booking structure (missing ride or request).',
+                'message' => __('messages.updateBookingCompleteStatus.invalid_structure'),
             ], 400);
         }
 
         if (!$isDriverAuthorized) {
             return response()->json([
                 'status'  => false,
-                'message' => 'You are not authorized to complete this booking.',
+                'message' => __('messages.updateBookingCompleteStatus.unauthorized'),
             ], 403);
         }
 
@@ -752,24 +871,62 @@ class BookingController extends Controller
         $booking->save();
 
         // ✅ Send notification to passenger
-        if ($passenger && $passenger->device_token) {
-            $fcmService = new \App\Services\FCMService();
-            $notificationData = [
-                'notification_type' => 2,
-                'title' => "Booking Completed",
-                'body'  => "Your booking for the ride from {$pickup} to {$destination} has been completed.",
-            ];
+        // if ($passenger && $passenger->device_token) {
+        //     $fcmService = new \App\Services\FCMService();
+        //     $notificationData = [
+        //         'notification_type' => 2,
+        //         'title' => "Booking Completed",
+        //         'body'  => "Your booking for the ride from {$pickup} to {$destination} has been completed.",
+        //     ];
 
-            $fcmService->sendNotification([[
-                'device_token' => $passenger->device_token,
-                'device_type'  => $passenger->device_type ?? 'android',
-                'user_id'      => $passenger->id,
-            ]], $notificationData);
-        }
+        //     // $notificationData = [
+        //     //     'notification_type' => 2,
+        //     //     'title' => __('messages.updateBookingCompleteStatus.notification.title'),
+        //     //     'body'  => __('messages.updateBookingCompleteStatus.notification.body', [
+        //     //         'pickup' => $pickup,
+        //     //         'destination' => $destination,
+        //     //     ]),
+        //     // ];
+
+        //     $fcmService->sendNotification([[
+        //         'device_token' => $passenger->device_token,
+        //         'device_type'  => $passenger->device_type ?? 'android',
+        //         'user_id'      => $passenger->id,
+        //     ]], $notificationData);
+        // }
+
+
+         //✅ Send notification to passenger in THEIR language
+            if ($passenger && $passenger->device_token) {
+                // Detect Passenger Language
+                $passengerLang = UserLang::where('user_id', $passenger->id)
+                    ->where('device_id', $passenger->device_id)
+                    ->where('device_type', $passenger->device_type)
+                    ->first();
+                    
+                $lang = $passengerLang->language ?? 'ru'; // fallback
+                app()->setLocale($lang);
+
+                $notificationData = [
+                    'notification_type' => 2,
+                    'title' => __('messages.updateBookingCompleteStatus.notification.title'),
+                    'body'  => __('messages.updateBookingCompleteStatus.notification.body', [
+                        'pickup' => $pickup,
+                        'destination' => $destination,
+                    ]),
+                ];
+
+                $fcmService = new \App\Services\FCMService();
+                $fcmService->sendNotification([[
+                    'device_token' => $passenger->device_token,
+                    'device_type'  => $passenger->device_type ?? 'android',
+                    'user_id'      => $passenger->id,
+                ]], $notificationData);
+            }
 
         return response()->json([
             'status'  => true,
-            'message' => 'Booking status updated to complete successfully.',
+            'message' => __('messages.updateBookingCompleteStatus.success'),
             'data'    => [
                 'booking_id'    => $booking->id,
                 'ride_id'       => $booking->ride_id,
@@ -778,9 +935,6 @@ class BookingController extends Controller
             ],
         ]);
     }
-
-
-
 
 
     // code for get cancelled pending confirm ride of driver and passednger
@@ -946,8 +1100,17 @@ class BookingController extends Controller
     {
         $user = Auth::guard('api')->user();
         if (!$user) {
-            return response()->json(['status' => false, 'message' => 'User not authenticated'], 401);
+            return response()->json(['status' => false, 'message' => __('messages.getConfirmationStatus.user_not_authenticated')], 401);
         }
+
+        // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         $statusType = $request->query('status_type', 'active'); // active / completed / cancelled
 
@@ -1010,7 +1173,7 @@ class BookingController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Rides fetched successfully',
+           'message' => __('messages.getConfirmationStatus.success'),
             'data' => $data
         ], 200);
     }
@@ -1024,9 +1187,18 @@ class BookingController extends Controller
         if (!$user) {
             return response()->json([
                 'status'  => false,
-                'message' => 'User not authenticated'
+                'message' => __('messages.getSendResponse.user_not_authenticated')
             ], 401);
         }
+
+        // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         //  1. Bookings: user booked someone else's ride
         $bookings = \App\Models\RideBooking::with(['ride', 'ride.user'])
@@ -1042,7 +1214,7 @@ class BookingController extends Controller
             $ride = $booking->ride;
             if (!$ride) return null; // skip if ride is missing
             return [
-                'type'             => 'booking',
+                'type'            => __('messages.getSendResponse.types.booking'),
                 'booking_id'       => $booking->id,
                 'request_id'       => $booking->request_id ?? null,
                 'ride_id'          => $booking->ride_id,
@@ -1077,7 +1249,7 @@ class BookingController extends Controller
             if ($activeStatus == 2 || $status === 'cancelled') return null;
 
             return [
-                'type'             => 'request_interest',
+                 'type'            => __('messages.getSendResponse.types.request_interest'),
                 'booking_id'       => $booking->id ?? null,
                 'request_id'       => $req->id,
                 'passenger_id'     => $req->user_id,
@@ -1104,7 +1276,7 @@ class BookingController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'Sent items fetched successfully',
+             'message' => __('messages.getSendResponse.success'),
             'data'    => $sentData
         ]);
     }
@@ -1317,9 +1489,18 @@ class BookingController extends Controller
         if (!$user) {
             return response()->json([
                 'status'  => false,
-                'message' => 'User not authenticated'
+                 'message' => __('messages.getReceivedResponse.user_not_authenticated')
             ], 401);
         }
+
+        // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         //  DRIVER VIEW: rides created by the driver
         $driverRides = \App\Models\Ride::with(['rideBookings.user', 'vehicle'])
@@ -1337,7 +1518,7 @@ class BookingController extends Controller
                     ->filter(fn($b) => $b->active_status != 2 && $b->status != 'cancelled')
                     ->map(function ($booking) {
                         return [
-                            'created_by'      => 'passenger',
+                            'created_by'      => __('messages.getReceivedResponse.created_by.passenger'),
                             'booking_id'      => $booking->id,
                             'passenger_id'    => $booking->user_id,
                             'passenger_name'  => optional($booking->user)->name,
@@ -1366,7 +1547,7 @@ class BookingController extends Controller
                 }
 
                 return [
-                    'created_by'      => 'driver',
+                    'created_by'      => __('messages.getReceivedResponse.created_by.driver'),
                     'ride_id'         => $ride->id,
                     'pickup_location' => $ride->pickup_location,
                     'destination'     => $ride->destination,
@@ -1398,7 +1579,7 @@ class BookingController extends Controller
                 }
 
                 $rideDetails = [
-                    'created_by'          => 'driver',
+                    'created_by'      => __('messages.getReceivedResponse.created_by.driver'),
                     'request_id'          => $req->id,
                     'pickup_location'     => $req->pickup_location,
                     'destination'         => $req->destination,
@@ -1540,7 +1721,7 @@ class BookingController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'Received requests fetched successfully',
+           'message' => __('messages.getReceivedResponse.success'),
             'data'    => $receivedData
         ]);
     }

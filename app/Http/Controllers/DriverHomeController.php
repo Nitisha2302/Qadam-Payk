@@ -10,6 +10,7 @@ use App\Models\Vehicle;
 use App\Models\Ride;
 use App\Models\Service;
 use Carbon\Carbon;
+use App\Models\UserLang;
 
 class DriverHomeController extends Controller
 {
@@ -24,9 +25,18 @@ class DriverHomeController extends Controller
         if (!$user) {
             return response()->json([
                 'status' => false,
-                'message' => 'User not authenticated.',
+                 'message' => __('messages.vehicle.add_vehicle.user_not_authenticated'),
             ], 401);
         }
+
+        // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         // ✅ Validate input
         $validator = Validator::make($request->all(), [
@@ -35,12 +45,12 @@ class DriverHomeController extends Controller
             'number_plate'  => 'required|string|unique:vehicles,number_plate',
             'vehicle_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ], [
-            'brand.required'        => 'Vehicle brand is required.',
-            'model.required'        => 'Vehicle model is required.',
-            'number_plate.required' => 'Number plate is required.',
-            'number_plate.unique'   => 'This number plate is already registered.',
-            'vehicle_image.image'   => 'Vehicle image must be an image file.',
-             'vehicle_image.mimes'   => 'Vehicle image must be a file of type: jpg, jpeg, png.',
+            'brand.required'        => __('messages.vehicle.add_vehicle.validation.brand_required'),
+            'model.required'        => __('messages.vehicle.add_vehicle.validation.model_required'),
+            'number_plate.required' => __('messages.vehicle.add_vehicle.validation.number_plate_required'),
+            'number_plate.unique'   => __('messages.vehicle.add_vehicle.validation.number_plate_unique'),
+            'vehicle_image.image'   => __('messages.vehicle.add_vehicle.validation.vehicle_image_image'),
+            'vehicle_image.mimes'   => __('messages.vehicle.add_vehicle.validation.vehicle_image_mimes'),
         ]);
 
         if ($validator->fails()) {
@@ -70,7 +80,7 @@ class DriverHomeController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'Vehicle added successfully.',
+            'message' => __('messages.vehicle.add_vehicle.success'),
             'data'    => $vehicle,
         ], 200);
     }
@@ -82,9 +92,18 @@ class DriverHomeController extends Controller
         if (!$user) {
             return response()->json([
                 'status' => false,
-                'message' => 'User not authenticated.',
+               'message' => __('messages.vehicle.get_vehicles.user_not_authenticated'),
             ], 401);
         }
+
+         // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         $vehicles = Vehicle::select('id', 'brand', 'model', 'number_plate', 'vehicle_image')
             ->where('user_id', $user->id)
@@ -92,7 +111,9 @@ class DriverHomeController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => $vehicles->isEmpty() ? 'No vehicles found for this user.' : 'Vehicles fetched successfully.',
+            'message' => $vehicles->isEmpty()
+                ? __('messages.vehicle.get_vehicles.no_vehicles_found')
+                : __('messages.vehicle.get_vehicles.success'),
             'data'    => $vehicles,
         ], 200);
     }
@@ -103,9 +124,18 @@ class DriverHomeController extends Controller
         if (!$user) {
             return response()->json([
                 'status' => false,
-                'message' => 'User not authenticated.',
+               'message' => __('messages.vehicle.edit_vehicle.user_not_authenticated'),
             ], 401);
         }
+
+         // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         // ✅ All fields required except image
         $validator = Validator::make($request->all(), [
@@ -115,11 +145,14 @@ class DriverHomeController extends Controller
             'number_plate'  => 'required|string|unique:vehicles,number_plate,' . $request->vehicle_id,
             'vehicle_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ], [
-            'vehicle_id.required'    => 'Vehicle ID is required.',
-            'brand.required'        => 'Vehicle brand is required.',
-            'model.required'        => 'Vehicle model is required.',
-            'number_plate.required' => 'Number plate is required.',
-            'number_plate.unique'   => 'This number plate is already registered.',
+            'vehicle_id.required'   => __('messages.vehicle.edit_vehicle.validation.vehicle_id_required'),
+            'vehicle_id.exists'     => __('messages.vehicle.edit_vehicle.validation.vehicle_not_found'),
+            'brand.required'        => __('messages.vehicle.edit_vehicle.validation.brand_required'),
+            'model.required'        => __('messages.vehicle.edit_vehicle.validation.model_required'),
+            'number_plate.required' => __('messages.vehicle.edit_vehicle.validation.number_plate_required'),
+            'number_plate.unique'   => __('messages.vehicle.edit_vehicle.validation.number_plate_unique'),
+            'vehicle_image.image'   => __('messages.vehicle.edit_vehicle.validation.vehicle_image_invalid'),
+            'vehicle_image.mimes'   => __('messages.vehicle.edit_vehicle.validation.vehicle_image_invalid'),
         ]);
 
         if ($validator->fails()) {
@@ -137,7 +170,7 @@ class DriverHomeController extends Controller
             if (!$vehicle) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'Vehicle not found or not owned by this user.',
+                    'message' => __('messages.vehicle.edit_vehicle.vehicle_not_found'),
                 ], 201);
             }
 
@@ -159,7 +192,7 @@ class DriverHomeController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'Vehicle updated successfully.',
+            'message' => __('messages.vehicle.edit_vehicle.success'),
             'data'    => $vehicle,
         ], 200);
     }
@@ -171,9 +204,18 @@ class DriverHomeController extends Controller
         if (!$user) {
             return response()->json([
                 'status' => false,
-                'message' => 'User not authenticated.',
+                'message' => __('messages.ride.create.user_not_authenticated'),
             ], 401);
         }
+
+         // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         // ✅ Validation with custom error messages
         $validator = Validator::make($request->all(), [
@@ -189,21 +231,21 @@ class DriverHomeController extends Controller
             'services'        => 'nullable|array',
             'services.*'      => 'exists:services,id', 
         ], [
-            'vehicle_id.required'      => 'Vehicle ID is required.',
-            'vehicle_id.exists'        => 'The selected vehicle is invalid.',
-            'pickup_location.required' => 'Pickup location is required.',
-            'destination.required'     => 'Destination is required.',
-            'number_of_seats.required' => 'Number of seats is required.',
-            'number_of_seats.integer'  => 'Number of seats must be an integer.',
-            'price.required'           => 'Price is required.',
-            'price.numeric'            => 'Price must be a number.',
-            'ride_date.required'       => 'Ride date is required.',
-            'ride_date.after_or_equal' => 'Ride date must be today or later.',
-            'ride_time.required'       => 'Ride time is required.',
-            'ride_time.date_format'    => 'Ride time must be in the format HH:MM.',
-            'accept_parcel.boolean'    => 'Accept parcel must be true or false.',
-            'services.*.exists' => 'One or more selected services are invalid.',
-            'reaching_time.date_format' => 'Reaching time must be in HH:MM (24-hour) format.',
+             'vehicle_id.required'      => __('messages.ride.create.validation.vehicle_id_required'),
+            'vehicle_id.exists'        => __('messages.ride.create.validation.vehicle_id_exists'),
+            'pickup_location.required' => __('messages.ride.create.validation.pickup_location_required'),
+             'destination.required'     => __('messages.ride.create.validation.destination_required'),
+            'number_of_seats.required' => __('messages.ride.create.validation.number_of_seats_required'),
+            'number_of_seats.integer'  => __('messages.ride.create.validation.number_of_seats_integer'),
+             'price.required'           => __('messages.ride.create.validation.price_required'),
+            'price.numeric'            => __('messages.ride.create.validation.price_numeric'),
+            'ride_date.required'       => __('messages.ride.create.validation.ride_date_required'),
+            'ride_date.after_or_equal' => __('messages.ride.create.validation.ride_date_after_or_equal'),
+            'ride_time.required'       => __('messages.ride.create.validation.ride_time_required'),
+            'ride_time.date_format'    => __('messages.ride.create.validation.ride_time_format'),
+            'accept_parcel.boolean'    => __('messages.ride.create.validation.accept_parcel_boolean'),
+            'services.*.exists'        => __('messages.ride.create.validation.services_exists'),
+            'reaching_time.date_format'=> __('messages.ride.create.validation.reaching_time_format'),
 
         ]);
 
@@ -237,7 +279,7 @@ class DriverHomeController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'Ride created successfully.',
+             'message' => __('messages.ride.create.success'),
             'data'    => $ride,
         ], 200);
     }
@@ -250,9 +292,18 @@ class DriverHomeController extends Controller
         if (!$user) {
             return response()->json([
                 'status' => false,
-                'message' => 'User not authenticated.',
+               'message' => __('messages.ride.edit.user_not_authenticated')
             ], 401);
         }
+
+         // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         // ✅ Validation with custom messages
         $validator = Validator::make($request->all(), [
@@ -268,21 +319,24 @@ class DriverHomeController extends Controller
             'accept_parcel'   => 'nullable|boolean',
          'services'        => ['nullable', 'array'],
         ], [
-            'vehicle_id.required'      => 'Vehicle ID is required.',
-            'vehicle_id.exists'        => 'The selected vehicle is invalid.',
-            'pickup_location.required' => 'Pickup location is required.',
-            'destination.required'     => 'Destination is required.',
-            'number_of_seats.required' => 'Number of seats is required.',
-            'number_of_seats.integer'  => 'Number of seats must be an integer.',
-            'price.required'           => 'Price is required.',
-            'price.numeric'            => 'Price must be a number.',
-            'ride_date.required'       => 'Ride date is required.',
-            'ride_date.after_or_equal' => 'Ride date must be today or later.',
-            'ride_time.required'       => 'Ride time is required.',
-            'ride_time.date_format'    => 'Ride time must be in the format HH:MM.',
-            'accept_parcel.boolean'    => 'Accept parcel must be true or false.',
-            'services.array'           => 'Services must be an array.',
-            'reaching_time.date_format' => 'Reaching time must be in HH:MM (24-hour) format.',
+            'ride_id.required'         => __('messages.ride.edit.validation.ride_id_required'),
+            'ride_id.exists'           => __('messages.ride.edit.validation.ride_not_found'),
+            'vehicle_id.required'      => __('messages.ride.edit.validation.vehicle_id_required'),
+            'vehicle_id.exists'        => __('messages.ride.edit.validation.vehicle_not_found'),
+            'pickup_location.required' => __('messages.ride.edit.validation.pickup_location_required'),
+            'destination.required'     => __('messages.ride.edit.validation.destination_required'),
+            'number_of_seats.required' => __('messages.ride.edit.validation.number_of_seats_required'),
+            'number_of_seats.integer'  => __('messages.ride.edit.validation.number_of_seats_integer'),
+            'price.required'           => __('messages.ride.edit.validation.price_required'),
+            'price.numeric'            => __('messages.ride.edit.validation.price_numeric'),
+            'ride_date.required'       => __('messages.ride.edit.validation.ride_date_required'),
+            'ride_date.after_or_equal' => __('messages.ride.edit.validation.ride_date_after_or_equal'),
+            'ride_time.required'       => __('messages.ride.edit.validation.ride_time_required'),
+            'ride_time.date_format'    => __('messages.ride.edit.validation.ride_time_format'),
+            'reaching_time.date_format'=> __('messages.ride.edit.validation.reaching_time_format'),
+            'accept_parcel.boolean'    => __('messages.ride.edit.validation.accept_parcel_boolean'),
+            'services.array'           => __('messages.ride.edit.validation.services_array'),
+            'services.*.exists'        => __('messages.ride.edit.validation.services_exists'),
         ]);
 
         
@@ -302,7 +356,7 @@ class DriverHomeController extends Controller
         if (!$ride) {
             return response()->json([
                 'status' => false,
-                'message' => 'Ride not found or not authorized.',
+               'message' => __('messages.ride.edit.ride_not_found'),
             ], 201);
         }
 
@@ -327,7 +381,7 @@ class DriverHomeController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'Ride updated successfully.',
+              'message' => __('messages.ride.edit.success'),
             'data'    => $ride,
         ], 200);
     }
@@ -340,9 +394,18 @@ class DriverHomeController extends Controller
         if (!$user) {
             return response()->json([
                 'status' => false,
-                'message' => 'User not authenticated.',
+                'message' => __('messages.ride.driver_rides.user_not_authenticated'),
             ], 401);
         }
+
+         // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         // ✅ Fetch rides created by this driver with vehicle & driver relation
         $rides = Ride::with([
@@ -386,7 +449,7 @@ class DriverHomeController extends Controller
 
         return response()->json([
             "status"  => true,
-            "message" => "Driver rides fetched successfully.",
+            "message" => __('messages.ride.driver_rides.success'),
             "data"    => $rides,
         ], 200);
     }
@@ -647,96 +710,37 @@ class DriverHomeController extends Controller
     }
 
 
-    // public function driverDetails(Request $request)
-    // {
-    //     $userId = $request->query(key: 'user_id');
-
-    //     $validator = Validator::make(['user_id' => $userId], [
-    //         'user_id' => 'required|integer|exists:users,id',
-    //     ], [
-    //         'user_id.required' => 'User ID is required.',
-    //         'user_id.integer'  => 'User ID must be a valid integer.',
-    //         'user_id.exists'   => 'Driver not found.',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => $validator->errors()->first(),
-    //         ], 201);
-    //     }
-
-    //     $driver = User::find($userId);
-    //     $vehicle = Vehicle::where('user_id', $driver->id)->first();
-
-    //     // Base driver & vehicle info
-    //     $responseData = [
-    //         'driver_id'      => $driver->id,
-    //         'name'           => $driver->name,
-    //         'image'          => $driver->image,
-    //         'phone_number'   => $driver->phone_number,
-    //         'dob'            => $driver->dob,
-    //         'gender'         => $driver->gender,
-    //         'vehicle_id'     => $vehicle->id ?? null,
-    //         'brand'          => $vehicle->brand ?? null,
-    //         'model'          => $vehicle->model ?? null,
-    //         'vehicle_image'  => $vehicle->vehicle_image ?? null,
-    //         'vehicle_type'   => $vehicle->vehicle_type ?? null,
-    //         'number_plate'   => $vehicle->number_plate ?? null,
-    //     ];
-
-    //     // Fetch rides for this driver and merge directly
-    //     $rides = Ride::where('vehicle_id', $vehicle->id ?? 0)
-    //                 ->orderBy('ride_date', 'asc')
-    //                 ->orderBy('ride_time', 'asc')
-    //                 ->get();
-
-    //     foreach ($rides as $ride) {
-    //         $rideData = [
-    //             'ride_id'          => $ride->id,
-    //             'pickup_location'  => $ride->pickup_location,
-    //             'destination'      => $ride->destination,
-    //             'number_of_seats'  => $ride->number_of_seats,
-    //             'price'            => $ride->price * $ride->number_of_seats,
-    //             'ride_date'        => $ride->ride_date,
-    //             'ride_time'        => $ride->ride_time,
-    //             'services'         => $ride->services_details,
-    //             'accept_parcel'    => $ride->accept_parcel,
-    //             'vehicle_id'       => $vehicle->id ?? null,
-    //             'brand'            => $vehicle->brand ?? null,
-    //             'model'            => $vehicle->model ?? null,
-    //             'vehicle_image'    => $vehicle->vehicle_image ?? null,
-    //             'vehicle_type'     => $vehicle->vehicle_type ?? null,
-    //             'number_plate'     => $vehicle->number_plate ?? null,
-    //             'driver_id'        => $driver->id,
-    //             'driver_status'    => $driver->id_verified ,
-    //             'driver_rating'    => '3',
-    //             'phone_number'     => $driver->phone_number,
-    //             'id_verified'      => $driver->id_verified,
-    //         ];
-
-    //         // Merge ride data into the same responseData
-    //         $responseData = array_merge($responseData, $rideData);
-    //     }
-
-    //     return response()->json([
-    //         'status'  => true,
-    //         'message' => 'Driver details fetched successfully.',
-    //         'data'    => $responseData,
-    //     ], 200);
-    // }
-
-
     public function driverDetails(Request $request)
     {
+
+        $user = Auth::guard('api')->user();
+
+            if (!$user) {
+                return response()->json([
+                    'status' => false,
+                    'message' => __('messages.driver.details.user_not_authenticated'),
+                ], 401);
+            }
+
+            // 🔹 Detect user's preferred language from UserLang table
+            $userLang = UserLang::where('user_id', $user->id)
+                ->where('device_id', $user->device_id)
+                ->where('device_type', $user->device_type)
+                ->first();
+
+            $lang = $userLang->language ?? 'ru'; // fallback to Russian
+            app()->setLocale($lang);
+        
         $userId = $request->query('user_id');
+
+        
 
         $validator = Validator::make(['user_id' => $userId], [
             'user_id' => 'required|integer|exists:users,id',
         ], [
-            'user_id.required' => 'User ID is required.',
-            'user_id.integer'  => 'User ID must be a valid integer.',
-            'user_id.exists'   => 'Driver not found.',
+             'user_id.required' => __('messages.driver.details.validation.user_id_required'),
+            'user_id.integer'  => __('messages.driver.details.validation.user_id_integer'),
+            'user_id.exists'   => __('messages.driver.details.validation.user_id_exists'),
         ]);
 
         if ($validator->fails()) {
@@ -809,7 +813,7 @@ class DriverHomeController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'Driver details fetched successfully.',
+              'message' => __('messages.driver.details.success'),
             'data'    => $data,
         ], 200);
     }

@@ -98,7 +98,6 @@ class AuthController extends Controller
 
         $lang = $userLang->language ?? 'ru'; // fallback to Russian
         app()->setLocale($lang);
-        app()->setLocale($lang);
         // Validation
         $validator = Validator::make($request->all(), [
             'phone_number' => 'required|digits_between:8,15',
@@ -442,6 +441,16 @@ class AuthController extends Controller
             ]);
         }
 
+        // ✅ Update User table with latest device info
+        $user->update([
+            'otp'          => $otp,
+            'otp_sent_at'  => now(),
+            'device_type'  => $request->device_type,
+            'device_id'    => $request->device_id,
+            'device_token' => $request->fcm_token,
+        ]);
+
+
         // Decide message based on new or existing
          $message = $user->wasRecentlyCreated
         ? __('messages.login.otp_sent_register')
@@ -543,9 +552,18 @@ class AuthController extends Controller
         if (!$user) {
             return response()->json([
                 'status' => false,
-                'message' => 'User not authenticated.',
+                'message' => __('messages.logout.user_not_authenticated'),
             ], 401);
         }
+
+            // 🔹 Detect user's preferred language from UserLang table
+            $userLang = UserLang::where('user_id', $user->id)
+                ->where('device_id', $user->device_id)
+                ->where('device_type', $user->device_type)
+                ->first();
+
+            $lang = $userLang->language ?? 'ru'; // fallback to Russian
+            app()->setLocale($lang);
 
         // Clear tokens & device info
         $user->api_token      = null;
@@ -563,7 +581,7 @@ class AuthController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'Logout successful.',
+            'message' =>  __('messages.logout.logout_success'),
         ], 200);
     }
 
@@ -575,13 +593,22 @@ class AuthController extends Controller
         if (!$user) {
             return response()->json([
                 'status'  => false,
-                'message' => 'User not authenticated.',
+                'message' => __('messages.getProfile.user_not_authenticated'),
             ], 401);
         }
 
+        // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
+
         return response()->json([
             'status'  => true,
-            'message' => 'Profile fetched successfully.',
+            'message' =>  __('messages.getProfile.success'),
             'data'    => $user, // return all fields from users table
         ], 200);
     }
@@ -596,9 +623,18 @@ class AuthController extends Controller
         if (!$user) {
             return response()->json([
                 'status'  => false,
-                'message' => 'User not authenticated.',
+                'message' => __('messages.profile.user_not_authenticated'),
             ], 401);
         }
+
+        // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         // Validate request
         $validator = Validator::make($request->all(), [
@@ -608,19 +644,18 @@ class AuthController extends Controller
             'profile_image'   => 'nullable|file|mimes:jpeg,png,jpg|max:4096',
             'government_id'   => 'nullable|array',
             'government_id.*' => 'file|mimes:jpeg,png,jpg,pdf|max:4096',
-        ], [
-            'name.required'              => 'Name is required.',
-            'name.string'                => 'Name must be a valid string.',
-            'name.max'                   => 'Name must not exceed 255 characters.',
-            'gender.in'                  => 'Gender must be male, female, or other.',
-            'profile_image.file'         => 'Profile image must be a file.',
-            'profile_image.mimes'        => 'Profile image must be jpeg, png, or jpg.',
-            'profile_image.max'          => 'Profile image must not exceed 4MB.',
-            'government_id.required'     => 'Government ID is required.',
-            'government_id.array'        => 'Government ID must be an array.',
-            'government_id.*.file'       => 'Each government ID must be a file.',
-            'government_id.*.mimes'      => 'Each government ID must be jpeg, png, jpg, or pdf.',
-            'government_id.*.max'        => 'Each government ID must not exceed 4MB.',
+         ], [
+            'name.required'              => __('messages.profile.validation.name_required'),
+            'name.string'                => __('messages.profile.validation.name_string'),
+            'name.max'                   => __('messages.profile.validation.name_max'),
+            'gender.in'                  => __('messages.profile.validation.gender_in'),
+            'profile_image.file'         => __('messages.profile.validation.profile_file'),
+            'profile_image.mimes'        => __('messages.profile.validation.profile_mimes'),
+            'profile_image.max'          => __('messages.profile.validation.profile_max'),
+            'government_id.array'        => __('messages.profile.validation.govid_array'),
+            'government_id.*.file'       => __('messages.profile.validation.govid_file'),
+            'government_id.*.mimes'      => __('messages.profile.validation.govid_mimes'),
+            'government_id.*.max'        => __('messages.profile.validation.govid_max'),
         ]);
 
         if ($validator->fails()) {
@@ -666,7 +701,7 @@ class AuthController extends Controller
             } catch (\Exception $e) {
                 return response()->json([
                     'status'  => false,
-                    'message' => 'Invalid date format. Use DD-MM-YYYY.',
+                     'message' => __('messages.profile.validation.invalid_dob_format'),
                 ], status: 422);
             }
         }
@@ -675,7 +710,7 @@ class AuthController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'Profile updated successfully.',
+             'message' => __('messages.profile.updated_successfully'),
             'data'    => $user,
         ], 200);
     }
@@ -784,6 +819,11 @@ class AuthController extends Controller
             ]);
         }
 
+          // 🔹 Also update in users table for easy lookup during logout or other APIs
+        $user->device_id   = $request->device_id;
+        $user->device_type = $request->device_type;
+        $user->save();
+
         // Set application locale
         app()->setLocale($request->language);
 
@@ -826,9 +866,18 @@ class AuthController extends Controller
         if (!$user) {
             return response()->json([
                 'status'  => false,
-                'message' => 'User not authenticated'
+                'message' => __('messages.deleteAccount.user_not_authenticated'),
             ], 401);
         }
+
+        // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         // Soft delete the user
         $user->is_deleted = true;
@@ -847,7 +896,7 @@ class AuthController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'Your account has been deleted successfully.',
+            'message' => __('messages.deleteAccount.success'),
         ]);
     }
 

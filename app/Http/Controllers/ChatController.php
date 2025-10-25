@@ -7,20 +7,31 @@ use App\Models\Conversation;
 use App\Models\Message;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use App\Models\UserLang;
 
 class ChatController extends Controller
 {
     // Start or get a conversation
     public function start(Request $request) {
         $user = Auth::guard('api')->user();
-        if (!$user) return response()->json(['status' => false,'message' => 'User not authenticated'], 401);
+        if (!$user) return response()->json(['status' => false,'message' => __('messages.start.user_not_authenticated')], 401);
+
+        
+       // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         $validator = Validator::make($request->all(), [
             'other_user_id' => 'required|exists:users,id|not_in:' . $user->id,
         ], [
-            'other_user_id.required' => 'Other user ID is required.',
-            'other_user_id.exists'   => 'The user you are trying to chat with does not exist.',
-            'other_user_id.not_in'   => 'You cannot start a chat with yourself.',
+             'other_user_id.required' => __('messages.start.validation.other_user_id_required'),
+            'other_user_id.exists'   => __('messages.start.validation.other_user_id_not_exist'),
+            'other_user_id.not_in'   => __('messages.start.validation.other_user_id_not_in'),
         ]);
 
         if ($validator->fails()) return response()->json(['status' => false, 'message' => $validator->errors()->first()], 201);
@@ -29,7 +40,7 @@ class ChatController extends Controller
 
         return response()->json([
             'status'=>true,
-            'message'=>'Conversation started successfully',
+            'message'      => __('messages.start.success'),
             'conversation'=>$conversation
         ],200);
     }
@@ -38,7 +49,15 @@ class ChatController extends Controller
 
     public function allConversation() {
         $user = Auth::guard('api')->user();
-        if (!$user) return response()->json(['status' => false,'message' => 'User not authenticated'], 401);
+        if (!$user) return response()->json(['status' => false,'message' =>__('messages.allConversation.user_not_authenticated')], 401);
+        // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         $meId = $user->id;
         $conversations = Conversation::where('user_one_id', $meId)
@@ -63,28 +82,37 @@ class ChatController extends Controller
         ];
         });
 
-        return response()->json(['status'=>true,'message'=>'Conversations fetched successfully','conversations'=>$result],200);
+        return response()->json(['status'=>true,'message'=>__('messages.allConversation.success'),'conversations'=>$result],200);
     }
 
     // Get messages in a conversation
     public function allMessages(Request $request) {
         $user = Auth::guard('api')->user();
-        if (!$user) return response()->json(['status' => false,'message' => 'User not authenticated'], 401);
+        if (!$user) return response()->json(['status' => false,'message' => __('messages.allMessages.user_not_authenticated')], 401);
+
+        // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
           $validator = Validator::make($request->all(), [
             'conversation_id' => 'required|exists:conversations,id',
         ], [
-            'conversation_id.required' => 'Conversation ID is required.',
-            'conversation_id.exists'   => 'Conversation does not exist.'
+            'conversation_id.required' => __('messages.allMessages.validation.conversation_required'),
+           'conversation_id.exists'   => __('messages.allMessages.validation.conversation_not_exist'),
         ]);
 
         if($validator->fails())
-            return response()->json(['status'=>false,'errors'=>$validator->errors()],201);
+            return response()->json(['status'=>false,'errors'=>$validator->errors()->first()],201);
 
         $conversation = Conversation::find($request->conversation_id);
 
         if(!in_array($user->id, [$conversation->user_one_id,$conversation->user_two_id])) {
-            return response()->json(['status'=>false,'message'=>'You are not a participant in this conversation'],201);
+            return response()->json(['status'=>false,'message'=> __('messages.allMessages.not_participant')],201);
         }
 
         $messages = $conversation->messages()->with('sender')->get()->map(function($m) use ($user){
@@ -105,7 +133,7 @@ class ChatController extends Controller
             ];
         });
 
-        return response()->json(['status'=>true,'message'=>'Messages fetched successfully','messages'=>$messages],200);
+        return response()->json(['status'=>true,'message'  => __('messages.allMessages.success'),'messages'=>$messages],200);
     }
 
     // Send a message
@@ -175,7 +203,16 @@ class ChatController extends Controller
 
     public function send(Request $request) {
         $user = Auth::guard('api')->user();
-        if (!$user) return response()->json(['status' => false,'message' => 'User not authenticated'], 401);
+        if (!$user) return response()->json(['status' => false,'message' => __('messages.send.user_not_authenticated')], 401);
+
+        // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         $validator = Validator::make($request->all(), [
             'conversation_id' => 'nullable|exists:conversations,id',
@@ -183,16 +220,16 @@ class ChatController extends Controller
             'message'         => 'required|string|max:5000',
             'type'            => 'nullable|in:text,image,file,system'
         ], [
-            'conversation_id.exists' => 'Conversation not found.',
-            'other_user_id.exists'   => 'User does not exist.',
-            'message.required'       => 'Message cannot be empty.',
-            'message.string'         => 'Message must be text.',
-            'message.max'            => 'Message is too long (max 5000 chars).',
-            'type.in'                => 'Invalid message type.',
+            'conversation_id.exists' => __('messages.send.validation.conversation_not_exist'),
+            'other_user_id.exists'   => __('messages.send.validation.user_not_exist'),
+            'message.required'       => __('messages.send.validation.message_required'),
+            'message.string'         => __('messages.send.validation.message_string'),
+            'message.max'            => __('messages.send.validation.message_max'),
+            'type.in'                => __('messages.send.validation.type_invalid'),
         ]);
 
         if($validator->fails())
-            return response()->json(['status'=>false,'errors'=>$validator->errors()],201);
+            return response()->json(['status'=>false,'errors'=>$validator->errors()->first()],201);
 
         if($request->conversation_id) {
             $conversation = Conversation::find($request->conversation_id);
@@ -201,7 +238,7 @@ class ChatController extends Controller
         }
 
         if(!in_array($user->id, [$conversation->user_one_id,$conversation->user_two_id])) {
-            return response()->json(['status'=>false,'message'=>'You are not a participant in this conversation'],201);
+            return response()->json(['status'=>false,'message'=> __('messages.send.not_participant')],201);
         }
 
         $message = Message::create([
@@ -226,25 +263,66 @@ class ChatController extends Controller
         $receiver = \App\Models\User::find($receiverId);
 
         // ✅ Send FCM Notification
-        if ($receiver && $receiver->device_token) {
-            $tokens = [
-                [
-                    'device_token' => $receiver->device_token,
-                    'device_type'  => $receiver->device_type ?? 'android',
-                    'user_id'      => $receiver->id,
-                ]
-            ];
+        // if ($receiver && $receiver->device_token) {
+        //     $tokens = [
+        //         [
+        //             'device_token' => $receiver->device_token,
+        //             'device_type'  => $receiver->device_type ?? 'android',
+        //             'user_id'      => $receiver->id,
+        //         ]
+        //     ];
 
-            $notificationData = [
-                'notification_type' => 2, // custom type for chat message
-                'title' => '💬 New Message',
-                'body'  => "{$user->name} sent you a message: {$request->message}",
-            ];
+        //     // $notificationData = [
+        //     //     'notification_type' => 2, // custom type for chat message
+        //     //     'title' => '💬 New Message',
+        //     //     'body'  => "{$user->name} sent you a message: {$request->message}",
+        //     // ];
 
-            // Import your FCM service class if not already
-            $fcmService = new \App\Services\FCMService();
-            $fcmService->sendNotification($tokens, $notificationData);
-        }
+        //     $notificationData = [
+        //         'notification_type' => 2,
+        //         'title' => __('messages.send.notification.title'),
+        //         'body'  => __('messages.send.notification.body', [
+        //             'sender'  => $user->name,
+        //             'message' => $request->message,
+        //         ]),
+        //     ];
+
+        //     // Import your FCM service class if not already
+        //     $fcmService = new \App\Services\FCMService();
+        //     $fcmService->sendNotification($tokens, $notificationData);
+        // }
+
+        // ✅ Send Notification in Receiver's Language
+    if ($receiver && $receiver->device_token) {
+        // 🔹 Detect Receiver's preferred language
+        $receiverLang = UserLang::where('user_id', $receiver->id)
+            ->where('device_id', $receiver->device_id)
+            ->where('device_type', $receiver->device_type)
+            ->first();
+            
+        $lang = $receiverLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
+
+        $tokens = [
+            [
+                'device_token' => $receiver->device_token,
+                'device_type'  => $receiver->device_type ?? 'android',
+                'user_id'      => $receiver->id,
+            ]
+        ];
+
+        $notificationData = [
+            'notification_type' => 2, // custom type for chat message
+            'title' => __('messages.send.notification.title'),
+            'body'  => __('messages.send.notification.body', [
+                'sender'  => $user->name,
+                'message' => $request->message,
+            ]),
+        ];
+
+        $fcmService = new \App\Services\FCMService();
+        $fcmService->sendNotification($tokens, $notificationData);
+    }
 
         return response()->json([
             'status'       => true,

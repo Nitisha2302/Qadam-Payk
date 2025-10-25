@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
    use App\Models\RideBooking;
 use Illuminate\Support\Facades\DB;
+use App\Models\UserLang;
 
 class PassengerRequestController extends Controller
 {
@@ -19,8 +20,17 @@ class PassengerRequestController extends Controller
     {
         $user = Auth::guard('api')->user();
         if (!$user) {
-            return response()->json(['status'=>false,'message'=>'User not authenticated'],401);
+            return response()->json(['status'=>false,'message'=>__('messages.createRideRequest.user_not_authenticated')],401);
         }
+
+         // Determine language per device
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         $validator = Validator::make($request->all(), [
             'pickup_location' => 'required|string|max:255',
@@ -33,29 +43,29 @@ class PassengerRequestController extends Controller
             'budget' => 'required|numeric|min:0',
             'preferred_time' => 'nullable|date_format:H:i',
         ], [
-            'pickup_location.required' => 'Pickup location is required.',
-            'pickup_location.string' => 'Pickup location must be a string.',
-            'pickup_location.max' => 'Pickup location cannot exceed 255 characters.',
+            'pickup_location.required' => __('messages.createRideRequest.validation.pickup_location_required'),
+            'pickup_location.string' => __('messages.createRideRequest.validation.pickup_location_string'),
+            'pickup_location.max' => __('messages.createRideRequest.validation.pickup_location_max'),
 
-            'destination.required' => 'Destination is required.',
-            'destination.string' => 'Destination must be a string.',
-            'destination.max' => 'Destination cannot exceed 255 characters.',
+            'destination.required' => __('messages.createRideRequest.validation.destination_required'),
+            'destination.string' => __('messages.createRideRequest.validation.destination_string'),
+            'destination.max' => __('messages.createRideRequest.validation.destination_max'),
 
-            'ride_date.required' => 'Ride date is required.',
-            'ride_date.date_format' => 'Ride date must be in DD-MM-YYYY format.',
-            'ride_date.after_or_equal' => 'Ride date must be today or a future date.',
+            'ride_date.required' => __('messages.createRideRequest.validation.ride_date_required'),
+            'ride_date.date_format' => __('messages.createRideRequest.validation.ride_date_format'),
+            'ride_date.after_or_equal' => __('messages.createRideRequest.validation.ride_date_after_or_equal'),
 
-            'number_of_seats.integer' => 'Number of seats must be a number.',
-            'number_of_seats.min' => 'Number of seats must be at least 1.',
+            'number_of_seats.integer' => __('messages.ride.validation.number_of_seats_integer'),
+            'number_of_seats.min' => __('messages.ride.validation.number_of_seats_min'),
 
-            'services.array' => 'Services must be an array.',
-            'services.*.string' => 'Each service must be a string.',
-            'services.*.max' => 'Each service cannot exceed 50 characters.',
+            'services.array' => __('messages.createRideRequest.validation.services_array'),
+            'services.*.exists' => __('messages.createRideRequest.validation.services_exists'),
 
-           'budget.required' => 'Budget must be required.',
-            'budget.numeric' => 'Budget must be a valid number.',
-            'budget.min' => 'Budget must be at least 0.',
-            'preferred_time.date_format' => 'Preferred time must be in HH:MM format.',
+            'budget.required' => __('messages.createRideRequest.validation.budget_required'),
+            'budget.numeric' => __('messages.createRideRequest.validation.budget_numeric'),
+            'budget.min' => __('messages.createRideRequest.validation.budget_min'),
+
+            'preferred_time.date_format' => __('messages.createRideRequest.validation.preferred_time_format'),
         ]);
 
         if ($validator->fails()) {
@@ -72,7 +82,7 @@ class PassengerRequestController extends Controller
         $requestModel = PassengerRequest::create($data);
         return response()->json([
             'status'  => true,
-            'message' => 'Ride request created successfully',
+           'message' => __('messages.createRideRequest.success'),
             'data'    => [
                 'id'              => $requestModel->id,
                 'pickup_location' => $requestModel->pickup_location,
@@ -97,8 +107,17 @@ class PassengerRequestController extends Controller
     {
         $user = Auth::guard('api')->user();
         if (!$user) {
-            return response()->json(['status'=>false,'message'=>'User not authenticated'],401);
+            return response()->json(['status'=>false,'message'=>__('messages.createParcelRequest.user_not_authenticated')],401);
         }
+
+        // Determine language per device
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         $validator = Validator::make($request->all(), [
             'pickup_location' => 'required|string|max:255',
@@ -114,25 +133,36 @@ class PassengerRequestController extends Controller
             'budget' => 'required|numeric|min:0',
             'preferred_time' => 'nullable|date_format:H:i',
         ], [
-            'pickup_location.required' => 'Pickup location is required.',
-            'destination.required' => 'Destination is required.',
-            'ride_date.required' => 'Ride date is required.',
-            'ride_date.date_format' => 'Ride date must be in DD-MM-YYYY format.',
-            'ride_date.after_or_equal' => 'Ride date must be today or a future date.',
-            'ride_time.required' => 'Ride time is required.',
-            'ride_time.date_format' => 'Ride time must be in HH:MM format.',
-            'pickup_contact_name.required' => 'Pickup contact name is required.',
-            'pickup_contact_no.required' => 'Pickup contact number is required.',
-            'drop_contact_name.required' => 'Drop contact name is required.',
-            'drop_contact_no.required' => 'Drop contact number is required.',
-            'parcel_details.required' => 'Parcel details are required.',
-            'parcel_images.*.image' => 'Each file must be an image.',
-            'parcel_images.*.mimes' => 'Image must be jpeg, png, jpg, or gif.',
-            'parcel_images.*.max' => 'Each image may not exceed 2MB.',
-            'budget.required' => 'Budget must be required.',
-            'budget.numeric' => 'Budget must be a valid number.',
-            'budget.min' => 'Budget must be at least 0.',
-            'preferred_time.date_format' => 'Preferred time must be in HH:MM format.',
+            'pickup_location.required' => __('messages.createParcelRequest.validation.pickup_location_required'),
+        'pickup_location.string' => __('messages.createParcelRequest.validation.pickup_location_string'),
+        'pickup_location.max' => __('messages.createParcelRequest.validation.pickup_location_max'),
+
+        'destination.required' => __('messages.createParcelRequest.validation.destination_required'),
+        'destination.string' => __('messages.createParcelRequest.validation.destination_string'),
+        'destination.max' => __('messages.createParcelRequest.validation.destination_max'),
+
+        'ride_date.required' => __('messages.createParcelRequest.validation.ride_date_required'),
+        'ride_date.date_format' => __('messages.createParcelRequest.validation.ride_date_format'),
+        'ride_date.after_or_equal' => __('messages.createParcelRequest.validation.ride_date_after_or_equal'),
+
+        'ride_time.required' => __('messages.createParcelRequest.validation.ride_time_required'),
+        'ride_time.date_format' => __('messages.createParcelRequest.validation.ride_time_format'),
+
+        'pickup_contact_name.required' => __('messages.createParcelRequest.validation.pickup_contact_name_required'),
+        'pickup_contact_no.required' => __('messages.createParcelRequest.validation.pickup_contact_no_required'),
+        'drop_contact_name.required' => __('messages.createParcelRequest.validation.drop_contact_name_required'),
+        'drop_contact_no.required' => __('messages.createParcelRequest.validation.drop_contact_no_required'),
+
+        'parcel_details.required' => __('messages.createParcelRequest.validation.parcel_details_required'),
+        'parcel_images.*.image' => __('messages.createParcelRequest.validation.parcel_images_image'),
+        'parcel_images.*.mimes' => __('messages.createParcelRequest.validation.parcel_images_mimes'),
+        'parcel_images.*.max' => __('messages.createParcelRequest.validation.parcel_images_max'),
+
+        'budget.required' => __('messages.createParcelRequest.validation.budget_required'),
+        'budget.numeric' => __('messages.createParcelRequest.validation.budget_numeric'),
+        'budget.min' => __('messages.createParcelRequest.validation.budget_min'),
+
+        'preferred_time.date_format' => __('messages.createParcelRequest.validation.preferred_time_format'),
         ]);
 
         if ($validator->fails()) {
@@ -165,7 +195,7 @@ class PassengerRequestController extends Controller
 
         return response()->json([
             'status'=>true,
-            'message'=>'Parcel request created successfully',
+             'message' => __('messages.createParcelRequest.success'),
             'data'=> $requestModel,
         ], 200);
     }
@@ -174,6 +204,21 @@ class PassengerRequestController extends Controller
     // Get all ride requests (type = 0) with user info merged 
     public function getAllRideRequests(Request $request)
     {
+     
+        $user = Auth::guard('api')->user();
+        if (!$user) {
+            return response()->json(['status'=>false,'message'=>__('messages.createParcelRequest.user_not_authenticated')],401);
+        }
+
+        // Determine language per device
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
+
         // ✅ Read filters from query parameters
         $pickup_location = $request->query('pickup_location');
         $destination     = $request->query('destination');
@@ -192,11 +237,20 @@ class PassengerRequestController extends Controller
             'ride_date'       => 'required|date_format:d-m-Y|after_or_equal:today',
             'number_of_seats' => 'nullable|integer|min:1',
         ], [
-            'pickup_location.required' => 'Pickup location is required.',
-            'destination.required'     => 'Destination is required.',
-            'ride_date.required'       => 'Ride date is required.',
-            'number_of_seats.integer'  => 'Number of seats must be a valid number.',
-            'number_of_seats.min'      => 'Number of seats must be at least 1.',
+           'pickup_location.required' => __('messages.getAllRideRequests.validation.pickup_location_required'),
+            'pickup_location.string'   => __('messages.getAllRideRequests.validation.pickup_location_string'),
+            'pickup_location.max'      => __('messages.getAllRideRequests.validation.pickup_location_max'),
+
+            'destination.required' => __('messages.getAllRideRequests.validation.destination_required'),
+            'destination.string'   => __('messages.getAllRideRequests.validation.destination_string'),
+            'destination.max'      => __('messages.getAllRideRequests.validation.destination_max'),
+
+            'ride_date.required' => __('messages.getAllRideRequests.validation.ride_date_required'),
+            'ride_date.date_format' => __('messages.getAllRideRequests.validation.ride_date_format'),
+            'ride_date.after_or_equal' => __('messages.getAllRideRequests.validation.ride_date_after_or_equal'),
+
+            'number_of_seats.integer' => __('messages.getAllRideRequests.validation.number_of_seats_integer'),
+            'number_of_seats.min'     => __('messages.getAllRideRequests.validation.number_of_seats_min'),
         ]);
 
         if ($validator->fails()) {
@@ -220,7 +274,7 @@ class PassengerRequestController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'status'  => false,
-                'message' => 'Invalid ride_date format. Use DD-MM-YYYY.',
+                 'message' => __('messages.getAllRideRequests.invalid_ride_date_format'),
             ], 422);
         }
 
@@ -262,7 +316,7 @@ class PassengerRequestController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'Ride requests retrieved successfully.',
+             'message' => __('messages.getAllRideRequests.ride_requests_retrieved'),
             'data'    => $ridesData,
         ],200);
     }
@@ -271,6 +325,20 @@ class PassengerRequestController extends Controller
     // Get all parcel requests (type = 1) with user info merged
     public function getAllParcelRequests(Request $request)
     {
+
+        $user = Auth::guard('api')->user();
+        if (!$user) {
+            return response()->json(['status'=>false,'message'=>__('messages.createParcelRequest.user_not_authenticated')],401);
+        }
+
+        // Determine language per device
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
         // ✅ Read filters from query parameters
         $pickup_location = $request->query('pickup_location');
         $destination     = $request->query('destination');
@@ -289,11 +357,20 @@ class PassengerRequestController extends Controller
             'ride_date'       => 'required|date_format:d-m-Y|after_or_equal:today',
             'number_of_seats' => 'nullable|integer|min:1',
         ], [
-            'pickup_location.required' => 'Pickup location is required.',
-            'destination.required'     => 'Destination is required.',
-            'ride_date.required'       => 'Ride date is required.',
-            'number_of_seats.integer'  => 'Number of seats must be a valid number.',
-            'number_of_seats.min'      => 'Number of seats must be at least 1.',
+            'pickup_location.required' => __('messages.getAllParcelRequests.validation.pickup_location_required'),
+            'pickup_location.string'   => __('messages.getAllParcelRequests.validation.pickup_location_string'),
+            'pickup_location.max'      => __('messages.getAllParcelRequests.validation.pickup_location_max'),
+
+            'destination.required' => __('messages.getAllParcelRequests.validation.destination_required'),
+            'destination.string'   => __('messages.getAllParcelRequests.validation.destination_string'),
+            'destination.max'      => __('messages.getAllParcelRequests.validation.destination_max'),
+
+            'ride_date.required' => __('messages.getAllParcelRequests.validation.ride_date_required'),
+            'ride_date.date_format' => __('messages.getAllParcelRequests.validation.ride_date_format'),
+            'ride_date.after_or_equal' => __('messages.getAllParcelRequests.validation.ride_date_after_or_equal'),
+
+            'number_of_seats.integer' => __('messages.getAllParcelRequests.validation.number_of_seats_integer'),
+            'number_of_seats.min'     => __('messages.getAllParcelRequests.validation.number_of_seats_min'),
         ]);
 
         if ($validator->fails()) {
@@ -317,7 +394,7 @@ class PassengerRequestController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'status'  => false,
-                'message' => 'Invalid ride_date format. Use DD-MM-YYYY.',
+               'message' => __('messages.getAllParcelRequests.invalid_ride_date_format'),
             ], 422);
         }
 
@@ -358,212 +435,10 @@ class PassengerRequestController extends Controller
 
         return response()->json([
             'status'  => true,
-            'message' => 'Parcel requests retrieved successfully.',
+           'message' => __('messages.getAllParcelRequests.parcel_requests_retrieved'),
             'data'    => $parcelsData,
         ],200);
     }
-
-
-    // with not show completed ride 
-
-    // public function getAllRideRequests(Request $request)
-    // {
-    //     // ✅ Read filters from query parameters
-    //     $pickup_location = $request->query('pickup_location');
-    //     $destination     = $request->query('destination');
-    //     $ride_date       = $request->query('ride_date');
-    //     $number_of_seats = $request->query('number_of_seats', 1); // default 1
-
-    //     // ✅ Validate inputs
-    //     $validator = Validator::make([
-    //         'pickup_location' => $pickup_location,
-    //         'destination'     => $destination,
-    //         'ride_date'       => $ride_date,
-    //         'number_of_seats' => $number_of_seats,
-    //     ], [
-    //         'pickup_location' => 'required|string|max:255',
-    //         'destination'     => 'required|string|max:255',
-    //         'ride_date'       => 'required|date_format:d-m-Y|after_or_equal:today',
-    //         'number_of_seats' => 'nullable|integer|min:1',
-    //     ], [
-    //         'pickup_location.required' => 'Pickup location is required.',
-    //         'destination.required'     => 'Destination is required.',
-    //         'ride_date.required'       => 'Ride date is required.',
-    //         'number_of_seats.integer'  => 'Number of seats must be a valid number.',
-    //         'number_of_seats.min'      => 'Number of seats must be at least 1.',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => $validator->errors()->first(),
-    //         ], 201);
-    //     }
-
-    //     $query = PassengerRequest::with('user')
-    //         ->where('type', 0)
-    //         ->where('status', 'pending')
-    //         ->where('pickup_location', 'like', '%'.$pickup_location.'%')
-    //         ->where('destination', 'like', '%'.$destination.'%')
-    //         ->where('number_of_seats', '>=', $number_of_seats);
-
-    //     // ✅ Filter by ride_date
-    //     try {
-    //         $rideDate = Carbon::createFromFormat('d-m-Y', $ride_date)->format('Y-m-d');
-    //         $query->whereDate('ride_date', $rideDate);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => 'Invalid ride_date format. Use DD-MM-YYYY.',
-    //         ], 422);
-    //     }
-
-    //     $rides = $query->orderBy('ride_date', 'asc')
-    //                 ->orderBy('ride_time', 'asc')
-    //                 ->get();
-
-    //      // Filter out requests that have any booking with active_status = 2
-    //     $rides = $rides->filter(function ($ride) {
-    //         return $ride->rideBookings->every(fn($b) => $b->active_status != 2);
-    //     })->values();
-
-    //     $ridesData = $rides->map(function ($ride) {
-    //         $rideArray = [
-    //             'id'              => $ride->id,
-    //             'pickup_location' => $ride->pickup_location,
-    //             'destination'     => $ride->destination,
-    //             'ride_date'       => $ride->ride_date,
-    //             'number_of_seats' => $ride->number_of_seats,
-    //             'services'        => $ride->services_details,
-    //             'budget'          => $ride->budget,
-    //             'preferred_time'  => $ride->preferred_time,
-    //             'type'            => $ride->type,
-    //             'status'          => $ride->status,
-    //             'created_at'      => $ride->created_at,
-    //             'updated_at'      => $ride->updated_at,
-    //             'user_id'         => $ride->user_id, // keep user_id
-    //         ];
-
-    //         // Merge user fields directly into ride array
-    //         if ($ride->user) {
-    //             $userData = $ride->user->only([
-    //                 'image','name','phone_number','is_phone_verify','email',
-    //                 'role','dob','gender','government_id','id_verified',
-    //                 'vehicle_number','vehicle_type'
-    //             ]);
-    //             $rideArray = array_merge($rideArray, $userData);
-    //         }
-
-    //         return $rideArray;
-    //     });
-
-
-
-    //     return response()->json([
-    //         'status'  => true,
-    //         'message' => 'Ride requests retrieved successfully.',
-    //         'data'    => $ridesData,
-    //     ],200);
-    // }
-
-    // public function getAllParcelRequests(Request $request)
-    // {
-    //     // ✅ Read filters from query parameters
-    //     $pickup_location = $request->query('pickup_location');
-    //     $destination     = $request->query('destination');
-    //     $ride_date       = $request->query('ride_date');
-    //     $number_of_seats = $request->query('number_of_seats', 1);
-
-    //     // ✅ Validate inputs
-    //     $validator = Validator::make([
-    //         'pickup_location' => $pickup_location,
-    //         'destination'     => $destination,
-    //         'ride_date'       => $ride_date,
-    //         'number_of_seats' => $number_of_seats,
-    //     ], [
-    //         'pickup_location' => 'required|string|max:255',
-    //         'destination'     => 'required|string|max:255',
-    //         'ride_date'       => 'required|date_format:d-m-Y|after_or_equal:today',
-    //         'number_of_seats' => 'nullable|integer|min:1',
-    //     ], [
-    //         'pickup_location.required' => 'Pickup location is required.',
-    //         'destination.required'     => 'Destination is required.',
-    //         'ride_date.required'       => 'Ride date is required.',
-    //         'number_of_seats.integer'  => 'Number of seats must be a valid number.',
-    //         'number_of_seats.min'      => 'Number of seats must be at least 1.',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => $validator->errors()->first(),
-    //         ], 201);
-    //     }
-
-    //     $query = PassengerRequest::with('user')
-    //         ->where('type', 1)
-    //         ->where('status', 'pending')
-    //         ->where('pickup_location', 'like', '%'.$pickup_location.'%')
-    //         ->where('destination', 'like', '%'.$destination.'%')
-    //         ->where('number_of_seats', '>=', $number_of_seats);
-
-    //     // ✅ Filter by ride_date
-    //     try {
-    //         $rideDate = Carbon::createFromFormat('d-m-Y', $ride_date)->format('Y-m-d');
-    //         $query->whereDate('ride_date', $rideDate);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => 'Invalid ride_date format. Use DD-MM-YYYY.',
-    //         ], 422);
-    //     }
-
-    //     $parcels = $query->orderBy('ride_date', 'asc')
-    //                     ->orderBy('ride_time', 'asc')
-    //                     ->get();
-
-    //     // Filter out requests with any completed bookings
-    //     $parcels = $parcels->filter(fn($parcel) => $parcel->rideBookings->every(fn($b) => $b->active_status != 2))
-    //                     ->values();
-
-    //        $parcelsData = $parcels->map(function ($parcel) {
-    //         $parcelArray = [
-    //             'id'              => $parcel->id,
-    //             'pickup_location' => $parcel->pickup_location,
-    //             'destination'     => $parcel->destination,
-    //             'ride_date'       => $parcel->ride_date,
-    //             'number_of_seats' => $parcel->number_of_seats,
-    //             'services'        => $parcel->services_details,
-    //             'budget'          => $parcel->budget,
-    //             'preferred_time'  => $parcel->preferred_time,
-    //             'type'            => $parcel->type,
-    //             'status'          => $parcel->status,
-    //             'created_at'      => $parcel->created_at,
-    //             'updated_at'      => $parcel->updated_at,
-    //             'user_id'         => $parcel->user_id, // keep user_id
-    //         ];
-
-    //         // Merge user fields directly into ride array
-    //         if ($parcel->user) {
-    //             $userData = $parcel->user->only([
-    //                 'image','name','phone_number','is_phone_verify','email',
-    //                 'role','dob','gender','government_id','id_verified',
-    //                 'vehicle_number','vehicle_type'
-    //             ]);
-    //             $parcelArray = array_merge($parcelArray, $userData);
-    //         }
-
-    //         return $parcelArray;
-    //     });
-
-
-    //     return response()->json([
-    //         'status'  => true,
-    //         'message' => 'Parcel requests retrieved successfully.',
-    //         'data'    => $parcelsData,
-    //     ],200);
-    // }
-
 
     // List all requests of the current passenger
     public function listCurrentPassengerRequests(Request $request)
@@ -572,9 +447,17 @@ class PassengerRequestController extends Controller
         if (!$user) {
             return response()->json([
                 'status' => false,
-                'message' => 'User not authenticated'
+                'message' => __('messages.listCurrentPassengerRequests.user_not_authenticated')
             ], 401);
         }
+        // Determine language per device
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         // $requests = PassengerRequest::where('user_id', $user->id)
         //     ->orderBy('ride_date', 'asc')
@@ -591,7 +474,7 @@ class PassengerRequestController extends Controller
         });
         return response()->json([
             'status' => true,
-            'message' => 'Passenger requests retrieved successfully',
+                   'message' => __('messages.listCurrentPassengerRequests.requests_retrieved'),
             'data' => $requests
         ], 200);
     }
@@ -603,23 +486,40 @@ class PassengerRequestController extends Controller
     {
         $driver = Auth::guard('api')->user();
         if (!$driver) {
-            return response()->json(['status'=>false,'message'=>'User not authenticated'],401);
+            return response()->json(['status'=>false,'message'=>__('messages.listCurrentPassengerRequests.user_not_authenticated')],401);
         }
+
+        // Determine language per device
+        $userLang = UserLang::where('user_id', $driver->id)
+            ->where('device_id', $driver->device_id)
+            ->where('device_type', $driver->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
         
 
+        // Validate input
         $validator = Validator::make($request->all(), [
             'request_id' => 'required|exists:passenger_requests,id',
+        ], [
+            'request_id.required' => __('messages.updateRequestInterestStatus.validation.request_id_required'),
+            'request_id.exists'   => __('messages.updateRequestInterestStatus.validation.request_id_exists'),
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['status'=>false,'message'=>$validator->errors()->first()],201);
+            return response()->json([
+                'status'  => false,
+                'message' => $validator->errors()->first()
+            ], 201);
         }
+
 
         $requestModel = PassengerRequest::find($request->request_id);
 
         $alreadyInterested = $requestModel->interests()->where('driver_id', $driver->id)->exists();
         if ($alreadyInterested) {
-            return response()->json(['status'=>false,'message'=>'You already expressed interest'],201);
+            return response()->json(['status'=>false,'message'=>__('messages.updateRequestInterestStatus.already_interested')],201);
         }
 
         $requestModel->interests()->create([
@@ -630,19 +530,54 @@ class PassengerRequestController extends Controller
         // ✅ Send notification to passenger
         // ----------------------
         $passenger = $requestModel->user; // passenger who made the request
-      $driverName = $driver->name ? $driver->name : 'Driver';
+        $driverName = $driver->name ? $driver->name :  __('messages.updateRequestInterestStatus.default_driver_name');
+
+
+        // if ($passenger && $passenger->device_token) {
+        
+        //     $fcmService = new \App\Services\FCMService();
+
+        //     $notificationData = [
+        //         'notification_type' => 3, // new interest notification
+        //         'title' => "Driver interested",
+        //         'body'  => "{$driverName} has expressed interest in your ride request from {$requestModel->pickup_location} to {$requestModel->destination}.Please Confirm",
+        //     ];
+
+        //     $fcmService->sendNotification([
+        //         [
+        //             'device_token' => $passenger->device_token,
+        //             'device_type'  => $passenger->device_type ?? 'android',
+        //             'user_id'      => $passenger->id,
+        //         ]
+        //     ], $notificationData);
+        // }
 
 
         if ($passenger && $passenger->device_token) {
-        
-            $fcmService = new \App\Services\FCMService();
 
+            // ✅ Get passenger's language
+            $passengerLang = UserLang::where('user_id', $passenger->id)
+                ->where('device_id', $passenger->device_id)
+                ->where('device_type', $passenger->device_type)
+                ->first();
+
+            $passengerLocale = $passengerLang->language ?? 'ru';
+
+            // ✅ Temporarily switch app locale to passenger language for notification
+            app()->setLocale($passengerLocale);
+
+            // ✅ Prepare translated notification
             $notificationData = [
-                'notification_type' => 3, // new interest notification
-                'title' => "Driver interested",
-                'body'  => "{$driverName} has expressed interest in your ride request from {$requestModel->pickup_location} to {$requestModel->destination}.Please Confirm",
+                'notification_type' => 3,
+                'title' => __('messages.updateRequestInterestStatus.notification.title'),
+                'body'  => __('messages.updateRequestInterestStatus.notification.body', [
+                    'driverName' => $driverName,
+                    'pickup'     => $requestModel->pickup_location,
+                    'destination'=> $requestModel->destination,
+                ]),
             ];
 
+            $fcmService = new \App\Services\FCMService();
             $fcmService->sendNotification([
                 [
                     'device_token' => $passenger->device_token,
@@ -650,14 +585,37 @@ class PassengerRequestController extends Controller
                     'user_id'      => $passenger->id,
                 ]
             ], $notificationData);
+
+            // ✅ Restore locale back to driver (optional)
+            app()->setLocale($lang);
         }
 
-        return response()->json(['status'=>true,'message'=>'Driver expressed interest successfully'],200);
+    
+
+        return response()->json(['status'=>true,'message'=>__('messages.updateRequestInterestStatus.success')],200);
     }
 
 
     public function getInterestedDrivers($request_id)
     {
+
+        $user = Auth::guard('api')->user();
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => __('messages.getInterestedDrivers.user_not_authenticated')
+            ], 401);
+        }
+        
+        // Determine language per device
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
+
         $requestModel = PassengerRequest::with(['interests.driver.vehicle'])->find($request_id);
 
         if (!$requestModel) {
@@ -666,6 +624,8 @@ class PassengerRequestController extends Controller
                 'message' => 'Request not found.'
             ], 404);
         }
+
+
 
     
        // Ride details
@@ -725,7 +685,150 @@ class PassengerRequestController extends Controller
             'message' => 'Interested drivers with ride details fetched successfully.',
             'data'    => $data
         ], 200);
-    }
+    }   
+
+
+    // public function confirmDriverByPassenger(Request $request)
+    // {
+    //     $passenger = Auth::guard('api')->user();
+    //     if (!$passenger) {
+    //         return response()->json([
+    //             'status' => false,
+    //            'message' => __('messages.confirmDriverByPassenger.passenger_not_authenticated')
+    //         ], 401);
+    //     }
+    //     // Determine language per device
+    //     $userLang = UserLang::where('user_id', $passenger->id)
+    //         ->where('device_id', $passenger->device_id)
+    //         ->where('device_type', $passenger->device_type)
+    //         ->first();
+
+    //     $lang = $userLang->language ?? 'ru'; // fallback to Russian
+    //     app()->setLocale($lang);
+
+    //     $validator = Validator::make($request->all(), [
+    //         'request_id' => 'required|exists:passenger_requests,id',
+    //         'driver_id'  => 'required|exists:users,id',
+    //         'status'     => 'required|in:confirmed,declined',
+    //     ], [
+    //         'request_id.required' => __('messages.confirmDriverByPassenger.validation.request_id_required'),
+    //         'request_id.exists'   => __('messages.confirmDriverByPassenger.validation.request_id_exists'),
+    //         'driver_id.required'  => __('messages.confirmDriverByPassenger.validation.driver_id_required'),
+    //         'driver_id.exists'    => __('messages.confirmDriverByPassenger.validation.driver_id_exists'),
+    //         'status.required'     => __('messages.confirmDriverByPassenger.validation.status_required'),
+    //         'status.in'           => __('messages.confirmDriverByPassenger.validation.status_in'),
+    //     ]);
+
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => $validator->errors()->first()
+    //         ], 201);
+    //     }
+
+    //     $requestModel = PassengerRequest::with('interests')
+    //         ->where('id', $request->request_id)
+    //         ->where('user_id', $passenger->id)
+    //         ->first();
+
+    //     if (!$requestModel) {
+    //         return response()->json([
+    //             'status' => false,
+    //            'message' => __('messages.confirmDriverByPassenger.request_not_found')
+    //         ], 201);
+    //     }
+
+    //      // ✅ Prevent confirming again if already confirmed
+    //     if ($requestModel->status === 'confirmed') {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => __('messages.confirmDriverByPassenger.already_confirmed')
+    //         ], 201);
+    //     }
+
+    //     $driverInterest = $requestModel->interests()
+    //         ->where('driver_id', $request->driver_id)
+    //         ->first();
+
+    //     if (!$driverInterest) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => __('messages.confirmDriverByPassenger.driver_not_interested')
+    //         ], 201);
+    //     }
+
+    //    $driver = \App\Models\User::find($request->driver_id);
+    //    $passengerName = $passenger->name ? $passenger->name : "Passenger";
+    //     if ($request->status === 'declined') {
+    //         // Delete the interest if declined
+    //         $driverInterest->delete();
+
+    //          // Send notification to driver
+    //         if ($driver && $driver->device_token) {
+    //             $fcmService = new \App\Services\FCMService();
+    //             $fcmService->sendNotification([
+    //                 [
+    //                     'device_token' => $driver->device_token,
+    //                     'device_type'  => $driver->device_type ?? 'android',
+    //                     'user_id'      => $driver->id,
+    //                 ]
+    //             ], [
+    //                 'notification_type' => 5, // passenger declined
+    //                 'title' => "Ride Request Declined",
+    //                 'body'  => "{$passengerName} has declined your interest for the ride from {$requestModel->pickup_location} to {$requestModel->destination}.",
+    //             ]);
+    //         }
+
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => __('messages.confirmDriverByPassenger.declined_success')
+    //         ], 200);
+    //     }
+    //    // If confirmed, create booking, update request, and remove all other interests
+    //     DB::transaction(function () use ($requestModel, $request) {
+    //         $requestModel->driver_id = $request->driver_id;
+    //         $requestModel->status = 'confirmed';
+    //         $requestModel->save();
+
+    //         RideBooking::create([
+    //             'type' => $requestModel->type,
+    //             'user_id' => $request->driver_id,
+    //             'seats_booked' => $requestModel->number_of_seats,
+    //             'price' => $requestModel->budget,
+    //             'services' => json_encode($requestModel->services ?? []),
+    //                'ride_date'     => \Carbon\Carbon::parse($requestModel->ride_date)->format('Y-m-d'), // ✅ fixed format
+    //            'ride_time'     => $requestModel->ride_time ?? null,
+    //             'request_id'     => $requestModel->id ?? null,
+    //             'status' => 'confirmed',
+    //         ]);
+    //         // Delete all other driver interests for this request
+    //         $requestModel->interests()
+    //             ->where('driver_id', '!=', $request->driver_id)
+    //             ->delete();
+    //        });
+      
+
+    //       // Send notification to driver
+    //     if ($driver && $driver->device_token) {
+    //         $fcmService = new \App\Services\FCMService();
+    //         $fcmService->sendNotification([
+    //             [
+    //                 'device_token' => $driver->device_token,
+    //                 'device_type'  => $driver->device_type ?? 'android',
+    //                 'user_id'      => $driver->id,
+    //             ]
+    //         ], [
+    //             'notification_type' => 4, // passenger confirmed
+    //             'title' => "Ride Request Confirmed",
+    //             'body'  => "{$passengerName} has confirmed your interest for ride from {$requestModel->pickup_location} to {$requestModel->destination}.",
+    //         ]);
+    //     }
+    //     return response()->json([
+    //         'status' => true,
+    //          'message' => __('messages.confirmDriverByPassenger.success')
+    //     ],200);
+    // }
 
 
     public function confirmDriverByPassenger(Request $request)
@@ -734,22 +837,31 @@ class PassengerRequestController extends Controller
         if (!$passenger) {
             return response()->json([
                 'status' => false,
-                'message' => 'You must be logged in as a passenger to confirm a driver.'
+               'message' => __('messages.confirmDriverByPassenger.passenger_not_authenticated')
             ], 401);
         }
+        // Determine language per device
+        $userLang = UserLang::where('user_id', $passenger->id)
+            ->where('device_id', $passenger->device_id)
+            ->where('device_type', $passenger->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         $validator = Validator::make($request->all(), [
             'request_id' => 'required|exists:passenger_requests,id',
             'driver_id'  => 'required|exists:users,id',
             'status'     => 'required|in:confirmed,declined',
         ], [
-            'request_id.required' => 'The request ID is required.',
-            'request_id.exists'   => 'The specified ride request does not exist.',
-            'driver_id.required'  => 'You must select a driver to confirm.',
-            'driver_id.exists'    => 'The selected driver does not exist.',
-            'status.required'     => 'Status is required.',
-            'status.in'           => 'Status must be either confirmed or declined.',
+            'request_id.required' => __('messages.confirmDriverByPassenger.validation.request_id_required'),
+            'request_id.exists'   => __('messages.confirmDriverByPassenger.validation.request_id_exists'),
+            'driver_id.required'  => __('messages.confirmDriverByPassenger.validation.driver_id_required'),
+            'driver_id.exists'    => __('messages.confirmDriverByPassenger.validation.driver_id_exists'),
+            'status.required'     => __('messages.confirmDriverByPassenger.validation.status_required'),
+            'status.in'           => __('messages.confirmDriverByPassenger.validation.status_in'),
         ]);
+
 
         if ($validator->fails()) {
             return response()->json([
@@ -766,7 +878,7 @@ class PassengerRequestController extends Controller
         if (!$requestModel) {
             return response()->json([
                 'status' => false,
-                'message' => 'Ride request not found or does not belong to you.'
+               'message' => __('messages.confirmDriverByPassenger.request_not_found')
             ], 201);
         }
 
@@ -774,7 +886,7 @@ class PassengerRequestController extends Controller
         if ($requestModel->status === 'confirmed') {
             return response()->json([
                 'status' => false,
-                'message' => 'A driver has already been confirmed for this request.'
+                'message' => __('messages.confirmDriverByPassenger.already_confirmed')
             ], 201);
         }
 
@@ -785,18 +897,39 @@ class PassengerRequestController extends Controller
         if (!$driverInterest) {
             return response()->json([
                 'status' => false,
-                'message' => 'The driver you selected did not express interest in this ride.'
+                'message' => __('messages.confirmDriverByPassenger.driver_not_interested')
             ], 201);
         }
 
-        $driver = \App\Models\User::find($request->driver_id);
+       $driver = \App\Models\User::find($request->driver_id);
        $passengerName = $passenger->name ? $passenger->name : "Passenger";
         if ($request->status === 'declined') {
             // Delete the interest if declined
             $driverInterest->delete();
 
-             // Send notification to driver
             if ($driver && $driver->device_token) {
+                // ✅ Get driver's preferred language
+                $driverLang = UserLang::where('user_id', $driver->id)
+                    ->where('device_id', $driver->device_id)
+                    ->where('device_type', $driver->device_type)
+                    ->first();
+
+                $driverLocale = $driverLang->language ?? 'ru'; // default fallback
+                $originalLocale = app()->getLocale(); // store passenger locale
+
+                // ✅ Switch to driver language for notification
+                app()->setLocale($driverLocale);
+
+                $notificationData = [
+                    'notification_type' => 5, // passenger declined
+                    'title' => __('messages.confirmDriverByPassenger.notification.declined.title'),
+                    'body'  => __('messages.confirmDriverByPassenger.notification.declined.body', [
+                        'passengerName' => $passengerName,
+                        'pickup'        => $requestModel->pickup_location,
+                        'destination'   => $requestModel->destination,
+                    ]),
+                ];
+
                 $fcmService = new \App\Services\FCMService();
                 $fcmService->sendNotification([
                     [
@@ -804,16 +937,16 @@ class PassengerRequestController extends Controller
                         'device_type'  => $driver->device_type ?? 'android',
                         'user_id'      => $driver->id,
                     ]
-                ], [
-                    'notification_type' => 5, // passenger declined
-                    'title' => "Ride Request Declined",
-                    'body'  => "{$passengerName} has declined your interest for the ride from {$requestModel->pickup_location} to {$requestModel->destination}.",
-                ]);
+                ], $notificationData);
+
+                // ✅ Restore original passenger locale
+                app()->setLocale($originalLocale);
             }
+
 
             return response()->json([
                 'status' => true,
-                'message' => 'Driver interest has been declined and removed successfully.'
+                'message' => __('messages.confirmDriverByPassenger.declined_success')
             ], 200);
         }
        // If confirmed, create booking, update request, and remove all other interests
@@ -842,6 +975,29 @@ class PassengerRequestController extends Controller
 
           // Send notification to driver
         if ($driver && $driver->device_token) {
+
+            // ✅ Get driver's language settings
+            $driverLang = UserLang::where('user_id', $driver->id)
+                ->where('device_id', $driver->device_id)
+                ->where('device_type', $driver->device_type)
+                ->first();
+
+            $driverLocale = $driverLang->language ?? 'ru'; // fallback
+            $originalLocale = app()->getLocale();
+
+            // ✅ Switch to driver’s language
+            app()->setLocale($driverLocale);
+
+            $notificationData = [
+                'notification_type' => 4, // passenger confirmed
+                'title' => __('messages.confirmDriverByPassenger.notification.confirmed.title'),
+                'body'  => __('messages.confirmDriverByPassenger.notification.confirmed.body', [
+                    'passengerName' => $passengerName,
+                    'pickup'        => $requestModel->pickup_location,
+                    'destination'   => $requestModel->destination,
+                ]),
+            ];
+
             $fcmService = new \App\Services\FCMService();
             $fcmService->sendNotification([
                 [
@@ -849,17 +1005,17 @@ class PassengerRequestController extends Controller
                     'device_type'  => $driver->device_type ?? 'android',
                     'user_id'      => $driver->id,
                 ]
-            ], [
-                'notification_type' => 4, // passenger confirmed
-                'title' => "Ride Request Confirmed",
-                'body'  => "{$passengerName} has confirmed your interest for ride from {$requestModel->pickup_location} to {$requestModel->destination}.",
-            ]);
+            ], $notificationData);
+
+            // ✅ Restore passenger language
+            app()->setLocale($originalLocale);
         }
         return response()->json([
             'status' => true,
-            'message' => 'Driver confirmed successfully and booking has been created.'
+             'message' => __('messages.confirmDriverByPassenger.success')
         ],200);
     }
+
 
 
     

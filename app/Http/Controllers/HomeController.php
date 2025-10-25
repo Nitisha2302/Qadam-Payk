@@ -8,6 +8,7 @@ use App\Models\Enquiry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use App\Models\UserLang;
 
 class HomeController extends Controller
 {
@@ -94,17 +95,26 @@ class HomeController extends Controller
             if (!$user) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'User not authenticated'
+                       'message' => __('messages.enquiry.user_not_authenticated'),
                 ], 401);
             }
+
+             // 🔹 Detect user's preferred language from UserLang table
+            $userLang = UserLang::where('user_id', $user->id)
+                ->where('device_id', $user->device_id)
+                ->where('device_type', $user->device_type)
+                ->first();
+
+            $lang = $userLang->language ?? 'ru'; // fallback to Russian
+            app()->setLocale($lang);
 
             //  Validation
            $validator = Validator::make($request->all(), [
                 'title'       => 'required|string',
                 'description' => 'required|string',
             ], [
-                'title.required'      => 'Title is required.',
-                'description.required'      => 'Description ID is required.',
+                'title.required'       => __('messages.enquiry.validation.title_required'),
+                'description.required' => __('messages.enquiry.validation.description_required'),
            ]);
 
             if ($validator->fails()) {
@@ -124,7 +134,7 @@ class HomeController extends Controller
 
             return response()->json([
                 'status'  => true,
-                'message' => 'Enquiry submitted successfully',
+               'message' => __('messages.enquiry.success'),
                 'data'    => $enquiry
             ],200);
     }
@@ -136,9 +146,18 @@ class HomeController extends Controller
         if (!$user) {
             return response()->json([
                 'status' => false,
-                'message' => 'User not authenticated'
+                  'message' => __('messages.enquiry.user_not_authenticated'),
             ], 401);
         }
+
+        // 🔹 Detect user's preferred language from UserLang table
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        app()->setLocale($lang);
 
         // Fetch all enquiries/answers for this user
         $enquiries = Enquiry::where('user_id', $user->id)
@@ -147,7 +166,7 @@ class HomeController extends Controller
 
         return response()->json([
             'status' => true,
-            'message'=> "Query fetched successfully.",
+            'message' => __('messages.enquiry.fetch_success'),
             'data'   => $enquiries,
         ],200);
     }
