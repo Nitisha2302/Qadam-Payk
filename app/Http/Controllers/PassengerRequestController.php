@@ -202,22 +202,271 @@ class PassengerRequestController extends Controller
 
     
     // Get all ride requests (type = 0) with user info merged 
+    // public function getAllRideRequests(Request $request)
+    // {
+     
+    //     $user = Auth::guard('api')->user();
+    //     if (!$user) {
+    //         return response()->json(['status'=>false,'message'=>__('messages.createParcelRequest.user_not_authenticated')],401);
+    //     }
+
+    //     // Determine language per device
+    //     $userLang = UserLang::where('user_id', $user->id)
+    //         ->where('device_id', $user->device_id)
+    //         ->where('device_type', $user->device_type)
+    //         ->first();
+
+    //     $lang = $userLang->language ?? 'ru'; // fallback to Russian
+    //     app()->setLocale($lang);
+
+    //     // ✅ Read filters from query parameters
+    //     $pickup_location = $request->query('pickup_location');
+    //     $destination     = $request->query('destination');
+    //     $ride_date       = $request->query('ride_date');
+    //     $number_of_seats = $request->query('number_of_seats', 1); // default 1
+
+    //     // ✅ Validate inputs
+    //     $validator = Validator::make([
+    //         'pickup_location' => $pickup_location,
+    //         'destination'     => $destination,
+    //         'ride_date'       => $ride_date,
+    //         'number_of_seats' => $number_of_seats,
+    //     ], [
+    //         'pickup_location' => 'required|string|max:255',
+    //         'destination'     => 'required|string|max:255',
+    //         'ride_date'       => 'required|date_format:d-m-Y|after_or_equal:today',
+    //         'number_of_seats' => 'nullable|integer|min:1',
+    //     ], [
+    //        'pickup_location.required' => __('messages.getAllRideRequests.validation.pickup_location_required'),
+    //         'pickup_location.string'   => __('messages.getAllRideRequests.validation.pickup_location_string'),
+    //         'pickup_location.max'      => __('messages.getAllRideRequests.validation.pickup_location_max'),
+
+    //         'destination.required' => __('messages.getAllRideRequests.validation.destination_required'),
+    //         'destination.string'   => __('messages.getAllRideRequests.validation.destination_string'),
+    //         'destination.max'      => __('messages.getAllRideRequests.validation.destination_max'),
+
+    //         'ride_date.required' => __('messages.getAllRideRequests.validation.ride_date_required'),
+    //         'ride_date.date_format' => __('messages.getAllRideRequests.validation.ride_date_format'),
+    //         'ride_date.after_or_equal' => __('messages.getAllRideRequests.validation.ride_date_after_or_equal'),
+
+    //         'number_of_seats.integer' => __('messages.getAllRideRequests.validation.number_of_seats_integer'),
+    //         'number_of_seats.min'     => __('messages.getAllRideRequests.validation.number_of_seats_min'),
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => $validator->errors()->first(),
+    //         ], 201);
+    //     }
+
+    //     $query = PassengerRequest::with('user')
+    //         ->where('type', 0)
+    //         ->where('status', 'pending')
+    //         ->where('pickup_location', 'like', '%'.$pickup_location.'%')
+    //         ->where('destination', 'like', '%'.$destination.'%')
+    //         ->where('number_of_seats', '>=', $number_of_seats);
+
+    //     // ✅ Filter by ride_date
+    //     try {
+    //         $rideDate = Carbon::createFromFormat('d-m-Y', $ride_date)->format('Y-m-d');
+    //         $query->whereDate('ride_date', $rideDate);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'status'  => false,
+    //              'message' => __('messages.getAllRideRequests.invalid_ride_date_format'),
+    //         ], 422);
+    //     }
+
+    //     $rides = $query->orderBy('ride_date', 'asc')
+    //                 ->orderBy('ride_time', 'asc')
+    //                 ->get();
+
+    //     $ridesData = $rides->map(function ($ride) {
+    //         $rideArray = [
+    //             'id'              => $ride->id,
+    //             'pickup_location' => $ride->pickup_location,
+    //             'destination'     => $ride->destination,
+    //             'ride_date'       => $ride->ride_date,
+    //             'number_of_seats' => $ride->number_of_seats,
+    //             'services'        => $ride->services_details,
+    //             'budget'          => $ride->budget,
+    //             'preferred_time'  => $ride->preferred_time,
+    //             'type'            => $ride->type,
+    //             'status'          => $ride->status,
+    //             'created_at'      => $ride->created_at,
+    //             'updated_at'      => $ride->updated_at,
+    //             'user_id'         => $ride->user_id, // keep user_id
+    //         ];
+
+    //         // Merge user fields directly into ride array
+    //         if ($ride->user) {
+    //             $userData = $ride->user->only([
+    //                 'image','name','phone_number','is_phone_verify','email',
+    //                 'role','dob','gender','government_id','id_verified',
+    //                 'vehicle_number','vehicle_type'
+    //             ]);
+    //             $rideArray = array_merge($rideArray, $userData);
+    //         }
+
+    //         return $rideArray;
+    //     });
+
+
+
+    //     return response()->json([
+    //         'status'  => true,
+    //          'message' => __('messages.getAllRideRequests.ride_requests_retrieved'),
+    //         'data'    => $ridesData,
+    //     ],200);
+    // }
+
+
+    // Get all parcel requests (type = 1) with user info merged
+    // public function getAllParcelRequests(Request $request)
+    // {
+
+    //     $user = Auth::guard('api')->user();
+    //     if (!$user) {
+    //         return response()->json(['status'=>false,'message'=>__('messages.createParcelRequest.user_not_authenticated')],401);
+    //     }
+
+    //     // Determine language per device
+    //     $userLang = UserLang::where('user_id', $user->id)
+    //         ->where('device_id', $user->device_id)
+    //         ->where('device_type', $user->device_type)
+    //         ->first();
+
+    //     $lang = $userLang->language ?? 'ru'; // fallback to Russian
+    //     app()->setLocale($lang);
+    //     // ✅ Read filters from query parameters
+    //     $pickup_location = $request->query('pickup_location');
+    //     $destination     = $request->query('destination');
+    //     $ride_date       = $request->query('ride_date');
+    //     $number_of_seats = $request->query('number_of_seats', 1);
+
+    //     // ✅ Validate inputs
+    //     $validator = Validator::make([
+    //         'pickup_location' => $pickup_location,
+    //         'destination'     => $destination,
+    //         'ride_date'       => $ride_date,
+    //         'number_of_seats' => $number_of_seats,
+    //     ], [
+    //         'pickup_location' => 'required|string|max:255',
+    //         'destination'     => 'required|string|max:255',
+    //         'ride_date'       => 'required|date_format:d-m-Y|after_or_equal:today',
+    //         'number_of_seats' => 'nullable|integer|min:1',
+    //     ], [
+    //         'pickup_location.required' => __('messages.getAllParcelRequests.validation.pickup_location_required'),
+    //         'pickup_location.string'   => __('messages.getAllParcelRequests.validation.pickup_location_string'),
+    //         'pickup_location.max'      => __('messages.getAllParcelRequests.validation.pickup_location_max'),
+
+    //         'destination.required' => __('messages.getAllParcelRequests.validation.destination_required'),
+    //         'destination.string'   => __('messages.getAllParcelRequests.validation.destination_string'),
+    //         'destination.max'      => __('messages.getAllParcelRequests.validation.destination_max'),
+
+    //         'ride_date.required' => __('messages.getAllParcelRequests.validation.ride_date_required'),
+    //         'ride_date.date_format' => __('messages.getAllParcelRequests.validation.ride_date_format'),
+    //         'ride_date.after_or_equal' => __('messages.getAllParcelRequests.validation.ride_date_after_or_equal'),
+
+    //         'number_of_seats.integer' => __('messages.getAllParcelRequests.validation.number_of_seats_integer'),
+    //         'number_of_seats.min'     => __('messages.getAllParcelRequests.validation.number_of_seats_min'),
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => $validator->errors()->first(),
+    //         ], 201);
+    //     }
+
+    //     $query = PassengerRequest::with('user')
+    //         ->where('type', 1)
+    //         ->where('status', 'pending')
+    //         ->where('pickup_location', 'like', '%'.$pickup_location.'%')
+    //         ->where('destination', 'like', '%'.$destination.'%')
+    //         ->where('number_of_seats', '>=', $number_of_seats);
+
+    //     // ✅ Filter by ride_date
+    //     try {
+    //         $rideDate = Carbon::createFromFormat('d-m-Y', $ride_date)->format('Y-m-d');
+    //         $query->whereDate('ride_date', $rideDate);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'status'  => false,
+    //            'message' => __('messages.getAllParcelRequests.invalid_ride_date_format'),
+    //         ], 422);
+    //     }
+
+    //     $parcels = $query->orderBy('ride_date', 'asc')
+    //                     ->orderBy('ride_time', 'asc')
+    //                     ->get();
+
+    //        $parcelsData = $parcels->map(function ($parcel) {
+    //         $parcelArray = [
+    //             'id'              => $parcel->id,
+    //             'pickup_location' => $parcel->pickup_location,
+    //             'destination'     => $parcel->destination,
+    //             'ride_date'       => $parcel->ride_date,
+    //             'number_of_seats' => $parcel->number_of_seats,
+    //             'services'        => $parcel->services_details,
+    //             'budget'          => $parcel->budget,
+    //             'preferred_time'  => $parcel->preferred_time,
+    //             'type'            => $parcel->type,
+    //             'status'          => $parcel->status,
+    //             'created_at'      => $parcel->created_at,
+    //             'updated_at'      => $parcel->updated_at,
+    //             'user_id'         => $parcel->user_id, // keep user_id
+    //         ];
+
+    //         // Merge user fields directly into ride array
+    //         if ($parcel->user) {
+    //             $userData = $parcel->user->only([
+    //                 'image','name','phone_number','is_phone_verify','email',
+    //                 'role','dob','gender','government_id','id_verified',
+    //                 'vehicle_number','vehicle_type'
+    //             ]);
+    //             $parcelArray = array_merge($parcelArray, $userData);
+    //         }
+
+    //         return $parcelArray;
+    //     });
+
+
+    //     return response()->json([
+    //         'status'  => true,
+    //        'message' => __('messages.getAllParcelRequests.parcel_requests_retrieved'),
+    //         'data'    => $parcelsData,
+    //     ],200);
+    // }
+
+
+    // with auth user or not both  previous is correct
+
+
     public function getAllRideRequests(Request $request)
     {
      
         $user = Auth::guard('api')->user();
-        if (!$user) {
-            return response()->json(['status'=>false,'message'=>__('messages.createParcelRequest.user_not_authenticated')],401);
-        }
+        // if (!$user) {
+        //     return response()->json(['status'=>false,'message'=>__('messages.createParcelRequest.user_not_authenticated')],401);
+        // }
 
         // Determine language per device
-        $userLang = UserLang::where('user_id', $user->id)
-            ->where('device_id', $user->device_id)
-            ->where('device_type', $user->device_type)
-            ->first();
+      // ✅ Set default language if user not logged in
+            $lang = 'ru';
 
-        $lang = $userLang->language ?? 'ru'; // fallback to Russian
-        app()->setLocale($lang);
+            if ($user) {
+                // ✅ Detect user's language only if logged in
+                $userLang = UserLang::where('user_id', $user->id)
+                    ->where('device_id', $user->device_id)
+                    ->where('device_type', $user->device_type)
+                    ->first();
+
+                $lang = $userLang->language ?? 'ru';
+            }
+
+            app()->setLocale($lang);
 
         // ✅ Read filters from query parameters
         $pickup_location = $request->query('pickup_location');
@@ -321,23 +570,27 @@ class PassengerRequestController extends Controller
         ],200);
     }
 
-
-    // Get all parcel requests (type = 1) with user info merged
     public function getAllParcelRequests(Request $request)
     {
 
         $user = Auth::guard('api')->user();
-        if (!$user) {
-            return response()->json(['status'=>false,'message'=>__('messages.createParcelRequest.user_not_authenticated')],401);
+        // if (!$user) {
+        //     return response()->json(['status'=>false,'message'=>__('messages.createParcelRequest.user_not_authenticated')],401);
+        // }
+
+        // ✅ Set default language if user not logged in
+        $lang = 'ru';
+
+        if ($user) {
+            // ✅ Detect user's language only if logged in
+            $userLang = UserLang::where('user_id', $user->id)
+                ->where('device_id', $user->device_id)
+                ->where('device_type', $user->device_type)
+                ->first();
+
+            $lang = $userLang->language ?? 'ru';
         }
 
-        // Determine language per device
-        $userLang = UserLang::where('user_id', $user->id)
-            ->where('device_id', $user->device_id)
-            ->where('device_type', $user->device_type)
-            ->first();
-
-        $lang = $userLang->language ?? 'ru'; // fallback to Russian
         app()->setLocale($lang);
         // ✅ Read filters from query parameters
         $pickup_location = $request->query('pickup_location');
