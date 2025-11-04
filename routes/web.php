@@ -104,4 +104,5 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
 });
 
 Route::get('/privacy-policy', [PrivacyPolicyController::class, 'show'])->name('privacy.policy');
+Route::get('feedback', [PrivacyPolicyController::class, 'showFeedback'])->name('feedback');
 
