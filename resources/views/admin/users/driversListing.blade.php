@@ -139,10 +139,10 @@
                                 </button>
 
                                     <!-- Ride History Button -->
-                                <!-- <a href="{{ route('dashboard.admin.driverRideHistory', ['driver_id' => $user->id]) }}" 
+                                <a href="{{ route('dashboard.admin.driverRideHistory', ['driver_id' => $user->id]) }}" 
                                     class="btn btn-sm btn-ride-history">
                                     <i class="fas fa-car"></i>
-                                </a> -->
+                                </a>
 
                                 <button  class="dropdown-item delete-btn-design delete-user-btn d-flex justify-content-center" data-user-id="{{ $user->id }}" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
                                     <i class="fa fa-regular fa-trash"></i>

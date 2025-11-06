@@ -13,6 +13,7 @@ class City extends Model
         'city_name',
         'state',
         'country',
+        'language_code',
     ];
 
     public function rides() {

@@ -64,7 +64,21 @@
                             </div>
                         </div>
 
-                        
+                         <!-- Language Code -->
+                        <div class="col-md-6 step-field">
+                            <div class="form-group mb-4">
+                                <label for="language_code">Language Code</label>
+                                <select id="language_code" name="language_code" class="form-control">
+                                    <option value="">Select Language</option>
+                                    <option value="en" {{ old('language_code', $city->language_code ?? '') == 'en' ? 'selected' : '' }}>English (en)</option>
+                                    <option value="ru" {{ old('language_code', $city->language_code ?? '') == 'ru' ? 'selected' : '' }}>Russian (ru)</option>
+                                    <option value="tj" {{ old('language_code', $city->language_code ?? '') == 'tj' ? 'selected' : '' }}>Tajik (tj)</option>
+                                </select>
+                                @error('language_code')
+                                    <div class="text-danger error-message">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
 
                         <div class="col-md-12">
                             <button type="submit" class="btn-box btn-submt-user py-block justify-content-center ms-0 mt-3">

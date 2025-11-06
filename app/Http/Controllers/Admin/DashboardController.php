@@ -21,11 +21,19 @@ class DashboardController extends Controller
         $cityCount    = City::count();
 
        // ✅ Drivers (users who have created rides)
-        $driversQuery = User::where(function ($query) {
-            $query->where('role', '!=', 1)
-                ->orWhereNull('role');
-        })
-        ->whereHas('rides'); // Only drivers who have rides
+        // $driversQuery = User::where(function ($query) {
+        //     $query->where('role', '!=', 1)
+        //         ->orWhereNull('role');
+        // })
+        // ->whereHas('rides'); // Only drivers who have rides
+        $driversQuery = User::where(function ($q) {
+            $q->whereHas('rides')
+            ->orWhereHas('passengerRequestsAsDriver')
+            ->orWhereHas('driverInterests')
+            ->orWhereHas('rideBookings', function ($sub) {
+                $sub->whereNotNull('request_id');
+            });
+        });
         $driversCount = $driversQuery->count();
 
         // ✅ Passengers (users who have booked rides)

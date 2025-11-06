@@ -28,7 +28,13 @@ class CarController extends Controller
             $query->where('seats', $request->seats_filter);
         }
 
+        // 🌐 Optional language filter
+        if ($request->filled('language_filter')) {
+            $query->where('language_code', $request->language_filter);
+        }
+
         $cars = $query->orderBy('id', 'desc')->paginate(10);
+        $languages = CarModel::select('language_code')->whereNotNull('language_code')->distinct()->pluck('language_code');
 
         // Distinct seat numbers for dropdown
         $seatOptions = CarModel::select('seats')
@@ -36,7 +42,7 @@ class CarController extends Controller
             ->distinct()
             ->pluck('seats');
 
-        return view('admin.car.carListing', compact('cars', 'seatOptions'));
+        return view('admin.car.carListing', compact('cars', 'seatOptions', 'languages'));
     }
 
     public function addCar(){
@@ -50,6 +56,7 @@ class CarController extends Controller
             'car_model' => 'required|string|max:255',
             'brand'     => 'required|string|max:255',
             'seats'     => 'nullable|integer|min:1',
+            'language_code' => 'required|string|max:10',
         ], [
             'car_model.required' => 'Please enter the car model.',
             'car_model.string'   => 'Car model must be valid text.',
@@ -62,6 +69,11 @@ class CarController extends Controller
             'seats.integer'      => 'Seats must be a whole number.',
             'seats.min'          => 'Seats must be at least 1.',
 
+            
+             'language_code.required' => 'Please select the language code.',
+            'language_code.string'   => 'Language code must be a valid text.',
+            'language_code.max'      => 'Language code cannot exceed 10 characters.',
+
         ]);
 
         // Store the car
@@ -69,6 +81,7 @@ class CarController extends Controller
             'model_name'     => $request->car_model,
             'brand'    => $request->brand,
             'seats'      => $request->seats,
+             'language_code' => $request->language_code,
         ]);
 
         // Redirect back with success
@@ -91,6 +104,7 @@ class CarController extends Controller
             'model_name' => 'required|string|max:255',
             'brand'      => 'nullable|string|max:255',
             'seats'     => 'nullable|integer|min:1',
+            'language_code' => 'required|string|max:10',
         ], [
             'model_name.required' => 'Please enter the car model.',
             'model_name.string'   => 'Car model must be valid text.',
@@ -99,6 +113,9 @@ class CarController extends Controller
             'brand.max'           => 'Car brand cannot exceed 255 characters.',
              'seats.integer'      => 'Seats must be a whole number.',
             'seats.min'          => 'Seats must be at least 1.',
+            'language_code.required' => 'Please select the language code.',
+            'language_code.string'   => 'Language code must be a valid text.',
+            'language_code.max'      => 'Language code cannot exceed 10 characters.',
 
         ]);
 
@@ -107,6 +124,7 @@ class CarController extends Controller
             'model_name' => $request->model_name,
             'brand'      => $request->brand,
             'seats'      => $request->seats,
+            'language_code' => $request->language_code,
         ]);
 
         return redirect()->route('dashboard.admin.all-cars')
@@ -131,21 +149,27 @@ class CarController extends Controller
     }
 
 
-   public function servicesList(Request $request)
-{
-    $query = Service::query();
+    public function servicesList(Request $request)
+    {
+        $query = Service::query();
 
-    // Search by service name
-    if ($request->filled('search')) {
-        $search = $request->input('search');
-        $query->where('service_name', 'like', "%{$search}%");
+        // Search by service name
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where('service_name', 'like', "%{$search}%");
+        }
+
+        // 🌐 Optional language filter
+        if ($request->filled('language_filter')) {
+            $query->where('language_code', $request->language_filter);
+        }
+
+        $services = $query->orderBy('id', 'desc')->paginate(10);
+        $languages = Service::select('language_code')->whereNotNull('language_code')->distinct()->pluck('language_code');
+
+        return view('admin.services.servicesListing', compact('services', 'languages'))
+                ->with('search', $request->input('search'));
     }
-
-    $services = $query->orderBy('id', 'desc')->paginate(10);
-
-    return view('admin.services.servicesListing', compact('services'))
-            ->with('search', $request->input('search'));
-}
 
 
     public function addService(){
@@ -160,6 +184,7 @@ class CarController extends Controller
         $request->validate([
             'service_name'  => 'required|string|max:255',
             'image' => 'required|file|mimes:jpeg,jpg,png,svg|max:4096',
+            'language_code' => 'required|string|max:10',
         ], [
             'service_name.required'  => 'Please enter the service name.',
             'service_name.string'    => 'Service name must be valid text.',
@@ -168,6 +193,10 @@ class CarController extends Controller
             'image.file'     => 'Image must be a valid file.',
             'image.mimes'    => 'Only JPEG and PNG,SVG images are allowed.',
             'image.max'      => 'Image must not exceed 4MB.',
+
+            'language_code.required' => 'Please select the city language.',
+            'language_code.string'   => 'City language must be a valid text.',
+            'language_code.max'      => 'City language cannot exceed 10 characters.',
         ]);
 
         // Handle image upload
@@ -181,6 +210,7 @@ class CarController extends Controller
         Service::create([
             'service_name'  => $request->service_name,
             'service_image' => $imageName,
+            'language_code' => $request->language_code,
         ]);
 
         return response()->json([
@@ -211,6 +241,10 @@ class CarController extends Controller
             'image.file'            => 'Image must be a valid file.',
             'image.mimes'           => 'Only JPEG and PNG ,SVG images are allowed.',
             'image.max'             => 'Image must not exceed 4MB.',
+
+            'language_code.required' => 'Please select the city language.',
+            'language_code.string'   => 'City language must be a valid text.',
+            'language_code.max'      => 'City language cannot exceed 10 characters.',
         ]);
 
         $service = Service::findOrFail($id);
@@ -223,6 +257,7 @@ class CarController extends Controller
         }
 
         $service->service_name = $request->service_name;
+        $service->language_code = $request->language_code;
         $service->save();
 
         return response()->json([

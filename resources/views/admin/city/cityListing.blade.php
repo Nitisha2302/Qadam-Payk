@@ -18,6 +18,15 @@
                     @endforeach
                 </select>
 
+                <select name="language_filter" class="form-control">
+                    <option value="">All Languages</option>
+                    @foreach($languages as $lang)
+                        <option value="{{ $lang }}" {{ request('language_filter') == $lang ? 'selected' : '' }}>
+                            {{ strtoupper($lang) }}
+                        </option>
+                    @endforeach
+                </select>
+
                 <button type="submit" class="btn btn-success">Filter</button>
 
                 @if(request()->hasAny(['search','country_filter']))
@@ -46,6 +55,7 @@
                     <tr>
                         <th>City</th>
                         <th>Country</th>
+                        <th>Language</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -54,6 +64,7 @@
                         <tr>
                             <td> {{$city->city_name}}</td>
                                 <td>{{$city->country}}</td> 
+                                  <td>{{ strtoupper($city->language_code) ?? 'N/A' }}</td>
                             <td>                                            
                                 <div class="d-flex align-items-center gap-2">
                                     <a href="{{ route('dashboard.admin.edit-city', ['id' => $city->id]) }}" class="action-btn">

@@ -74,15 +74,25 @@
                 </a>
             </li>
 
+            <li class="@if (Route::currentRouteName() == 'dashboard.admin.reports.index') active @endif">
+                  <a href="{{ route('dashboard.admin.reports.index') }}">
+                    <span class="d-flex gap-3 align-items-end">
+                          <i class="fas fa-chart-bar icon-font-size"></i>
+                        <span class="nav-content-menu">Reports & Analytics</span>
+                    </span>
+                </a>
+            </li>
 
-            <!-- <li class="@if (Route::currentRouteName() == 'dashboard.admin.notifications.send') active @endif">
+
+
+            <li class="@if (Route::currentRouteName() == 'dashboard.admin.notifications.send') active @endif">
                 <a href="{{ route('dashboard.admin.notifications.send') }}">
                     <span class="d-flex gap-3 align-items-end">
                        <i class="fas fa-envelope icon-font-size"></i>
                         <span class="nav-content-menu">Push Notifications</span>
                     </span>
                 </a>
-            </li> -->
+            </li>
 
             <li class="@if (Route::currentRouteName() == 'dashboard.admin.all-query') active @endif">
                 <a href="{{ route('dashboard.admin.all-query') }}">

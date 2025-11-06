@@ -25,6 +25,15 @@
                     @endforeach
                 </select>
 
+                <select name="language_filter" class="form-control">
+                    <option value="">All Languages</option>
+                    @foreach($languages as $lang)
+                        <option value="{{ $lang }}" {{ request('language_filter') == $lang ? 'selected' : '' }}>
+                            {{ strtoupper($lang) }}
+                        </option>
+                    @endforeach
+                </select>
+
                 <button type="submit" class="btn btn-success">Filter</button>
 
                 @if(request()->hasAny(['search','seats_filter']))
@@ -54,6 +63,7 @@
                         <th>Car Model</th>
                         <th>Brand</th>
                          <th>Seats</th>
+                        <th>Language</th>
                          <th>Action</th>
                     </tr>
                 </thead>
@@ -63,6 +73,7 @@
                             <td> {{ $car->model_name ?? 'N/A' }}</td>
                             <td>{{ $car->brand ?? 'N/A' }}</td>
                             <td>{{ $car->seats ?? 'N/A' }}</td> 
+                            <td>{{ strtoupper($car->language_code) ?? 'N/A' }}</td>
                             <td>                                            
                                 <div class="d-flex align-items-center gap-2">
                                     <a href="{{ route('dashboard.admin.edit-car', ['id' => $car->id]) }}" class="action-btn">

@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\BookingsController;
 use App\Http\Controllers\Admin\ReportsController;
 use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Admin\PrivacyPolicyController;
+use App\Http\Controllers\Admin\ReportController;
 
 
 Route::fallback(function () {
@@ -28,11 +29,6 @@ Route::post('/create-new-password', [AdminAuthController::class, 'createNewPassw
 Route::get('reset-password/{token}', [AdminAuthController::class, 'showResetForm'])->name('password.reset');
 Route::post('/update-password', [AdminAuthController::class, 'updatePassword'])->name('update-password');
 Route::get('/global-search', [GlobalSearchController::class, 'search'])->name('global-search');
-Route::get('/privacy-policy', [ContactUsController::class, 'privacyPolicy'])->name('privacy-policy');
-
-Route::get('/home', [DashboardController::class, 'appHome'])->name('app-home');
-Route::get('/privacy-policy', [DashboardController::class, 'appPrivacyPolicy'])->name('app-privacy-policy');
-Route::get('/term-conditions', [DashboardController::class, 'appTermCondition'])->name('app-term-services');
 
 Route::get('/delete-account/{id?}', [AdminAuthController::class, 'showDeleteAccountPage'])->name('delete-account.page');
 
@@ -94,7 +90,13 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
         Route::get('notifications/send', [AdminNotificationController::class, 'sendNotification'])->name('notifications.send');
         Route::post('notifications/store', [AdminNotificationController::class, 'store'])->name('notifications.store');
 
-
+        // // Reports & Analytics
+        //         Route::prefix('reports')->name('reports.')->group(function () {
+        //             Route::get('/', [ReportController::class, 'index'])->name('index');
+        //             Route::get('/export/{type}', [ReportController::class, 'export'])->name('export');
+        //         });
+        Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('reports/export/{type}', [ReportController::class, 'export'])->name('reports.export');
       
 
     });  
@@ -104,4 +106,5 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
 });
 
 Route::get('/privacy-policy', [PrivacyPolicyController::class, 'show'])->name('privacy.policy');
+Route::get('feedback', [PrivacyPolicyController::class, 'showFeedback'])->name('feedback');
 

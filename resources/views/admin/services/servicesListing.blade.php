@@ -8,6 +8,14 @@
             <h2>All Services</h2>
              <form method="GET" action="{{ route('dashboard.admin.all-services') }}" class="d-flex gap-2 mb-3">
                 <input type="text" name="search" class="form-control" placeholder="Search by services" value="{{ request('search') }}">
+                <select name="language_filter" class="form-control">
+                    <option value="">All Languages</option>
+                    @foreach($languages as $lang)
+                        <option value="{{ $lang }}" {{ request('language_filter') == $lang ? 'selected' : '' }}>
+                            {{ strtoupper($lang) }}
+                        </option>
+                    @endforeach
+                </select>
 
                 <button type="submit" class="btn btn-success">Filter</button>
 
@@ -36,6 +44,7 @@
                     <tr>
                         <th>Icon</th>
                         <th>Services</th>
+                        <th>Language</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -48,6 +57,7 @@
                                 alt="user-img" width="80">
                            </td>
                             <td> {{$service->service_name}}</td> 
+                              <td>{{ strtoupper($service->language_code) ?? 'N/A' }}</td>
                             <td>                                            
                                 <div class="d-flex align-items-center gap-2">
                                     <a href="{{ route('dashboard.admin.edit-service', ['id' => $service->id]) }}" class="action-btn">

@@ -373,12 +373,26 @@ class AuthController extends Controller
         }
 
         // Generate a secure random 6-digit OTP
-        try {
-            $otp = random_int(100000, 999999);
-        } catch (\Exception $e) {
-            // Fallback if random_int fails (very unlikely)
-            $otp = mt_rand(100000, 999999);
+        // try {
+        //     $otp = random_int(100000, 999999);
+        // } catch (\Exception $e) {
+        //     // Fallback if random_int fails (very unlikely)
+        //     $otp = mt_rand(100000, 999999);
+        // }
+
+        // ✅ Generate a secure random 6-digit OTP, unless test number is used
+        $phone = $request->phone_number;
+
+        if ($phone === '123456789') {
+            $otp = 123456; // ✅ Always use fixed OTP for test number
+        } else {
+            try {
+                $otp = random_int(100000, 999999);
+            } catch (\Exception $e) {
+                $otp = mt_rand(100000, 999999);
+            }
         }
+
 
         // Find or create user
         $user = User::firstOrCreate(

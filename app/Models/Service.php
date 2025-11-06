@@ -13,6 +13,7 @@ class Service extends Model
     protected $fillable = [
         'service_image',
         'service_name',
+        'language_code',
     ];
 
     // Optional: if you want to customize table name (default is 'services')
