@@ -19,4 +19,23 @@ class PrivacyPolicyController extends Controller
         $policy = PrivacyPolicy::first();
         return view('admin.PrivacyPolicy.feedbackForm', compact('policy'));
     }
+
+    public function showBlockPolicyPage()
+    {
+        $policy = PrivacyPolicy::first();
+        return view('admin.PrivacyPolicy.blockUserPolicyForm', compact('policy'));
+    }
+
+    public function blockuserPolicy()
+    {
+        $policy = PrivacyPolicy::first();
+        return view('admin.PrivacyPolicy.blockUserPolicyForm',compact('policy'));
+    }
+
+    public function showReportForm()
+    {
+        $policy = PrivacyPolicy::first();
+        return view('admin.PrivacyPolicy.reportForm', compact('policy'));
+    }
+
 }
