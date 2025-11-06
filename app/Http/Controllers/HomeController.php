@@ -9,21 +9,71 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\UserLang;
+use App\Models\Report;
 
 class HomeController extends Controller
 {
-    public function getCity()
-    {
-        // Fetch all height_key records
-        $cities = City::all();
+    // public function getCity()
+    // {
+    //     // Fetch all height_key records
+    //     $cities = City::all();
 
-        // Return a structured JSON response
+    //     // Return a structured JSON response
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'Cities fetched successfully.',
+    //         'data' => $cities
+    //     ],200);
+    // }
+
+
+    // with translation 
+
+    public function getCity(Request $request)
+    {
+        // Step 1️⃣: Default language = Russian
+        $lang = 'ru';
+        $user = null;
+
+        // Step 2️⃣: Try to detect user via token (if present)
+        if ($request->bearerToken()) {
+            $user = Auth::guard('api')->user();
+
+            if ($user) {
+                // Check if user has preferred language saved
+                $userLang = UserLang::where('user_id', $user->id)
+                    ->where('device_id', $user->device_id)
+                    ->where('device_type', $user->device_type)
+                    ->first();
+
+                $lang = $userLang->language ?? 'ru';
+            }
+        } 
+        // Step 3️⃣: If no token, try request->language
+        elseif ($request->has('language')) {
+            $lang = $request->language;
+        }
+
+        // Step 4️⃣: Apply fallback (always safe)
+        app()->setLocale($lang);
+
+        // Step 5️⃣: Fetch cities by language_code (if set in DB)
+        $cities = City::when($lang, function ($query) use ($lang) {
+            return $query->where(function ($q) use ($lang) {
+                $q->where('language_code', $lang)
+                ->orWhereNull('language_code');
+            });
+        })->get();
+
+        // Step 6️⃣: Return localized message
         return response()->json([
-            'status' => true,
-            'message' => 'Cities fetched successfully.',
-            'data' => $cities
-        ],200);
-    }
+            'status'  => true,
+            'message' => __('messages.city.fetched_successfully'),
+            'language_used' => $lang,
+            'data'    => $cities,
+        ], 200);
+     }
+
 
     public function getAllBrands()
     {
@@ -170,6 +220,159 @@ class HomeController extends Controller
             'data'   => $enquiries,
         ],200);
     }
+
+    public function storeReport(Request $request)
+    {
+        // 1️⃣ Authenticate user
+        $user = Auth::guard('api')->user();
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => __('messages.report.user_not_authenticated'),
+            ], 401);
+        }
+
+        // 2️⃣ Detect user language
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru';
+        app()->setLocale($lang);
+
+        // 3️⃣ Validation
+        $validator = Validator::make($request->all(), [
+            'mobile_number' => 'required|string|min:8|max:15',
+            'description'   => 'required|string',
+        ], [
+            'mobile_number.required' => __('messages.report.validation.mobile_required'),
+            'description.required'   => __('messages.report.validation.description_required'),
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => false,
+                'message' => $validator->errors()->first(),
+            ], 201);
+        }
+
+        // 4️⃣ Save report
+        $report = Report::create([
+            'user_id'       => $user->id,
+            'mobile_number' => $request->mobile_number,
+            'description'   => $request->description,
+        ]);
+
+        // 5️⃣ Return success response
+        return response()->json([
+            'status'  => true,
+            'message' => __('messages.report.success'),
+            'data'    => $report,
+        ], 200);
+    }
+
+
+    public function blockUser(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => __('messages.block.user_not_authenticated'),
+            ], 401);
+        }
+
+        // 2️⃣ Detect user language
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru';
+        app()->setLocale($lang);
+
+        $validator = Validator::make($request->all(), [
+            'blocked_user_id' => 'required|exists:users,id|not_in:' . $user->id,
+        ], [
+            'blocked_user_id.required' => __('messages.block.validation.blocked_user_required'),
+            'blocked_user_id.exists'   => __('messages.block.validation.blocked_user_exists'),
+            'blocked_user_id.not_in'   => __('messages.block.validation.cannot_block_self'),
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        // check if already blocked
+        $existingBlock = \App\Models\UserBlock::where('user_id', $user->id)
+            ->where('blocked_user_id', $request->blocked_user_id)
+            ->first();
+
+        if ($existingBlock) {
+            return response()->json([
+                'status'  => false,
+                'message' => __('messages.block.already_blocked'),
+            ], 200);
+        }
+
+        // store new block
+        \App\Models\UserBlock::create([
+            'user_id'         => $user->id,
+            'blocked_user_id' => $request->blocked_user_id,
+        ]);
+
+        return response()->json([
+            'status'  => true,
+            'message' => __('messages.block.success'),
+        ], 200);
+    }
+
+    public function unblockUser(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => __('messages.block.user_not_authenticated'),
+            ], 401);
+        }
+
+        // 2️⃣ Detect user language
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru';
+        app()->setLocale($lang);
+
+        $validator = Validator::make($request->all(), [
+            'blocked_user_id' => 'required|exists:users,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        \App\Models\UserBlock::where('user_id', $user->id)
+            ->where('blocked_user_id', $request->blocked_user_id)
+            ->delete();
+
+        return response()->json([
+            'status'  => true,
+            'message' => __('messages.block.unblocked'),
+        ], 200);
+    }
+
 
 
 

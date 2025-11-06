@@ -657,6 +657,37 @@ return [
     ],
 
 
+    'city' => [
+        'fetched_successfully' => 'Cities fetched successfully.',
+    ],
+
+    'report' => [
+        'user_not_authenticated' => 'User not authenticated.',
+        'success' => 'Report submitted successfully.',
+        'validation' => [
+            'mobile_required' => 'Mobile number is required.',
+            'description_required' => 'Description is required.',
+        ],
+    ],
+
+
+    'block' => [
+        'user_not_authenticated' => 'User not authenticated.',
+        'success' => 'User blocked successfully.',
+        'unblocked' => 'User unblocked successfully.',
+        'already_blocked' => 'User is already blocked.',
+        'validation' => [
+            'blocked_user_required' => 'Blocked user ID is required.',
+            'blocked_user_exists'   => 'Blocked user does not exist.',
+            'cannot_block_self'     => 'You cannot block yourself.',
+        ],
+    ],
+
+
+
+    
+
+
 
 
 

@@ -12,7 +12,8 @@ class Vehicle extends Model
         'model',
         'number_plate',
         'vehicle_image',
-        'vehicle_type'
+        'vehicle_type',
+        'language_code'
     ];
 
     public function user()

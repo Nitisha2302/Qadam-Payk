@@ -611,6 +611,32 @@ return [
 
 
 
+   'city' => [
+        'fetched_successfully' => 'Города успешно получены.',
+    ],
+
+
+    'report' => [
+        'user_not_authenticated' => 'Пользователь не авторизован.',
+        'success' => 'Отчет успешно отправлен.',
+        'validation' => [
+            'mobile_required' => 'Требуется номер телефона.',
+            'description_required' => 'Требуется описание.',
+        ],
+    ],
+
+    'block' => [
+        'user_not_authenticated' => 'Пользователь не авторизован.',
+        'success' => 'Пользователь успешно заблокирован.',
+        'unblocked' => 'Пользователь успешно разблокирован.',
+        'already_blocked' => 'Пользователь уже заблокирован.',
+        'validation' => [
+            'blocked_user_required' => 'Необходим идентификатор пользователя для блокировки.',
+            'blocked_user_exists'   => 'Пользователь не существует.',
+            'cannot_block_self'     => 'Вы не можете заблокировать самого себя.',
+        ],
+    ],
+
 
 
 

@@ -120,3 +120,8 @@ Route::get('/get-recived-response', [BookingController::class, 'getReceivedRespo
 
 Route::post('/rate', [RatingController::class, 'store']);
 Route::get('/ratings', [RatingController::class, 'list']);
+
+Route::post('/store-report', [HomeController::class, 'storeReport']);
+
+Route::post('block-user', [HomeController::class, 'blockUser']);
+Route::post('unblock-user', [HomeController::class, 'unblockUser']);

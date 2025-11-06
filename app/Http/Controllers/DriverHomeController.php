@@ -86,34 +86,78 @@ class DriverHomeController extends Controller
     }
 
     
+    // public function getVehicles(Request $request)
+    // {
+    //     $user = Auth::guard('api')->user();
+    //     if (!$user) {
+    //         return response()->json([
+    //             'status' => false,
+    //            'message' => __('messages.vehicle.get_vehicles.user_not_authenticated'),
+    //         ], 401);
+    //     }
+
+    //      // 🔹 Detect user's preferred language from UserLang table
+    //     $userLang = UserLang::where('user_id', $user->id)
+    //         ->where('device_id', $user->device_id)
+    //         ->where('device_type', $user->device_type)
+    //         ->first();
+
+    //     $lang = $userLang->language ?? 'ru'; // fallback to Russian
+    //     app()->setLocale($lang);
+
+    //     $vehicles = Vehicle::select('id', 'brand', 'model', 'number_plate', 'vehicle_image')
+    //         ->where('user_id', $user->id)
+    //         ->get();
+
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => $vehicles->isEmpty()
+    //             ? __('messages.vehicle.get_vehicles.no_vehicles_found')
+    //             : __('messages.vehicle.get_vehicles.success'),
+    //         'data'    => $vehicles,
+    //     ], 200);
+    // }
+    
+    // with language 
+
     public function getVehicles(Request $request)
     {
+        // ✅ 1️⃣ Authenticate user
         $user = Auth::guard('api')->user();
+
         if (!$user) {
             return response()->json([
-                'status' => false,
-               'message' => __('messages.vehicle.get_vehicles.user_not_authenticated'),
+                'status'  => false,
+                'message' => __('messages.vehicle.get_vehicles.user_not_authenticated'),
             ], 401);
         }
 
-         // 🔹 Detect user's preferred language from UserLang table
+        // ✅ 2️⃣ Detect user's preferred language from UserLang table
         $userLang = UserLang::where('user_id', $user->id)
             ->where('device_id', $user->device_id)
             ->where('device_type', $user->device_type)
             ->first();
 
-        $lang = $userLang->language ?? 'ru'; // fallback to Russian
+        // Fallback to Russian
+        $lang = $userLang->language ?? 'ru';
         app()->setLocale($lang);
 
-        $vehicles = Vehicle::select('id', 'brand', 'model', 'number_plate', 'vehicle_image')
+        // ✅ 3️⃣ Fetch user’s vehicles filtered by language_code
+        $vehicles = Vehicle::select('id', 'brand', 'model', 'number_plate', 'vehicle_image', 'language_code')
             ->where('user_id', $user->id)
+            ->where(function ($q) use ($lang) {
+                $q->where('language_code', $lang)
+                ->orWhereNull('language_code'); // include universal vehicles
+            })
             ->get();
 
+        // ✅ 4️⃣ Return localized response
         return response()->json([
             'status'  => true,
             'message' => $vehicles->isEmpty()
                 ? __('messages.vehicle.get_vehicles.no_vehicles_found')
                 : __('messages.vehicle.get_vehicles.success'),
+            'language_used' => $lang,
             'data'    => $vehicles,
         ], 200);
     }
