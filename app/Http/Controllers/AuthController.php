@@ -379,8 +379,6 @@ class AuthController extends Controller
         //     // Fallback if random_int fails (very unlikely)
         //     $otp = mt_rand(100000, 999999);
         // }
-
-        // ✅ Generate a secure random 6-digit OTP, unless test number is used
         $phone = $request->phone_number;
 
         if ($phone === '123456789') {

@@ -36,6 +36,7 @@ Route::post('/delete-account-confirm', [AdminAuthController::class, 'confirmDele
 
 
 
+
 // Routes with the same prefix for both Admin and Investor
 Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
     // Admin Dashboard
@@ -107,4 +108,9 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
 
 Route::get('/privacy-policy', [PrivacyPolicyController::class, 'show'])->name('privacy.policy');
 Route::get('feedback', [PrivacyPolicyController::class, 'showFeedback'])->name('feedback');
+<<<<<<< HEAD
+=======
+Route::get('/block-user-policy', [PrivacyPolicyController::class, 'blockuserPolicy'])->name('block-user-policy');
+>>>>>>> 100daac7186e3d7185b6a0a79aa489f92ea648fc
 
+Route::get('report-user', [PrivacyPolicyController::class, 'showReportForm'])->name('report-user');
