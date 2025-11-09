@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\UserLang;
 
+
 class ChatController extends Controller
 {
     // Start or get a conversation
@@ -240,6 +241,26 @@ class ChatController extends Controller
         if(!in_array($user->id, [$conversation->user_one_id,$conversation->user_two_id])) {
             return response()->json(['status'=>false,'message'=> __('messages.send.not_participant')],201);
         }
+
+
+        // 🧱 BLOCK CHECK — prevent sending if either user has blocked the other
+        $isBlocked = \App\Models\UserBlock::where(function ($q) use ($user, $conversation) {
+                $q->where('user_id', $user->id)
+                ->where('blocked_user_id', $conversation->user_one_id == $user->id ? $conversation->user_two_id : $conversation->user_one_id);
+            })
+            ->orWhere(function ($q) use ($user, $conversation) {
+                $q->where('user_id', $conversation->user_one_id == $user->id ? $conversation->user_two_id : $conversation->user_one_id)
+                ->where('blocked_user_id', $user->id);
+            })
+            ->exists();
+
+        if ($isBlocked) {
+            return response()->json([
+                'status'  => false,
+                'message' => __('messages.send.blocked_cannot_send'),
+            ], 403);
+        }
+
 
         $message = Message::create([
             'conversation_id' => $conversation->id,

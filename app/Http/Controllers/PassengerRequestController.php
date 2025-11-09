@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
    use App\Models\RideBooking;
+   use App\Models\UserBlock;
 use Illuminate\Support\Facades\DB;
 use App\Models\UserLang;
 
@@ -527,6 +528,24 @@ class PassengerRequestController extends Controller
             ], 422);
         }
 
+         // ✅ EXCLUDE blocked users (both directions)
+        if ($user) {
+            $blockedUserIds = UserBlock::where('user_id', $user->id)
+                ->pluck('blocked_user_id')
+                ->toArray();
+
+            $blockedByUserIds = UserBlock::where('blocked_user_id', $user->id)
+                ->pluck('user_id')
+                ->toArray();
+
+            $allBlockedIds = array_unique(array_merge($blockedUserIds, $blockedByUserIds));
+
+            if (!empty($allBlockedIds)) {
+                $query->whereNotIn('user_id', $allBlockedIds);
+            }
+        }
+
+
         $rides = $query->orderBy('ride_date', 'asc')
                     ->orderBy('ride_time', 'asc')
                     ->get();
@@ -650,6 +669,28 @@ class PassengerRequestController extends Controller
                'message' => __('messages.getAllParcelRequests.invalid_ride_date_format'),
             ], 422);
         }
+
+        // ✅ EXCLUDE blocked users (same logic)
+        if ($user) {
+            // ✅ Users that the logged-in user has blocked
+            $blockedUserIds = UserBlock::where('user_id', $user->id)
+                ->pluck('blocked_user_id')
+                ->toArray();
+
+            // ✅ Users who have blocked the logged-in user
+            $blockedByUserIds = UserBlock::where('blocked_user_id', $user->id)
+                ->pluck('user_id')
+                ->toArray();
+
+            // ✅ Combine both lists (unique)
+            $allBlockedIds = array_unique(array_merge($blockedUserIds, $blockedByUserIds));
+            // ✅ Exclude both sides — i.e. don't show any requests created by blocked users OR by users who blocked me
+            if (!empty($allBlockedIds)) {
+                $query->whereNotIn('user_id', $allBlockedIds)
+                    ->whereNotIn('driver_id', $allBlockedIds); // in case driver_id stores request owner in some cases
+            }
+        }
+
 
         $parcels = $query->orderBy('ride_date', 'asc')
                         ->orderBy('ride_time', 'asc')

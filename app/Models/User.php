@@ -92,6 +92,10 @@ class User extends Authenticatable
             return $this->hasMany(UserLang::class);
         }
 
+   public function blockedUser()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'blocked_user_id');
+    }
 
     
 

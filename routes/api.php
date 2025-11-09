@@ -125,3 +125,4 @@ Route::post('/store-report', [HomeController::class, 'storeReport']);
 
 Route::post('block-user', [HomeController::class, 'blockUser']);
 Route::post('unblock-user', [HomeController::class, 'unblockUser']);
+Route::get('blocked-users', [HomeController::class, 'getBlockedUsers']);
