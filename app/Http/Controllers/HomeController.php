@@ -222,6 +222,9 @@ class HomeController extends Controller
             if ($request->bearerToken()) {
                 $user = Auth::guard('api')->user();
 
+
+                
+
                 if ($user) {
                     $userLang = UserLang::where('user_id', $user->id)
                         ->where('device_id', $user->device_id)
