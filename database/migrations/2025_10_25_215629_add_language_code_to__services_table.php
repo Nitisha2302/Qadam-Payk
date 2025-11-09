@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('Services', function (Blueprint $table) {
+        Schema::table('services', function (Blueprint $table) {
                  $table->string('language_code', 10)->nullable()->after('service_image'); // e.g., 'en', 'ru', 'ar'
 
         });
@@ -22,7 +22,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('Services', function (Blueprint $table) {
+        Schema::table('services', function (Blueprint $table) {
            $table->dropColumn('language_code');
         });
     }
