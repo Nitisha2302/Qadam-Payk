@@ -29,50 +29,121 @@ class HomeController extends Controller
 
     // with translation 
 
+    // public function getCity(Request $request)
+    // {
+    //     // Step 1️⃣: Default language = Russian
+    //     $lang = 'ru';
+    //     $user = null;
+
+    //     // Step 2️⃣: Try to detect user via token (if present)
+    //     if ($request->bearerToken()) {
+    //         $user = Auth::guard('api')->user();
+
+    //         if ($user) {
+    //             // Check if user has preferred language saved
+    //             $userLang = UserLang::where('user_id', $user->id)
+    //                 ->where('device_id', $user->device_id)
+    //                 ->where('device_type', $user->device_type)
+    //                 ->first();
+
+    //             $lang = $userLang->language ?? 'ru';
+    //         }
+    //     } 
+    //     // Step 3️⃣: If no token, try request->language
+    //     elseif ($request->has('language')) {
+    //         $lang = $request->language;
+    //     }
+
+    //     // Step 4️⃣: Apply fallback (always safe)
+    //     app()->setLocale($lang);
+
+    //     // Step 5️⃣: Fetch cities by language_code (if set in DB)
+    //     $cities = City::when($lang, function ($query) use ($lang) {
+    //         return $query->where(function ($q) use ($lang) {
+    //             $q->where('language_code', $lang)
+    //             ->orWhereNull('language_code');
+    //         });
+    //     })->get();
+
+    //     // Step 6️⃣: Return localized message
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => __('messages.city.fetched_successfully'),
+    //         'language_used' => $lang,
+    //         'data'    => $cities,
+    //     ], 200);
+    //  }
+
+
     public function getCity(Request $request)
     {
         // Step 1️⃣: Default language = Russian
         $lang = 'ru';
         $user = null;
 
-        // Step 2️⃣: Try to detect user via token (if present)
-        if ($request->bearerToken()) {
-            $user = Auth::guard('api')->user();
+        try {
+            // Step 2️⃣: Detect user if token present
+            if ($request->bearerToken()) {
+                $user = Auth::guard('api')->user();
 
-            if ($user) {
-                // Check if user has preferred language saved
-                $userLang = UserLang::where('user_id', $user->id)
-                    ->where('device_id', $user->device_id)
-                    ->where('device_type', $user->device_type)
-                    ->first();
+                if ($user) {
+                    $userLang = \App\Models\UserLang::where('user_id', $user->id)
+                        ->where('device_id', $user->device_id)
+                        ->where('device_type', $user->device_type)
+                        ->first();
 
-                $lang = $userLang->language ?? 'ru';
+                    if ($userLang && !empty($userLang->language)) {
+                        $lang = $userLang->language;
+                    }
+                }
             }
-        } 
-        // Step 3️⃣: If no token, try request->language
-        elseif ($request->has('language')) {
-            $lang = $request->language;
+
+            // Step 3️⃣: If language param passed, override user language
+            if ($request->has('language') && !empty($request->language)) {
+                $lang = $request->language;
+            }
+
+            // Step 4️⃣: Apply locale
+            app()->setLocale($lang);
+
+            // Step 5️⃣: Fetch cities based on language logic
+            $cities = \App\Models\City::where(function ($q) use ($lang) {
+                if ($lang === 'ru') {
+                    // Russian → include both ru + NULL
+                    $q->where('language_code', 'ru')
+                    ->orWhereNull('language_code');
+                } else {
+                    // Other → only exact match
+                    $q->where('language_code', $lang);
+                }
+            })->get();
+
+            // Step 6️⃣: Fallback → if no cities found, show Russian (default)
+            if ($cities->isEmpty()) {
+                $cities = \App\Models\City::where(function ($q) {
+                    $q->where('language_code', 'ru')
+                    ->orWhereNull('language_code');
+                })->get();
+
+                $lang = 'ru'; // reset language to fallback
+            }
+
+            // Step 7️⃣: Return localized response
+            return response()->json([
+                'status'        => true,
+                'message'       => __('messages.city.fetched_successfully'),
+                'language_used' => $lang,
+                'data'          => $cities,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Something went wrong: ' . $e->getMessage(),
+            ], 500);
         }
+    }
 
-        // Step 4️⃣: Apply fallback (always safe)
-        app()->setLocale($lang);
-
-        // Step 5️⃣: Fetch cities by language_code (if set in DB)
-        $cities = City::when($lang, function ($query) use ($lang) {
-            return $query->where(function ($q) use ($lang) {
-                $q->where('language_code', $lang)
-                ->orWhereNull('language_code');
-            });
-        })->get();
-
-        // Step 6️⃣: Return localized message
-        return response()->json([
-            'status'  => true,
-            'message' => __('messages.city.fetched_successfully'),
-            'language_used' => $lang,
-            'data'    => $cities,
-        ], 200);
-     }
 
 
     public function getAllBrands()
@@ -126,17 +197,95 @@ class HomeController extends Controller
         ]);
     }
 
-    public function getAllServices()
-    {
-        // Get all services with id and service_name
-        $services = Service::select('id', 'service_name','service_image')->get();
+    // public function getAllServices()
+    // {
+    //     // Get all services with id and service_name
+    //     $services = Service::select('id', 'service_name','service_image')->get();
 
-        return response()->json([
-            'status' => true,
-                        'message' => 'Services fetched successfully.',
-            'data'   => $services, // array of objects [{id:1, service_name:"WiFi"}, ...]
-        ], 200);
+    //     return response()->json([
+    //         'status' => true,
+    //                     'message' => 'Services fetched successfully.',
+    //         'data'   => $services, // array of objects [{id:1, service_name:"WiFi"}, ...]
+    //     ], 200);
+    // }
+
+
+    // with language code 
+   public function getAllServices(Request $request)
+    {
+        // Step 1️⃣: Default language = Russian
+        $lang = 'ru';
+        $user = null;
+
+        try {
+            // Step 2️⃣: Detect user if token present
+            if ($request->bearerToken()) {
+                $user = Auth::guard('api')->user();
+
+                if ($user) {
+                    $userLang = UserLang::where('user_id', $user->id)
+                        ->where('device_id', $user->device_id)
+                        ->where('device_type', $user->device_type)
+                        ->first();
+
+                    // If user language found, use it
+                    if ($userLang && !empty($userLang->language)) {
+                        $lang = $userLang->language;
+                    }
+                }
+            }
+
+            // Step 3️⃣: If request has explicit language param, override
+            if ($request->has('language') && !empty($request->language)) {
+                $lang = $request->language;
+            }
+
+            // Step 4️⃣: Apply locale for translations
+            app()->setLocale($lang);
+
+            // Step 5️⃣: Fetch services by language logic
+            $services = Service::where(function ($q) use ($lang) {
+                if ($lang === 'ru') {
+                    // Russian → include ru + NULL
+                    $q->where('language_code', 'ru')
+                    ->orWhereNull('language_code');
+                } else {
+                    // Other language → only exact match
+                    $q->where('language_code', $lang);
+                }
+            })
+            ->select('id', 'service_name', 'service_image')
+            ->get();
+
+            // Step 6️⃣: If no services found for that lang, fallback to Russian
+            if ($services->isEmpty()) {
+                $services = Service::where(function ($q) {
+                    $q->where('language_code', 'ru')
+                    ->orWhereNull('language_code');
+                })
+                ->select('id', 'service_name', 'service_image')
+                ->get();
+
+                $lang = 'ru'; // fallback language
+            }
+
+            // Step 7️⃣: Return response
+            return response()->json([
+                'status'         => true,
+                'message'        => __('messages.service.fetched_successfully'),
+                'language_used'  => $lang,
+                'data'           => $services,
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Something went wrong: ' . $e->getMessage(),
+            ], 500);
+        }
     }
+
+
 
     public function storeEnquiry(Request $request)
     {
@@ -372,6 +521,48 @@ class HomeController extends Controller
             'message' => __('messages.block.unblocked'),
         ], 200);
     }
+
+    public function getBlockedUsers(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => __('messages.block.user_not_authenticated'),
+            ], 401);
+        }
+
+        // 🔹 Detect user language
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru';
+        app()->setLocale($lang);
+
+        // 🔹 Fetch all blocked users with their details
+        $blockedUsers = \App\Models\UserBlock::with('blockedUser:id,name,image')
+            ->where('user_id', $user->id)
+            ->get()
+            ->map(function ($block) {
+                return [
+                    'blocked_user_id' => $block->blocked_user_id,
+                    'name'            => $block->blockedUser->name ?? null,
+                    'image'   => $block->blockedUser->image ?? null,
+                ];
+            });
+
+        return response()->json([
+            'status' => true,
+            'message' => __('messages.block.list_retrieved'),
+            'data' => $blockedUsers,
+        ], 200);
+    }
+
+
+
 
 
 

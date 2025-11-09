@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\Ride;
+use App\Models\UserBlock;
 use App\Models\Service;
 use Carbon\Carbon;
 use App\Models\UserLang;
@@ -542,6 +543,23 @@ class DriverHomeController extends Controller
         // ✅ Exclude rides created by authenticated user (only if logged in)
         if ($user) {
             $query->where('user_id', '!=', $user->id);
+            // ✅ Get list of users blocked by current user
+            $blockedUserIds = UserBlock::where('user_id', $user->id)
+                ->pluck('blocked_user_id')
+                ->toArray();
+
+            // ✅ Get list of users who blocked current user
+            $blockedByUserIds = UserBlock::where('blocked_user_id', $user->id)
+                ->pluck('user_id')
+                ->toArray();
+
+            // ✅ Combine both
+            $allBlockedIds = array_unique(array_merge($blockedUserIds, $blockedByUserIds));
+
+            // ✅ Exclude rides from or to blocked users
+            if (!empty($allBlockedIds)) {
+                $query->whereNotIn('user_id', $allBlockedIds);
+            }
         }
 
         if ($request->pickup_location) {
@@ -670,6 +688,24 @@ class DriverHomeController extends Controller
         // ✅ Exclude rides of logged-in user (only if authenticated)
         if ($user) {
             $query->where('user_id', '!=', $user->id);
+
+            // ✅ Get list of users blocked by current user
+            $blockedUserIds = UserBlock::where('user_id', $user->id)
+                ->pluck('blocked_user_id')
+                ->toArray();
+
+            // ✅ Get list of users who blocked current user
+            $blockedByUserIds = UserBlock::where('blocked_user_id', $user->id)
+                ->pluck('user_id')
+                ->toArray();
+
+            // ✅ Combine both
+            $allBlockedIds = array_unique(array_merge($blockedUserIds, $blockedByUserIds));
+
+            // ✅ Exclude rides from or to blocked users
+            if (!empty($allBlockedIds)) {
+                $query->whereNotIn('user_id', $allBlockedIds);
+            }
         }
 
         if ($request->pickup_location) {

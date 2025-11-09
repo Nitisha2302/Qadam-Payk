@@ -283,6 +283,7 @@ return [
         'user_not_authenticated' => 'User not authenticated.',
         'success'                => 'Message sent successfully.',
         'not_participant'        => 'You are not a participant in this conversation.',
+        'blocked_cannot_send' => 'You cannot send messages to this user because one of you has blocked the other.',
 
         'validation' => [
             'conversation_not_exist' => 'Conversation not found.',
