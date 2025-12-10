@@ -9,6 +9,7 @@
 /public/assets/parcels
 /public/assets/parcel_image
 /public/assets/vehicle_image
+/public/assets/banner
 /storage/*.key
 /vendor
 .env

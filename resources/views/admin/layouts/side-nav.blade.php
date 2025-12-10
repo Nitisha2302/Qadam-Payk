@@ -85,11 +85,11 @@
 
 
 
-            <li class="@if (Route::currentRouteName() == 'dashboard.admin.notifications.send') active @endif">
-                <a href="{{ route('dashboard.admin.notifications.send') }}">
+            <li class="@if (Route::currentRouteName() == 'dashboard.admin.announcement-listing') active @endif">
+                <a href="{{ route('dashboard.admin.announcement-listing') }}">
                     <span class="d-flex gap-3 align-items-end">
                        <i class="fas fa-envelope icon-font-size"></i>
-                        <span class="nav-content-menu">Push Notifications</span>
+                        <span class="nav-content-menu">News / Announcement</span>
                     </span>
                 </a>
             </li>

@@ -90,6 +90,7 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
 
         Route::get('notifications/send', [AdminNotificationController::class, 'sendNotification'])->name('notifications.send');
         Route::post('notifications/store', [AdminNotificationController::class, 'store'])->name('notifications.store');
+        Route::get('announcement-listing', [AdminNotificationController::class, 'announcementListing'])->name('announcement-listing');
 
         // // Reports & Analytics
         //         Route::prefix('reports')->name('reports.')->group(function () {
