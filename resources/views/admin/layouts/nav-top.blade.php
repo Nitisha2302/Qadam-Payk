@@ -4,10 +4,8 @@
       <div class="container-fluid gx-0">
         <div class="col-12">
           <nav class="navbar navbar-expand-sm">
-              <!-- <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-              </button> -->
-              <div class="collapse navbar-collapse" id="navbarSupportedContent">
+              
+              <!-- <div class="collapse navbar-collapse" id="navbarSupportedContent"> -->
                 <form class="me-auto mb-0 mb-lg-0 d-flex gap-3 align-items-center" role="search" id="searchForm" method="GET" action="{{ route('global-search') }}">
                     <div class="slide-nav" id="nav_slidebar">
                       <span></span> 
@@ -40,7 +38,7 @@
                   </a>
                 </div>
 
-              </div>
+              <!-- </div> -->
             </div>
           </nav>
         </div>

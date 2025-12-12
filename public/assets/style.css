@@ -1356,6 +1356,15 @@ textarea.user-input {
   }
 }
 
+@media (max-width: 576px) {
+    .slide-nav {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+}
+
 
 @media only screen and (min-width: 1200px) and (max-width: 1250px)  {
   /* .stats-graph> .row> div:nth-child(1),
@@ -1457,3 +1466,32 @@ textarea.user-input {
 
 
 
+ /* dashboard responsive start  */
+
+/* Make all chart canvases responsive */
+canvas {
+    width: 100% !important;
+    height: auto !important;
+}
+
+/* For card container */
+.card {
+    width: 100% !important;
+    overflow-x: auto; 
+}
+
+@media (max-width: 768px) {
+    #totalsChart, #userVerificationChart {
+        max-height: 250px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #totalsChart, #userVerificationChart {
+        max-height: 200px !important;
+    }
+}
+
+
+ /* dashboard responsive end */
+ 
