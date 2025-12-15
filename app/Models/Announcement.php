@@ -11,7 +11,8 @@ class Announcement extends Model
         'title',
         'description',
         'announcement_date',
-        'image'
+        'image',
+        'type'
     ];
 }
 

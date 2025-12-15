@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Models\Announcement;
 use App\Services\FCMService;
 use Illuminate\Http\Request;
+use App\Models\Notification;
+
 
 class AdminNotificationController extends Controller
 {
@@ -24,7 +26,7 @@ class AdminNotificationController extends Controller
         return view('admin.NotificationSettings.sendNotifications', compact('users'));
     }
 
-   public function store(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
             'title' => 'required|string|max:255',
@@ -32,6 +34,7 @@ class AdminNotificationController extends Controller
              'announcement_date' => 'required|date',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'user_group' => 'required|in:all,drivers,passengers',
+            'type' => 'required|in:1,2',
 
         ], [
             'title.required' => 'Please enter a notification title.',
@@ -40,6 +43,7 @@ class AdminNotificationController extends Controller
             'announcement_date.required' => 'Please select an announcement date.',
             'announcement_date.date' => 'Please enter a valid date.',
             'user_group.required' => 'Please select a user group.',
+            'type.required' => 'Please select type (Announcement / News).',
         ]);
        
         // Upload image with original name
@@ -68,6 +72,7 @@ class AdminNotificationController extends Controller
             'description'      => $request->description,
             'announcement_date'=> $request->announcement_date,
             'image'            => $imageName,
+            'type'              => $request->type,
         ]);
 
         // --------------------------------------------------
@@ -112,8 +117,9 @@ class AdminNotificationController extends Controller
                 $request->title,
                 $request->description,
                 $userIds,                        // Correct userIds
-                  $request->announcement_date,
-                $imageName // send image to service
+                $request->announcement_date,
+                $imageName,// send image to service
+                $request->type 
             );
  
        // ✅ Redirect to announcements listing page with success message
@@ -122,7 +128,7 @@ class AdminNotificationController extends Controller
     }
 
 
-   public function announcementListing(Request $request)
+    public function announcementListing(Request $request)
     {
         $search = $request->query('search');
 

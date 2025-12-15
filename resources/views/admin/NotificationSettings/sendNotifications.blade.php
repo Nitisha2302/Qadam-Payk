@@ -27,6 +27,26 @@
                 @csrf
                 <div class="form-container">
                     <div class="row">
+
+                      <div class="col-md-12">
+                            <div class="form-group mb-4">
+                                <label for="type">Type</label>
+
+                                <select name="type" id="type" class="form-control user-input">
+                                    <option value="">-- Select Type --</option>
+                                    <option value="1" {{ old('type', 1) == 1 ? 'selected' : '' }}>
+                                        Announcement
+                                    </option>
+                                    <option value="2" {{ old('type') == 2 ? 'selected' : '' }}>
+                                        News
+                                    </option>
+                                </select>
+
+                                @error('type')
+                                    <span class="text-danger error-message">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        </div>
  
                         <div class="col-md-12">
                             <div class="form-group mb-4">

@@ -104,13 +104,16 @@ class FCMService
         Log::info("✅ FCMService: sendNotification finished");
     }
 
-   public function sendAdminNotification($title, $description, $userIds = [], $announcementDate = null, $image = null)
+   public function sendAdminNotification($title, $description, $userIds = [], $announcementDate = null, $image = null,$type = 1)
     {
+        // ✅ Map type → notification_type
+       $notificationType = ($type == 2) ? 100 : 99;
         if (in_array('all', $userIds)) {
             $users = \App\Models\User::all();
         } else {
             $users = \App\Models\User::whereIn('id', $userIds)->get();
         }
+        
  
         $tokens = [];
         foreach ($users as $user) {
@@ -129,11 +132,12 @@ class FCMService
         }
  
         $data = [
-             'notification_type' => 99,
+             'notification_type' => $notificationType,
             'title' => $title,
             'body' => $description,
             'announcement_date' => $announcementDate,
-            'image' => $image
+            'image' => $image,
+             'type' => (string) $type
         ];
  
         return $this->sendNotification($tokens, $data);
@@ -185,6 +189,7 @@ class FCMService
                            'announcement_date' => (string) ($data['announcement_date'] ?? ''),
                        'image' => $imageUrl ?? '',
                         'notification_type' => (string) $data['notification_type'],
+                         'type' => (string) $data['type'], 
                     ]
                 ]
             ];
@@ -219,6 +224,7 @@ class FCMService
                         'notification_created_at' => now(),
                          'announcement_date' => $data['announcement_date'],
                         'image' => $data['image'],
+                        'type' => $data['type'],
                     ]);
  
                     Log::info("💾 Notification saved in database", [

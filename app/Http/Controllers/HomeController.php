@@ -10,70 +10,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\UserLang;
 use App\Models\Report;
+use App\Models\Notification;
+
 
 class HomeController extends Controller
 {
-    // public function getCity()
-    // {
-    //     // Fetch all height_key records
-    //     $cities = City::all();
-
-    //     // Return a structured JSON response
-    //     return response()->json([
-    //         'status' => true,
-    //         'message' => 'Cities fetched successfully.',
-    //         'data' => $cities
-    //     ],200);
-    // }
-
-
-    // with translation 
-
-    // public function getCity(Request $request)
-    // {
-    //     // Step 1️⃣: Default language = Russian
-    //     $lang = 'ru';
-    //     $user = null;
-
-    //     // Step 2️⃣: Try to detect user via token (if present)
-    //     if ($request->bearerToken()) {
-    //         $user = Auth::guard('api')->user();
-
-    //         if ($user) {
-    //             // Check if user has preferred language saved
-    //             $userLang = UserLang::where('user_id', $user->id)
-    //                 ->where('device_id', $user->device_id)
-    //                 ->where('device_type', $user->device_type)
-    //                 ->first();
-
-    //             $lang = $userLang->language ?? 'ru';
-    //         }
-    //     } 
-    //     // Step 3️⃣: If no token, try request->language
-    //     elseif ($request->has('language')) {
-    //         $lang = $request->language;
-    //     }
-
-    //     // Step 4️⃣: Apply fallback (always safe)
-    //     app()->setLocale($lang);
-
-    //     // Step 5️⃣: Fetch cities by language_code (if set in DB)
-    //     $cities = City::when($lang, function ($query) use ($lang) {
-    //         return $query->where(function ($q) use ($lang) {
-    //             $q->where('language_code', $lang)
-    //             ->orWhereNull('language_code');
-    //         });
-    //     })->get();
-
-    //     // Step 6️⃣: Return localized message
-    //     return response()->json([
-    //         'status'  => true,
-    //         'message' => __('messages.city.fetched_successfully'),
-    //         'language_used' => $lang,
-    //         'data'    => $cities,
-    //     ], 200);
-    //  }
-
 
     public function getCity(Request $request)
     {
@@ -196,18 +137,6 @@ class HomeController extends Controller
             'data' => $colors
         ]);
     }
-
-    // public function getAllServices()
-    // {
-    //     // Get all services with id and service_name
-    //     $services = Service::select('id', 'service_name','service_image')->get();
-
-    //     return response()->json([
-    //         'status' => true,
-    //                     'message' => 'Services fetched successfully.',
-    //         'data'   => $services, // array of objects [{id:1, service_name:"WiFi"}, ...]
-    //     ], 200);
-    // }
 
 
     // with language code 
@@ -564,6 +493,42 @@ class HomeController extends Controller
         ], 200);
     }
 
+
+
+   public function getAllNotifications(Request $request)
+    {
+        // ✅ Get authenticated user via API guard
+        $user = Auth::guard('api')->user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => __('messages.enquiry.user_not_authenticated'),
+            ], 401);
+        }
+
+        $notifications = Notification::where('user_id', $user->id)
+            ->orderByDesc('notification_created_at')
+            ->get()
+            ->map(function ($n) {
+                return [
+                    'id' => $n->id,
+                    'title' => $n->title,
+                    'description' => $n->description,
+                    'notification_type' => (int) $n->notification_type,
+                    'booking_id' => $n->booking_id,
+                    'notification_created_at' => optional($n->notification_created_at)->toDateTimeString(),
+                    'created_at' => optional($n->created_at)->toDateTimeString(),
+                ];
+            });
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Notifications fetched successfully',
+            'count' => $notifications->count(),
+            'data' => $notifications,
+        ]);
+    }
 
 
 

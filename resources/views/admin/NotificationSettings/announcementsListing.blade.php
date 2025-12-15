@@ -38,6 +38,7 @@
                 <thead>
                     <tr>
                         <th width="15%">Image</th>
+                        <th width="15%">Type</th>
                         <th width="20%">Title</th>
                         <th>Description</th>
                         <th width="15%">Date</th>
@@ -51,6 +52,17 @@
                             <td>
                                 <img src="{{ $a->image ? asset('assets/banner/'.$a->image) : asset('assets/default/no-image.png') }}"
                                     class="listing-img" width="80">
+                            </td>
+                            <td>
+                                <div class="scrollable-td">
+                                    @if ($a->type == 1)
+                                        <span class="badge bg-primary">Announcement</span>
+                                    @elseif ($a->type == 2)
+                                        <span class="badge bg-info">News</span>
+                                    @else
+                                        <span class="badge bg-secondary">Unknown</span>
+                                    @endif
+                                </div>
                             </td>
 
                             <td><div class="scrollable-td">{{ $a->title }}</div></td>
