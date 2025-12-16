@@ -425,6 +425,7 @@ $(document).ready(function () {
         }
     }
 
+    
     checkScreenSize();
 
     $(window).resize(function () {
