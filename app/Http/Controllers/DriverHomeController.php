@@ -1301,6 +1301,7 @@ class DriverHomeController extends Controller
         ], 200);
     }
 
+    //Cancel ride function end
 
 
 
