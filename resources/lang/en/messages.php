@@ -397,6 +397,17 @@ return [
             'user_not_authenticated' => 'User not authenticated.',
             'ride_not_found' => 'Ride not found or not authorized.',
             'success' => 'Ride updated successfully.',
+
+
+             /* 🔒 BUSINESS RULE ERRORS */
+            'ride_already_started'   => 'This ride has already started or is completed. Editing is not allowed.',
+            'route_change_not_allowed' => 'Pickup location or destination cannot be changed after passengers have booked.',
+            'time_change_not_allowed'  => 'Ride date or time cannot be changed after passengers have booked.',
+            'seats_less_than_booked'  => 'Number of seats cannot be less than already booked seats.',
+            'all_seats_filled' => 'All seats for this ride are already booked. Editing is not allowed.',
+
+
+
             'validation' => [
                 'ride_id_required' => 'Ride ID is required.',
                 'ride_not_found'   => 'Selected ride does not exist.',
@@ -418,6 +429,31 @@ return [
                 'services_exists' => 'One or more selected services are invalid.',
             ],
         ],
+
+        'delete' => [
+            'user_not_authenticated' => 'User not authenticated.',
+            'ride_not_found' => 'Ride not found or not authorized.',
+            'ride_already_started' => 'Ride has already started or completed. Deletion is not allowed.',
+            'delete_not_allowed_use_cancel' => 'Passengers have already booked this ride. Please cancel the ride instead.',
+            'success' => 'Ride deleted successfully.',
+        ],
+
+
+        'cancel' => [
+            'user_not_authenticated' => 'User not authenticated.',
+            'ride_not_found' => 'Ride not found or you are not authorized.',
+            'ride_already_started' => 'This ride has already started or is completed. Cancellation is not allowed.',
+            'no_passengers_use_delete' => 'No passengers have booked this ride. Please delete the ride instead.',
+            'success' => 'Ride cancelled successfully.',
+        ],
+
+        'notifications' => [
+            'ride_cancelled' => [
+                'title' => 'Ride Cancelled',
+                'body'  => ':driver has cancelled the ride from :pickup to :destination.',
+            ],
+        ],
+
 
         'driver_rides' => [
             'user_not_authenticated' => 'User not authenticated.',

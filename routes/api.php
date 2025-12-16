@@ -51,6 +51,8 @@ Route::get('/driver/get-vehicles', [DriverHomeController::class, 'getVehicles'])
 Route::post('/driver/edit-vehicle', [DriverHomeController::class, 'editVehicle']);
 Route::post('/driver/create-ride', [DriverHomeController::class, 'createRide']);
 Route::post('/driver/edit-ride', [DriverHomeController::class, 'editRide']);
+Route::post('/driver/delete-ride', [DriverHomeController::class, 'deleteRide']);
+Route::post('/driver/cancel-ride', [DriverHomeController::class, 'cancelRide']);
 Route::get('/get-all-rides-createdByDriver', [DriverHomeController::class, 'getAllRidesCreatedByDriver']);
 Route::get('/driver-details', [DriverHomeController::class, 'driverDetails']);
 
