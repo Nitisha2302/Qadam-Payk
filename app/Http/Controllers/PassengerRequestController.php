@@ -2022,6 +2022,8 @@ class PassengerRequestController extends Controller
             'driver_id' => null,          // remove driver reference
         ]);
 
+
+        
         /* =====================================================
         🗑️ DELETE ALL BOOKINGS (CONFIRMED INCLUDED)
         ===================================================== */
