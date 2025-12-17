@@ -74,8 +74,13 @@ Route::post('/update-booking-active-complete-status', [BookingController::class,
 // Route::post('store-passenger-request', [PassengerRequestController::class, 'createRequest']);
 Route::get('get-current-passenger-requests', [PassengerRequestController::class, 'listCurrentPassengerRequests']);
 Route::post('/store-ride-request', [PassengerRequestController::class, 'createRideRequest']);
+Route::post('/update-ride-request', [PassengerRequestController::class, 'editPassengerRideRequest']);
 
 Route::post('/store-parcel-request', [PassengerRequestController::class, 'createParcelRequest']);
+Route::post('/update-parcel-request', [PassengerRequestController::class, 'editPassengerParcelRequest']);
+Route::post('/delete-ride-request', [PassengerRequestController::class, 'deletePassengerRideRequest']);
+Route::post('/cancel-ride-request', [PassengerRequestController::class, 'cancelPassengerRideRequest']);
+
 Route::get('all-ride-requests', [PassengerRequestController::class, 'getAllRideRequests']);
 Route::get('all-parcel-requests', [PassengerRequestController::class, 'getAllParcelRequests']);  
 Route::get('get-interested-drivers-list/{request_id}', [PassengerRequestController::class, 'getInterestedDrivers']);

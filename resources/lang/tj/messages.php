@@ -491,6 +491,18 @@ return [
     'createRideRequest' => [
        'user_not_authenticated' => 'Шумо тасдиқ нашудаед. Лутфан ворид шавед.',
         'success' => 'Дархости сафар бо муваффақият эҷод шуд.',
+
+        'update_success' =>'Дархости сафар бо муваффақият навсозӣ шуд.',
+
+        'edit_restrictions' => [
+            'only_contacts_allowed' =>
+                'Пас аз сабти фармоиш танҳо маълумоти тамосро ислоҳ кардан мумкин аст.',
+            'no_edit_allowed' =>
+                'Ин дархости сафар дигар ислоҳ карда намешавад.',
+        ],
+
+
+
         'validation' => [
             'pickup_location_required' => 'Ҷойи гирифтани мусофир лозим аст.',
             'pickup_location_string' => 'Ҷойи гирифтани мусофир бояд дуруст ворид шавад.',
@@ -515,6 +527,39 @@ return [
     'createParcelRequest' => [
         'user_not_authenticated' => 'Шумо тасдиқ нашудаед. Лутфан ворид шавед.',
         'success' => 'Дархости бор бо муваффақият эҷод шуд.',
+        'update_success' => 'Дархости бор бо муваффақият навсозӣ шуд.',
+
+        'edit_restrictions' => [
+            'only_contacts_allowed' =>
+                'Пас аз сабти фармоиш танҳо маълумоти тамосро ислоҳ кардан мумкин аст.',
+            'no_edit_allowed' =>
+                'Ин дархости сафар дигар ислоҳ карда намешавад.',
+        ],
+
+        'delete_success' => 'Дархости сафар бо муваффақият ҳазф шуд.',
+        'delete_restrictions' => [
+            'confirmed_booking_exists' => 'Дархостро нест кардан мумкин нест, зеро ронанда тасдиқ шудааст.'
+        ],
+
+
+        'cancel_success' => 'Дархости бор бо муваффақият бекор карда шуд',
+
+        'cancel_restrictions' => [
+            'no_booking_found' => 'Барои ин дархост ягон фармоиш ёфт нашуд.',
+            'booking_in_progress' => 'Шумо наметавонед ин дархостро бекор кунед, зеро сафар аллакай оғоз ёфтааст ё анҷом ёфтааст.',
+        ],
+
+
+        'notifications' => [
+            'request_cancelled' => [
+                'title' => 'Дархост бекор шуд',
+                'body'  => 'Мусофир :passenger сафарро аз :pickup ба :destination бекор кард.',
+
+            ],
+        ],
+
+
+
         'validation' => [
             'pickup_location_required' => 'Ҷойи гирифтани мусофир лозим аст.',
             'pickup_location_string' => 'Ҷойи гирифтани мусофир бояд дуруст ворид шавад.',
