@@ -532,6 +532,15 @@ return [
     'createRideRequest' => [
         'user_not_authenticated' => 'User not authenticated.',
         'success' => 'Ride request created successfully.',
+        'update_success' =>'Ride request updated successfully.',
+
+        'edit_restrictions' => [
+            'only_contacts_allowed' =>
+                'You can only edit pickup and drop contact details after a booking is created.',
+            'no_edit_allowed' =>
+                'This ride request can no longer be edited.',
+        ],
+
         'validation' => [
             'pickup_location_required' => 'Pickup location is required.',
             'pickup_location_string' => 'Pickup location must be a string.',
@@ -557,6 +566,37 @@ return [
     'createParcelRequest' => [
         'user_not_authenticated' => 'User not authenticated.',
         'success' => 'Parcel request created successfully.',
+        'update_success' => 'Parcel request updated successfully.',
+
+        'edit_restrictions' => [
+            'only_contacts_allowed' =>
+                'You can only edit pickup and drop contact details after a booking is created.',
+            'no_edit_allowed' =>
+                'This ride request can no longer be edited.',
+        ],
+
+        'delete_success' => 'The Ride request has been successfully deleted.',
+        'delete_restrictions' => [
+            'confirmed_booking_exists' => 'The request cannot be deleted because the driver has already been confirmed..'
+        ],
+
+        'cancel_success' => 'The load request was successfully canceled.',
+
+        'cancel_restrictions' => [
+            'no_booking_found' => 'No bookings found for this request.',
+             'booking_in_progress' => 'You cannot cancel this request because the trip has already started or completed.',
+        ],
+
+
+        'notifications' => [
+            'request_cancelled' => [
+                'title' => 'Request canceled',
+               'body'  => ':passenger canceled the trip from :pickup to :destination.',
+            ],
+        ],
+
+
+
         'validation' => [
             'pickup_location_required' => 'Pickup location is required.',
             'pickup_location_string' => 'Pickup location must be a string.',
