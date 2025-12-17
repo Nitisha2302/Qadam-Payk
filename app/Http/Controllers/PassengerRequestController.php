@@ -1074,7 +1074,7 @@ class PassengerRequestController extends Controller
     public function editPassengerRideRequest(Request $request)
     {
         /* =====================================================
-        🔐 AUTH CHECK
+         AUTH CHECK
         ===================================================== */
         $user = Auth::guard('api')->user();
         if (!$user) {
@@ -1085,7 +1085,7 @@ class PassengerRequestController extends Controller
         }
 
         /* =====================================================
-        🌐 LANGUAGE
+         LANGUAGE
         ===================================================== */
         $userLang = UserLang::where('user_id', $user->id)
             ->where('device_id', $user->device_id)
@@ -1095,7 +1095,7 @@ class PassengerRequestController extends Controller
         app()->setLocale($userLang->language ?? 'ru');
 
         /* =====================================================
-        ✅ VALIDATION (MATCH STORE API)
+         VALIDATION (MATCH STORE API)
         ===================================================== */
         $validator = Validator::make($request->all(), [
             'request_id' => 'required|exists:passenger_requests,id',
@@ -1188,14 +1188,14 @@ class PassengerRequestController extends Controller
 
 
         /* =====================================================
-        🔒 BOOKING CHECK
+         BOOKING CHECK
         ===================================================== */
         $hasConfirmedBooking = RideBooking::where('request_id', $requestModel->id)
             ->where('status', 'confirmed')
             ->exists();
 
         /* =====================================================
-        🚫 RESTRICTIONS
+         RESTRICTIONS
         ===================================================== */
         if ($hasConfirmedBooking) {
 
@@ -1254,7 +1254,7 @@ class PassengerRequestController extends Controller
         $requestDate=Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d');
         $requestModalDate=Carbon::createFromFormat('d-m-Y', $requestModel->ride_date)->format('Y-m-d');
         /* =====================================================
-        ✅ SAFE UPDATE (LIKE STORE API)
+        SAFE UPDATE (LIKE STORE API)
         ===================================================== */
         $requestModel->update([
             // Always editable
@@ -1274,7 +1274,7 @@ class PassengerRequestController extends Controller
         ]);
 
         /* =====================================================
-        ✅ RESPONSE (MATCH STORE API FORMAT)
+        RESPONSE (MATCH STORE API FORMAT)
         ===================================================== */
         return response()->json([
             'status'  => true,
@@ -1305,7 +1305,7 @@ class PassengerRequestController extends Controller
     public function editPassengerParcelRequest(Request $request)
     {
         /* =====================================================
-        🔐 AUTH CHECK
+         AUTH CHECK
         ===================================================== */
         $user = Auth::guard('api')->user();
         if (!$user) {
@@ -1397,7 +1397,7 @@ class PassengerRequestController extends Controller
             ]);
         }
 
-        // 🚫 BLOCK TIME CHANGE
+        //  BLOCK TIME CHANGE
         if ($request->preferred_time !== null &&
             $request->preferred_time !== $requestModel->preferred_time) {
             return response()->json([
@@ -1419,14 +1419,14 @@ class PassengerRequestController extends Controller
 
 
         /* =====================================================
-        🔒 BOOKING CHECK
+        BOOKING CHECK
         ===================================================== */
         $hasConfirmedBooking = RideBooking::where('request_id', $requestModel->id)
             ->where('status', 'confirmed')
             ->exists();
 
         /* =====================================================
-        🚫 RESTRICTIONS
+         RESTRICTIONS
         ===================================================== */
         if ($hasConfirmedBooking) {
 
@@ -1485,7 +1485,7 @@ class PassengerRequestController extends Controller
         $requestDate=Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d');
         $requestModalDate=Carbon::createFromFormat('d-m-Y', $requestModel->ride_date)->format('Y-m-d');
         /* =====================================================
-        ✅ SAFE UPDATE (LIKE STORE API)
+         SAFE UPDATE (LIKE STORE API)
         ===================================================== */
         $requestModel->update([
             // Always editable
@@ -1505,7 +1505,7 @@ class PassengerRequestController extends Controller
         ]);
 
         /* =====================================================
-        ✅ RESPONSE (MATCH STORE API FORMAT)
+         RESPONSE (MATCH STORE API FORMAT)
         ===================================================== */
         return response()->json([
             'status'  => true,
@@ -1531,90 +1531,10 @@ class PassengerRequestController extends Controller
         ], 200);
     }
 
-
-    // public function deletePassengerRideRequest(Request $request)
-    // {
-    //     /* =====================================================
-    //     🔐 AUTH CHECK
-    //     ===================================================== */
-    //     $user = Auth::guard('api')->user();
-    //     if (!$user) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => __('messages.createParcelRequest.user_not_authenticated')
-    //         ], 401);
-    //     }
-
-    //     /* =====================================================
-    //     🌐 LANGUAGE
-    //     ===================================================== */
-    //     $userLang = UserLang::where('user_id', $user->id)
-    //         ->where('device_id', $user->device_id)
-    //         ->where('device_type', $user->device_type)
-    //         ->first();
-
-    //     app()->setLocale($userLang->language ?? 'ru');
-
-    //     /* =====================================================
-    //     ✅ VALIDATION
-    //     ===================================================== */
-    //     $validator = Validator::make($request->all(), [
-    //         'request_id' => 'required|exists:passenger_requests,id',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => $validator->errors()->first()
-    //         ], 201);
-    //     }
-
-    //     /* =====================================================
-    //     🔍 FETCH REQUEST (OWNER CHECK)
-    //     ===================================================== */
-    //     $requestModel = PassengerRequest::where('id', $request->request_id)
-    //         ->where('user_id', $user->id)
-    //         ->first();
-
-    //     if (!$requestModel) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => __('messages.createParcelRequest.request_not_found')
-    //         ], 201);
-    //     }
-
-    //     /* =====================================================
-    //     🔒 CONFIRMED BOOKING CHECK
-    //     ===================================================== */
-    //     $hasConfirmedBooking = RideBooking::where('request_id', $requestModel->id)
-    //         ->where('status', 'confirmed')
-    //         ->exists();
-
-    //     if ($hasConfirmedBooking) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => __('messages.createParcelRequest.delete_restrictions.confirmed_booking_exists')
-    //         ], 403);
-    //     }
-
-    //     /* =====================================================
-    //     🗑️ DELETE REQUEST
-    //     ===================================================== */
-    //     $requestModel->delete();
-
-    //     /* =====================================================
-    //     ✅ RESPONSE
-    //     ===================================================== */
-    //     return response()->json([
-    //         'status'  => true,
-    //         'message' => __('messages.createParcelRequest.delete_success')
-    //     ], 200);
-    // }
-
     public function deletePassengerRideRequest(Request $request)
     {
         /* =====================================================
-        🔐 AUTH CHECK
+         AUTH CHECK
         ===================================================== */
         $user = Auth::guard('api')->user();
         if (!$user) {
@@ -1625,7 +1545,7 @@ class PassengerRequestController extends Controller
         }
 
         /* =====================================================
-        🌐 LANGUAGE
+         LANGUAGE
         ===================================================== */
         $userLang = UserLang::where('user_id', $user->id)
             ->where('device_id', $user->device_id)
@@ -1635,7 +1555,7 @@ class PassengerRequestController extends Controller
         app()->setLocale($userLang->language ?? 'ru');
 
         /* =====================================================
-        ✅ VALIDATION
+         VALIDATION
         ===================================================== */
         $validator = Validator::make($request->all(), [
             'request_id' => 'required|exists:passenger_requests,id',
@@ -1649,7 +1569,7 @@ class PassengerRequestController extends Controller
         }
 
         /* =====================================================
-        🔍 FETCH REQUEST (OWNER CHECK)
+         FETCH REQUEST (OWNER CHECK)
         ===================================================== */
         $requestModel = PassengerRequest::where('id', $request->request_id)
             ->where('user_id', $user->id)
@@ -1663,7 +1583,7 @@ class PassengerRequestController extends Controller
         }
 
         /* =====================================================
-        🔒 CONFIRMED BOOKING CHECK
+         CONFIRMED BOOKING CHECK
         ===================================================== */
         $hasConfirmedBooking = RideBooking::where('request_id', $requestModel->id)
             ->where('status', 'confirmed')
@@ -1677,7 +1597,7 @@ class PassengerRequestController extends Controller
         }
 
         /* =====================================================
-        🧹 DELETE RELATED BOOKINGS (SAFE)
+         DELETE RELATED BOOKINGS (SAFE)
         ===================================================== */
         RideBooking::where('request_id', $requestModel->id)->delete();
 
@@ -1687,7 +1607,7 @@ class PassengerRequestController extends Controller
         $requestModel->delete();
 
         /* =====================================================
-        ✅ RESPONSE
+         RESPONSE
         ===================================================== */
         return response()->json([
             'status'  => true,
@@ -1699,7 +1619,7 @@ class PassengerRequestController extends Controller
     public function cancelPassengerRideRequest(Request $request)
     {
         /* =====================================================
-        🔐 AUTH CHECK
+         AUTH CHECK
         ===================================================== */
         $user = Auth::guard('api')->user();
 
@@ -1711,7 +1631,7 @@ class PassengerRequestController extends Controller
         }
 
         /* =====================================================
-        🌐 LANGUAGE
+         LANGUAGE
         ===================================================== */
         $userLang = UserLang::where('user_id', $user->id)
             ->where('device_id', $user->device_id)
@@ -1721,7 +1641,7 @@ class PassengerRequestController extends Controller
         app()->setLocale($userLang->language ?? 'ru');
 
         /* =====================================================
-        ✅ VALIDATION
+         VALIDATION
         ===================================================== */
         $validator = Validator::make($request->all(), [
             'request_id' => 'required|exists:passenger_requests,id',
@@ -1735,7 +1655,7 @@ class PassengerRequestController extends Controller
         }
 
         /* =====================================================
-        🔍 FETCH REQUEST (OWNER CHECK)
+        FETCH REQUEST (OWNER CHECK)
         ===================================================== */
         $requestModel = PassengerRequest::where('id', $request->request_id)
             ->where('user_id', $user->id)
@@ -1749,7 +1669,7 @@ class PassengerRequestController extends Controller
         }
 
         /* =====================================================
-        📦 FETCH BOOKINGS (FOR NOTIFICATION)
+        FETCH BOOKINGS (FOR NOTIFICATION)
         ===================================================== */
         $bookings = RideBooking::where('request_id', $requestModel->id)
             ->with(['ride.user', 'request.user', 'user']) // preload needed relations
@@ -1763,7 +1683,7 @@ class PassengerRequestController extends Controller
             ], 201);
         }
 
-        // 2️⃣ 🚫 BLOCK ACTIVE / COMPLETED
+        //  BLOCK ACTIVE / COMPLETED
         $hasLockedBooking = $bookings->whereIn('active_status', [1, 2])->count() > 0;
 
         if ($hasLockedBooking) {
@@ -1774,7 +1694,7 @@ class PassengerRequestController extends Controller
         }
 
         /* =====================================================
-        🔄 CANCEL REQUEST (REQUEST STAYS)
+        CANCEL REQUEST (REQUEST STAYS)
         ===================================================== */
         $requestModel->update([
             'status'    => 'pending',   // mark request as cancelled
@@ -1784,19 +1704,19 @@ class PassengerRequestController extends Controller
 
         
         /* =====================================================
-        🗑️ DELETE ALL BOOKINGS (CONFIRMED INCLUDED)
+         DELETE ALL BOOKINGS (CONFIRMED INCLUDED)
         ===================================================== */
         RideBooking::where('request_id', $requestModel->id)->delete();
 
         /* =====================================================
-        🗑️ DELETE RELATED DRIVER INTERESTS
+         DELETE RELATED DRIVER INTERESTS
         ===================================================== */
         \DB::table('passenger_request_driver_interests')
             ->where('passenger_request_id', $requestModel->id)
             ->delete();
 
         /* =====================================================
-        🔔 NOTIFY DRIVERS
+         NOTIFY DRIVERS
         ===================================================== */
         $fcmService     = new FCMService();
         $originalLocale = app()->getLocale();
@@ -1837,7 +1757,7 @@ class PassengerRequestController extends Controller
         app()->setLocale($originalLocale);
 
         /* =====================================================
-        ✅ RESPONSE
+         RESPONSE
         ===================================================== */
         return response()->json([
             'status'  => true,
