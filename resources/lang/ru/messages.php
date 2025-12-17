@@ -495,6 +495,18 @@ return [
      'createRideRequest' => [
        'user_not_authenticated' => 'Вы не авторизованы. Пожалуйста, войдите в систему.',
         'success' => 'Заявка на поездку успешно создана.',
+        'update_success' =>'Ride request updated successfully.',
+
+        'edit_restrictions' => [
+            'only_contacts_allowed' =>
+                'После создания бронирования можно редактировать только контактные данные.',
+            'no_edit_allowed' =>
+                'Этот запрос поездки больше нельзя редактировать.',
+        ],
+
+
+       
+
         'validation' => [
             'pickup_location_required' => 'Укажите место отправления.',
             'pickup_location_string' => 'Адрес отправления должен быть корректным.',
@@ -520,6 +532,38 @@ return [
     'createParcelRequest' => [
        'user_not_authenticated' => 'Вы не авторизованы. Пожалуйста, войдите в систему.',
         'success' => 'Заявка на посылку успешно создана.',
+        'update_success' => 'Запрос на посылку успешно обновлён.',
+
+
+        'edit_restrictions' => [
+            'only_contacts_allowed' =>
+                'После создания бронирования можно редактировать только контактные данные.',
+            'no_edit_allowed' =>
+                'Этот запрос поездки больше нельзя редактировать.',
+        ],
+
+        'delete_success' => 'Запрос поездки успешно удалён.',
+        'delete_restrictions' => [
+            'confirmed_booking_exists' => 'Невозможно удалить запрос, так как водитель уже подтверждён.'
+        ],
+
+
+        'cancel_success' => 'Запрос посылки успешно отменён',
+
+        'cancel_restrictions' => [
+            'no_booking_found' => 'По этому запросу бронирований не найдено.',
+            'ru' => 'Вы не можете отменить этот запрос, так как поездка уже началась или завершена.',
+        ],
+
+
+        'notifications' => [
+            'request_cancelled' => [
+                'title' => 'Запрос отменён',
+                'body'  => 'Пассажир :passenger отменил поездку из :pickup в :destination.',
+            ],
+        ],
+
+
         'validation' => [
            'pickup_location_required' => 'Укажите место отправления.',
             'pickup_location_string' => 'Адрес отправления должен быть корректным.',
