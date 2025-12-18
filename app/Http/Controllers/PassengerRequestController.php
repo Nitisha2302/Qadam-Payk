@@ -1302,6 +1302,236 @@ class PassengerRequestController extends Controller
 
 
 
+    // public function editPassengerParcelRequest(Request $request)
+    // {
+    //     /* =====================================================
+    //     🔐 AUTH CHECK
+    //     ===================================================== */
+    //     $user = Auth::guard('api')->user();
+    //     if (!$user) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => __('messages.createParcelRequest.user_not_authenticated')
+    //         ], 401);
+    //     }
+
+    //     /* =====================================================
+    //     🌐 LANGUAGE
+    //     ===================================================== */
+    //     $userLang = UserLang::where('user_id', $user->id)
+    //         ->where('device_id', $user->device_id)
+    //         ->where('device_type', $user->device_type)
+    //         ->first();
+
+    //     app()->setLocale($userLang->language ?? 'ru');
+
+    //     /* =====================================================
+    //     ✅ VALIDATION (MATCH STORE API)
+    //     ===================================================== */
+    //     $validator = Validator::make($request->all(), [
+    //         'request_id' => 'required|exists:passenger_requests,id',
+
+    //         // Always editable
+    //         'pickup_contact_name' => 'nullable|string|max:255',
+    //         'pickup_contact_no'   => 'nullable|string|max:30',
+    //         'drop_contact_name'   => 'nullable|string|max:255',
+    //         'drop_contact_no'     => 'nullable|string|max:30',
+
+    //         // Same rules as store
+    //         'pickup_location' => 'nullable|string|max:255',
+    //         'destination'     => 'nullable|string|max:255',
+    //         'ride_date'       => 'nullable|date_format:d-m-Y|after_or_equal:today',
+    //         'number_of_seats' => 'nullable|integer|min:1',
+    //         'services'        => 'nullable|array',
+    //         'services.*'      => 'exists:services,id',
+    //         'budget'          => 'nullable|numeric|min:0',
+    //         'preferred_time'  => 'nullable|date_format:H:i',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => $validator->errors()->first()
+    //         ], 201);
+    //     }
+
+    //     /* =====================================================
+    //     🔍 FETCH REQUEST (OWNER CHECK)
+    //     ===================================================== */
+    //     $requestModel = PassengerRequest::where('id', $request->request_id)
+    //         ->where('user_id', $user->id)
+    //         ->first();
+
+    //     if (!$requestModel) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => __('messages.createParcelRequest.request_not_found')
+    //         ], 201);
+    //     }
+
+    //     /* =====================================================
+    //     🧹 NORMALIZE INPUT (MATCH STORE API)
+    //     ===================================================== */
+    //     // if ($request->ride_date) {
+    //     //     $rideDate = trim($request->ride_date, '"');
+    //     //     $request->merge([
+    //     //         'ride_date' => Carbon::createFromFormat('d-m-Y', $rideDate)->format('Y-m-d')
+    //     //     ]);
+    //     // }
+
+    //     if ($request->preferred_time) {
+    //         $request->merge([
+    //             'preferred_time' => Carbon::createFromFormat('H:i', $request->preferred_time)->format('H:i:s')
+    //         ]);
+    //     }
+
+    //     if ($request->has('number_of_seats')) {
+    //         $request->merge([
+    //             'number_of_seats' => (int) $request->number_of_seats
+    //         ]);
+    //     }
+
+    //     if ($request->has('budget')) {
+    //         $request->merge([
+    //             'budget' => (float) $request->budget
+    //         ]);
+    //     }
+
+    //     // 🚫 BLOCK TIME CHANGE
+    //     if ($request->preferred_time !== null &&
+    //         $request->preferred_time !== $requestModel->preferred_time) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => __('messages.createParcelRequest.edit_restrictions.only_contacts_allowed')
+    //         ], 403);
+    //     }
+
+    //     $reqServices = collect($request->services ?? [])->map('strval')->sort()->values()->toArray();
+    //     $dbServices  = collect($requestModel->services ?? [])->map('strval')->sort()->values()->toArray();
+
+    //     if (count(array_diff($reqServices, $dbServices)) > 0 || count(array_diff($dbServices, $reqServices)) > 0) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => __('messages.createParcelRequest.edit_restrictions.only_contacts_allowed')
+    //         ], 403);
+    //     }
+
+
+
+    //     /* =====================================================
+    //     🔒 BOOKING CHECK
+    //     ===================================================== */
+    //     $hasConfirmedBooking = RideBooking::where('request_id', $requestModel->id)
+    //         ->where('status', 'confirmed')
+    //         ->exists();
+
+    //     /* =====================================================
+    //     🚫 RESTRICTIONS
+    //     ===================================================== */
+    //     if ($hasConfirmedBooking) {
+
+    //         if (
+    //             $request->pickup_location !== null &&
+    //             $request->pickup_location !== $requestModel->pickup_location
+    //         ) {
+    //             return response()->json([
+    //                 'status'  => false,
+    //                 'message' => __('messages.createParcelRequest.edit_restrictions.only_contacts_allowed')
+    //             ], 403);
+    //         }
+
+    //         if (
+    //             $request->destination !== null &&
+    //             $request->destination !== $requestModel->destination
+    //         ) {
+    //             return response()->json([
+    //                 'status'  => false,
+    //                 'message' => __('messages.createParcelRequest.edit_restrictions.only_contacts_allowed')
+    //             ], 403);
+    //         }
+
+    //         if ($request->ride_date && $request->ride_date !== $requestModel->ride_date) {
+    //             return response()->json([
+    //                 'status'  => false,
+    //                 'message' => __('messages.createParcelRequest.edit_restrictions.only_contacts_allowed')
+    //             ], 403);
+    //         }
+
+    //         if ($request->number_of_seats !== null && $request->number_of_seats !== (int)$requestModel->number_of_seats) {
+    //             return response()->json([
+    //                 'status'  => false,
+    //                 'message' => __('messages.createParcelRequest.edit_restrictions.only_contacts_allowed')
+    //             ], 403);
+    //         }
+
+    //         if ($request->budget !== null && (float)$request->budget !== (float)$requestModel->budget) {
+    //             return response()->json([
+    //                 'status'  => false,
+    //                 'message' => __('messages.createParcelRequest.edit_restrictions.only_contacts_allowed')
+    //             ], 403);
+    //         }
+
+    //         $reqServices = collect($request->services ?? [])->map('strval')->sort()->values()->toArray();
+    //         $dbServices  = collect($requestModel->services ?? [])->map('strval')->sort()->values()->toArray();
+
+    //         if (count(array_diff($reqServices, $dbServices)) > 0 || count(array_diff($dbServices, $reqServices)) > 0) {
+    //             return response()->json([
+    //                 'status'  => false,
+    //                 'message' => __('messages.createParcelRequest.edit_restrictions.only_contacts_allowed')
+    //             ], 403);
+    //         }
+
+    //     }
+    //     $requestDate=Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d');
+    //     $requestModalDate=Carbon::createFromFormat('d-m-Y', $requestModel->ride_date)->format('Y-m-d');
+    //     /* =====================================================
+    //     ✅ SAFE UPDATE (LIKE STORE API)
+    //     ===================================================== */
+    //     $requestModel->update([
+    //         // Always editable
+    //         'pickup_contact_name' => $request->pickup_contact_name ?? $requestModel->pickup_contact_name,
+    //         'pickup_contact_no'   => $request->pickup_contact_no ?? $requestModel->pickup_contact_no,
+    //         'drop_contact_name'   => $request->drop_contact_name ?? $requestModel->drop_contact_name,
+    //         'drop_contact_no'     => $request->drop_contact_no ?? $requestModel->drop_contact_no,
+
+    //         // Editable only if no confirmed booking
+    //         'pickup_location' => !$hasConfirmedBooking ? $request->pickup_location : $requestModel->pickup_location,
+    //         'destination'     => !$hasConfirmedBooking ? $request->destination : $requestModel->destination,
+    //         'ride_date'       => !$hasConfirmedBooking ? $requestDate : $requestModalDate,
+    //         'number_of_seats' => !$hasConfirmedBooking ? $request->number_of_seats : $requestModel->number_of_seats,
+    //         'budget'          => !$hasConfirmedBooking ? $request->budget : $requestModel->budget,
+    //         'preferred_time'  => !$hasConfirmedBooking ? $request->preferred_time : $requestModel->preferred_time,
+    //         'services'        => !$hasConfirmedBooking ? $request->services : $requestModel->services,
+    //     ]);
+
+    //     /* =====================================================
+    //     ✅ RESPONSE (MATCH STORE API FORMAT)
+    //     ===================================================== */
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => __('messages.createParcelRequest.update_success'),
+    //         'data'    => [
+    //             'id'              => $requestModel->id,
+    //             'pickup_location' => $requestModel->pickup_location,
+    //             'destination'     => $requestModel->destination,
+    //             'ride_date'       => $requestModel->ride_date,
+    //             'number_of_seats' => $requestModel->number_of_seats,
+    //             'services'        => $requestModel->services_details,
+    //             'budget'          => $requestModel->budget,
+    //             'preferred_time'  => $requestModel->preferred_time,
+    //             'pickup_contact_name' => $requestModel->pickup_contact_name,
+    //             'pickup_contact_no'   => $requestModel->pickup_contact_no,
+    //             'drop_contact_name'   => $requestModel->drop_contact_name,
+    //             'drop_contact_no'     => $requestModel->drop_contact_no,
+    //             'user_id'         => $requestModel->user_id,
+    //             'type'            => $requestModel->type,
+    //             'created_at'      => $requestModel->created_at,
+    //             'updated_at'      => $requestModel->updated_at,
+    //         ]
+    //     ], 200);
+    // }
+
+
     public function editPassengerParcelRequest(Request $request)
     {
         /* =====================================================
@@ -1346,6 +1576,7 @@ class PassengerRequestController extends Controller
             'services.*'      => 'exists:services,id',
             'budget'          => 'nullable|numeric|min:0',
             'preferred_time'  => 'nullable|date_format:H:i',
+             'parcel_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -1484,6 +1715,38 @@ class PassengerRequestController extends Controller
         }
         $requestDate=Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d');
         $requestModalDate=Carbon::createFromFormat('d-m-Y', $requestModel->ride_date)->format('Y-m-d');
+
+
+        /* =====================================================
+        🖼️ IMAGE UPDATE (ALWAYS ALLOWED)
+        ===================================================== */
+        $parcelImages = [];
+
+        if (!empty($requestModel->parcel_images)) {
+            $decoded = json_decode($requestModel->parcel_images, true);
+            $parcelImages = is_array($decoded) ? $decoded : [];
+        }
+
+        if ($request->hasFile('parcel_images')) {
+
+            // delete old images
+            foreach ($parcelImages as $oldImage) {
+                $path = public_path('assets/parcel_image/' . $oldImage);
+                if ($oldImage && file_exists($path)) {
+                    @unlink($path);
+                }
+            }
+
+            // upload new images
+            $newImages = [];
+            foreach ($request->file('parcel_images') as $image) {
+                $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                $image->move(public_path('assets/parcel_image/'), $filename);
+                $newImages[] = $filename;
+            }
+
+            $parcelImages = $newImages;
+        }
         /* =====================================================
          SAFE UPDATE (LIKE STORE API)
         ===================================================== */
@@ -1502,6 +1765,8 @@ class PassengerRequestController extends Controller
             'budget'          => !$hasConfirmedBooking ? $request->budget : $requestModel->budget,
             'preferred_time'  => !$hasConfirmedBooking ? $request->preferred_time : $requestModel->preferred_time,
             'services'        => !$hasConfirmedBooking ? $request->services : $requestModel->services,
+            // ALWAYS update images
+            'parcel_images'   => json_encode($parcelImages),
         ]);
 
         /* =====================================================
@@ -1525,12 +1790,97 @@ class PassengerRequestController extends Controller
                 'drop_contact_no'     => $requestModel->drop_contact_no,
                 'user_id'         => $requestModel->user_id,
                 'type'            => $requestModel->type,
+                 'parcel_images'  => json_decode($requestModel->parcel_images),
                 'created_at'      => $requestModel->created_at,
                 'updated_at'      => $requestModel->updated_at,
             ]
         ], 200);
     }
 
+<<<<<<< HEAD
+=======
+
+
+    // public function deletePassengerRideRequest(Request $request)
+    // {
+    //     /* =====================================================
+    //     🔐 AUTH CHECK
+    //     ===================================================== */
+    //     $user = Auth::guard('api')->user();
+    //     if (!$user) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => __('messages.createParcelRequest.user_not_authenticated')
+    //         ], 401);
+    //     }
+
+    //     /* =====================================================
+    //     🌐 LANGUAGE
+    //     ===================================================== */
+    //     $userLang = UserLang::where('user_id', $user->id)
+    //         ->where('device_id', $user->device_id)
+    //         ->where('device_type', $user->device_type)
+    //         ->first();
+
+    //     app()->setLocale($userLang->language ?? 'ru');
+
+    //     /* =====================================================
+    //     ✅ VALIDATION
+    //     ===================================================== */
+    //     $validator = Validator::make($request->all(), [
+    //         'request_id' => 'required|exists:passenger_requests,id',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => $validator->errors()->first()
+    //         ], 201);
+    //     }
+
+    //     /* =====================================================
+    //     🔍 FETCH REQUEST (OWNER CHECK)
+    //     ===================================================== */
+    //     $requestModel = PassengerRequest::where('id', $request->request_id)
+    //         ->where('user_id', $user->id)
+    //         ->first();
+
+    //     if (!$requestModel) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => __('messages.createParcelRequest.request_not_found')
+    //         ], 201);
+    //     }
+
+    //     /* =====================================================
+    //     🔒 CONFIRMED BOOKING CHECK
+    //     ===================================================== */
+    //     $hasConfirmedBooking = RideBooking::where('request_id', $requestModel->id)
+    //         ->where('status', 'confirmed')
+    //         ->exists();
+
+    //     if ($hasConfirmedBooking) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => __('messages.createParcelRequest.delete_restrictions.confirmed_booking_exists')
+    //         ], 403);
+    //     }
+
+    //     /* =====================================================
+    //     🗑️ DELETE REQUEST
+    //     ===================================================== */
+    //     $requestModel->delete();
+
+    //     /* =====================================================
+    //     ✅ RESPONSE
+    //     ===================================================== */
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => __('messages.createParcelRequest.delete_success')
+    //     ], 200);
+    // }
+
+>>>>>>> refs/remotes/origin/main
     public function deletePassengerRideRequest(Request $request)
     {
         /* =====================================================

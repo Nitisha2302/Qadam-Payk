@@ -31,7 +31,7 @@ class AdminNotificationController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-             'announcement_date' => 'required|date',
+            'announcement_date' => 'required|date',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'user_group' => 'required|in:all,drivers,passengers',
             'type' => 'required|in:1,2',
