@@ -16,6 +16,7 @@ class Notification extends Model
         'notification_type',
         'booking_id',
         'notification_created_at',
+        'image'
     ];
 
     // Optional: relation to user
