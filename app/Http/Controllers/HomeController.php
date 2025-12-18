@@ -517,6 +517,7 @@ class HomeController extends Controller
                     'description' => $n->description,
                     'notification_type' => (int) $n->notification_type,
                     'booking_id' => $n->booking_id,
+                    'image' => $n->image,
                     'notification_created_at' => optional($n->notification_created_at)->toDateTimeString(),
                     'created_at' => optional($n->created_at)->toDateTimeString(),
                 ];

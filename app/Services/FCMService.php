@@ -140,7 +140,8 @@ class FCMService
              'type' => (string) $type
         ];
  
-        return $this->sendNotification($tokens, $data);
+        return $this->sendAdminNotificationmain($tokens, $data);
+
     }
  
     public function sendAdminNotificationmain(array $tokens, array $data)
@@ -214,7 +215,7 @@ class FCMService
                         'token' => $token,
                         'response' => $response->json()
                     ]);
- 
+                  
                     // 💾 Save in DB
                     $notification = Notification::create([
                         'user_id' => $userId,
@@ -223,7 +224,7 @@ class FCMService
                         'notification_type' => $data['notification_type'],
                         'notification_created_at' => now(),
                          'announcement_date' => $data['announcement_date'],
-                        'image' => $data['image'],
+                       'image' => $data['image'],   // ✅ FIXED
                         'type' => $data['type'],
                     ]);
  

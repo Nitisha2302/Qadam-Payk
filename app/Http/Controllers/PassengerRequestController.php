@@ -1797,8 +1797,6 @@ class PassengerRequestController extends Controller
         ], 200);
     }
 
-<<<<<<< HEAD
-=======
 
 
     // public function deletePassengerRideRequest(Request $request)
@@ -1879,8 +1877,8 @@ class PassengerRequestController extends Controller
     //         'message' => __('messages.createParcelRequest.delete_success')
     //     ], 200);
     // }
+    
 
->>>>>>> refs/remotes/origin/main
     public function deletePassengerRideRequest(Request $request)
     {
         /* =====================================================
