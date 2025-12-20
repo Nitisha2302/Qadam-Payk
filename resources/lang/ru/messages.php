@@ -432,6 +432,12 @@ return [
                 'title' => 'Поездка отменена',
                 'body'  => ':driver отменил поездку из :pickup в :destination.',
             ],
+
+            'request_cancelled' => [
+                'title' => 'Запрос на бронирование отменён',
+                'body'  => 'Водитель изменил маршрут или время поездки. Ваш запрос на бронирование был отменён.',
+
+            ],
         ],
             
 
@@ -560,6 +566,11 @@ return [
             'request_cancelled' => [
                 'title' => 'Запрос отменён',
                 'body'  => 'Пассажир :passenger отменил поездку из :pickup в :destination.',
+            ],
+
+            'request_updated' => [
+                'title' => 'Запрос пассажира обновлен',
+                'body'  => ':passenger обновил поездку с :pickup до :destination.',
             ],
         ],
 

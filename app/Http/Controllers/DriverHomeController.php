@@ -500,6 +500,7 @@ class DriverHomeController extends Controller
                 'message' => __('messages.ride.edit.ride_not_found'),
             ], 201);
         }
+        
 
         /* =====================================================
         🔒 BOOKING-BASED RULES
@@ -528,6 +529,74 @@ class DriverHomeController extends Controller
                 'message' => __('messages.ride.edit.all_seats_filled'),
             ], 201);
         }
+
+         /* =====================================================
+            🔔 CANCEL PENDING REQUESTS (NO CONFIRMED)
+            ====================================================== */
+
+            if ($bookedSeats == 0) {
+
+                $routeChanged =
+                    $request->pickup_location !== $ride->pickup_location ||
+                    $request->destination !== $ride->destination ||
+                    $request->ride_date !== $ride->ride_date ||
+                    $request->ride_time !== $ride->ride_time;
+
+                if ($routeChanged) {
+
+                    $pendingBookings = $ride->bookings()
+                        ->where('status', 'pending')
+                        ->with('user')
+                        ->get();
+
+                    if ($pendingBookings->count() > 0) {
+
+                        $fcmService = new FCMService();
+                        $driverName = $user->name ?? __('messages.common.driver');
+                        $originalLocale = app()->getLocale();
+
+                        foreach ($pendingBookings as $booking) {
+
+                            $passenger = $booking->user;
+                            if (!$passenger || !$passenger->device_token) {
+                                continue;
+                            }
+
+                            // Passenger language
+                            $pLang = UserLang::where('user_id', $passenger->id)
+                                ->where('device_id', $passenger->device_id)
+                                ->where('device_type', $passenger->device_type)
+                                ->first();
+
+                            app()->setLocale($pLang->language ?? 'ru');
+
+                            // ❌ Cancel booking
+                            $booking->update([
+                                'status'        => 'cancelled',
+                                'active_status' => 0,
+                            ]);
+
+                            // 🔔 Notification
+                            $fcmService->sendNotification([[
+                                'device_token' => $passenger->device_token,
+                                'device_type'  => $passenger->device_type ?? 'android',
+                                'user_id'      => $passenger->id,
+                            ]], [
+                                'notification_type' => 11,
+                                'title' => __('messages.ride.notifications.request_cancelled.title'),
+                                'body'  => __('messages.ride.notifications.request_cancelled.body', [
+                                    'driver'      => $driverName,
+                                    'pickup'      => $ride->pickup_location,
+                                    'destination' => $ride->destination,
+                                ]),
+                            ]);
+                        }
+
+                        app()->setLocale($originalLocale);
+                        
+                    }
+                }
+            }
 
         // 🚫 Restrictions when passengers exist
         if ($bookedSeats > 0) {
@@ -751,7 +820,18 @@ class DriverHomeController extends Controller
         }
 
         // ✅ Always apply seat filter
-        $query->where('number_of_seats', '>=', $numberOfSeats);
+        // $query->where('number_of_seats', '>=', $numberOfSeats);
+
+        $query->whereRaw('
+            number_of_seats - (
+                SELECT COALESCE(SUM(seats_booked), 0)
+                FROM ride_bookings
+                WHERE ride_bookings.ride_id = rides.id
+                AND ride_bookings.status = "confirmed"
+            ) >= ?
+        ', [$numberOfSeats]);
+
+
 
         // ✅ Optional: Filter by services
         if ($request->services && is_array($request->services)) {

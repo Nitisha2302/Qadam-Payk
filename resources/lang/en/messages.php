@@ -452,6 +452,12 @@ return [
                 'title' => 'Ride Cancelled',
                 'body'  => ':driver has cancelled the ride from :pickup to :destination.',
             ],
+
+            'request_cancelled' => [
+                'title' => 'Booking Request Cancelled',
+                'body'  => 'The driver updated the ride route or time. Your booking request has been cancelled.',
+
+            ],
         ],
 
 
@@ -593,6 +599,12 @@ return [
                 'title' => 'Request canceled',
                'body'  => ':passenger canceled the trip from :pickup to :destination.',
             ],
+
+            'request_updated' => [
+                'title' =>'Passenger request updated',
+                'body'  => ':passenger updated ride from :pickup to :destination.',
+            ],
+
         ],
 
 

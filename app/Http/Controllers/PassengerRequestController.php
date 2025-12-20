@@ -7,11 +7,13 @@ use App\Models\PassengerRequest;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
-   use App\Models\RideBooking;
-   use App\Models\UserBlock;
+use App\Models\RideBooking;
+use App\Models\UserBlock;
 use Illuminate\Support\Facades\DB;
 use App\Models\UserLang;
 use App\Services\FCMService;
+use App\Models\PassengerRequestDriverInterest;
+use App\Models\User;
 
 class PassengerRequestController extends Controller
 {
@@ -1022,26 +1024,6 @@ class PassengerRequestController extends Controller
             ]);
         }
 
-        // 🚫 BLOCK TIME CHANGE
-        if ($request->preferred_time !== null &&
-            $request->preferred_time !== $requestModel->preferred_time) {
-            return response()->json([
-                'status' => false,
-                'message' => __('messages.createRideRequest.edit_restrictions.only_contacts_allowed')
-            ], 403);
-        }
-
-        $reqServices = collect($request->services ?? [])->map('strval')->sort()->values()->toArray();
-        $dbServices  = collect($requestModel->services ?? [])->map('strval')->sort()->values()->toArray();
-
-        if (count(array_diff($reqServices, $dbServices)) > 0 || count(array_diff($dbServices, $reqServices)) > 0) {
-            return response()->json([
-                'status'  => false,
-                'message' => __('messages.createRideRequest.edit_restrictions.only_contacts_allowed')
-            ], 403);
-        }
-
-
 
         /* =====================================================
          BOOKING CHECK
@@ -1049,11 +1031,16 @@ class PassengerRequestController extends Controller
         $hasConfirmedBooking = RideBooking::where('request_id', $requestModel->id)
             ->where('status', 'confirmed')
             ->exists();
+             // 🚫 BLOCK TIME CHANGE
+
 
         /* =====================================================
          RESTRICTIONS
         ===================================================== */
         if ($hasConfirmedBooking) {
+
+            $requestDate = $request->ride_date ? Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d') : null;
+            $requestModelDate = $requestModel->ride_date;
 
             if (
                 $request->pickup_location !== null &&
@@ -1078,6 +1065,14 @@ class PassengerRequestController extends Controller
             if ($request->ride_date && $request->ride_date !== $requestModel->ride_date) {
                 return response()->json([
                     'status'  => false,
+                    'message' => __('messages.createRideRequest.edit_restrictions.only_contacts_allowed')
+                ], 403);
+            }
+
+            if ($request->preferred_time !== null &&
+                $request->preferred_time !== $requestModel->preferred_time) {
+                return response()->json([
+                    'status' => false,
                     'message' => __('messages.createRideRequest.edit_restrictions.only_contacts_allowed')
                 ], 403);
             }
@@ -1109,6 +1104,7 @@ class PassengerRequestController extends Controller
         }
         $requestDate=Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d');
         $requestModalDate=Carbon::createFromFormat('d-m-Y', $requestModel->ride_date)->format('Y-m-d');
+        
         /* =====================================================
         SAFE UPDATE (LIKE STORE API)
         ===================================================== */
@@ -1128,6 +1124,62 @@ class PassengerRequestController extends Controller
             'preferred_time'  => !$hasConfirmedBooking ? $request->preferred_time : $requestModel->preferred_time,
             'services'        => !$hasConfirmedBooking ? $request->services : $requestModel->services,
         ]);
+
+
+        /* =====================================================
+        🔔 NOTIFY INTERESTED DRIVERS (CANCEL FORMAT)
+        ===================================================== */
+        $routeChanged = (
+            ($request->pickup_location && $request->pickup_location !== $requestModel->pickup_location) ||
+            ($request->destination && $request->destination !== $requestModel->destination) ||
+            ($request->ride_date && $requestDate !== $requestModel->ride_date) ||
+            ($request->number_of_seats && $request->number_of_seats != $requestModel->number_of_seats) ||
+            ($request->budget && (float)$request->budget != (float)$requestModel->budget)
+        );
+
+        if (!$hasConfirmedBooking && $routeChanged) {
+
+            $driverIds = PassengerRequestDriverInterest::where('passenger_request_id', $requestModel->id)
+                ->pluck('driver_id');
+
+            $drivers = User::whereIn('id', $driverIds)->get();
+
+            $fcmService     = new FCMService();
+            $originalLocale = app()->getLocale();
+
+            $passengerName = $user->name ?? __('messages.common.passenger');
+
+            foreach ($drivers as $driver) {
+
+                if (!$driver->device_token) continue;
+
+                $driverLang = UserLang::where('user_id', $driver->id)
+                    ->where('device_id', $driver->device_id)
+                    ->where('device_type', $driver->device_type)
+                    ->first();
+
+                app()->setLocale($driverLang->language ?? 'ru');
+
+                $notificationData = [
+                    'notification_type' => 13, // update type
+                    'title' => __('messages.createParcelRequest.notifications.request_updated.title'),
+                    'body'  => __('messages.createParcelRequest.notifications.request_updated.body', [
+                        'passenger'  => $passengerName,
+                        'pickup'     => $requestModel->pickup_location,
+                        'destination'=> $requestModel->destination,
+                    ]),
+                ];
+
+                $fcmService->sendNotification([[
+                    'device_token' => $driver->device_token,
+                    'device_type'  => $driver->device_type ?? 'android',
+                    'user_id'      => $driver->id,
+                ]], $notificationData);
+            }
+
+            app()->setLocale($originalLocale);
+             PassengerRequestDriverInterest::where('passenger_request_id', $requestModel->id)->delete();
+        }
 
         /* =====================================================
         RESPONSE (MATCH STORE API FORMAT)
@@ -1254,24 +1306,17 @@ class PassengerRequestController extends Controller
             ]);
         }
 
-        //  BLOCK TIME CHANGE
-        if ($request->preferred_time !== null &&
-            $request->preferred_time !== $requestModel->preferred_time) {
-            return response()->json([
-                'status' => false,
-                'message' => __('messages.createParcelRequest.edit_restrictions.only_contacts_allowed')
-            ], 403);
-        }
+      
 
-        $reqServices = collect($request->services ?? [])->map('strval')->sort()->values()->toArray();
-        $dbServices  = collect($requestModel->services ?? [])->map('strval')->sort()->values()->toArray();
+        // $reqServices = collect($request->services ?? [])->map('strval')->sort()->values()->toArray();
+        // $dbServices  = collect($requestModel->services ?? [])->map('strval')->sort()->values()->toArray();
 
-        if (count(array_diff($reqServices, $dbServices)) > 0 || count(array_diff($dbServices, $reqServices)) > 0) {
-            return response()->json([
-                'status'  => false,
-                'message' => __('messages.createParcelRequest.edit_restrictions.only_contacts_allowed')
-            ], 403);
-        }
+        // if (count(array_diff($reqServices, $dbServices)) > 0 || count(array_diff($dbServices, $reqServices)) > 0) {
+        //     return response()->json([
+        //         'status'  => false,
+        //         'message' => __('messages.createParcelRequest.edit_restrictions.only_contacts_allowed')
+        //     ], 403);
+        // }
 
 
 
@@ -1324,6 +1369,15 @@ class PassengerRequestController extends Controller
             if ($request->budget !== null && (float)$request->budget !== (float)$requestModel->budget) {
                 return response()->json([
                     'status'  => false,
+                    'message' => __('messages.createParcelRequest.edit_restrictions.only_contacts_allowed')
+                ], 403);
+            }
+
+              //  BLOCK TIME CHANGE
+            if ($request->preferred_time !== null &&
+                $request->preferred_time !== $requestModel->preferred_time) {
+                return response()->json([
+                    'status' => false,
                     'message' => __('messages.createParcelRequest.edit_restrictions.only_contacts_allowed')
                 ], 403);
             }
@@ -1394,6 +1448,62 @@ class PassengerRequestController extends Controller
             // ALWAYS update images
             'parcel_images'   => json_encode($parcelImages),
         ]);
+
+          /* =====================================================
+        🔔 NOTIFY INTERESTED DRIVERS (CANCEL FORMAT)
+        ===================================================== */
+        $routeChanged = (
+            ($request->pickup_location && $request->pickup_location !== $requestModel->pickup_location) ||
+            ($request->destination && $request->destination !== $requestModel->destination) ||
+            ($request->ride_date && $requestDate !== $requestModel->ride_date) ||
+            ($request->number_of_seats && $request->number_of_seats != $requestModel->number_of_seats) ||
+            ($request->budget && (float)$request->budget != (float)$requestModel->budget)
+        );
+
+        if (!$hasConfirmedBooking && $routeChanged) {
+
+            $driverIds = PassengerRequestDriverInterest::where('passenger_request_id', $requestModel->id)
+                ->pluck('driver_id');
+
+            $drivers = User::whereIn('id', $driverIds)->get();
+
+            $fcmService     = new FCMService();
+            $originalLocale = app()->getLocale();
+
+            $passengerName = $user->name ?? __('messages.common.passenger');
+
+            foreach ($drivers as $driver) {
+
+                if (!$driver->device_token) continue;
+
+                $driverLang = UserLang::where('user_id', $driver->id)
+                    ->where('device_id', $driver->device_id)
+                    ->where('device_type', $driver->device_type)
+                    ->first();
+
+                app()->setLocale($driverLang->language ?? 'ru');
+
+                $notificationData = [
+                    'notification_type' => 13, // update type
+                    'title' => __('messages.createParcelRequest.notifications.request_updated.title'),
+                    'body'  => __('messages.createParcelRequest.notifications.request_updated.body', [
+                        'passenger'  => $passengerName,
+                        'pickup'     => $requestModel->pickup_location,
+                        'destination'=> $requestModel->destination,
+                    ]),
+                ];
+
+                $fcmService->sendNotification([[
+                    'device_token' => $driver->device_token,
+                    'device_type'  => $driver->device_type ?? 'android',
+                    'user_id'      => $driver->id,
+                ]], $notificationData);
+            }
+
+            app()->setLocale($originalLocale);
+             PassengerRequestDriverInterest::where('passenger_request_id', $requestModel->id)->delete();
+        }
+
 
        
         //  RESPONSE (MATCH STORE API FORMAT)
