@@ -591,6 +591,8 @@ class DriverHomeController extends Controller
                                 ]),
                             ]);
                         }
+                          // 🗑️ DELETE BOOKING RECORD
+                        $booking->delete();
 
                         app()->setLocale($originalLocale);
                         
