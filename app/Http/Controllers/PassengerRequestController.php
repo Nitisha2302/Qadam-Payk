@@ -1366,21 +1366,21 @@ class PassengerRequestController extends Controller
                 ], 403);
             }
 
-            if ($request->budget !== null && (float)$request->budget !== (float)$requestModel->budget) {
-                return response()->json([
-                    'status'  => false,
-                    'message' => __('messages.createParcelRequest.edit_restrictions.only_contacts_allowed')
-                ], 403);
-            }
+            // if ($request->budget !== null && (float)$request->budget !== (float)$requestModel->budget) {
+            //     return response()->json([
+            //         'status'  => false,
+            //         'message' => __('messages.createParcelRequest.edit_restrictions.only_contacts_allowed')
+            //     ], 403);
+            // }
 
               //  BLOCK TIME CHANGE
-            if ($request->preferred_time !== null &&
-                $request->preferred_time !== $requestModel->preferred_time) {
-                return response()->json([
-                    'status' => false,
-                    'message' => __('messages.createParcelRequest.edit_restrictions.only_contacts_allowed')
-                ], 403);
-            }
+            // if ($request->preferred_time !== null &&
+            //     $request->preferred_time !== $requestModel->preferred_time) {
+            //     return response()->json([
+            //         'status' => false,
+            //         'message' => __('messages.createParcelRequest.edit_restrictions.only_contacts_allowed')
+            //     ], 403);
+            // }
 
             $reqServices = collect($request->services ?? [])->map('strval')->sort()->values()->toArray();
             $dbServices  = collect($requestModel->services ?? [])->map('strval')->sort()->values()->toArray();
@@ -1442,11 +1442,15 @@ class PassengerRequestController extends Controller
             'destination'     => !$hasConfirmedBooking ? $request->destination : $requestModel->destination,
             'ride_date'       => !$hasConfirmedBooking ? $requestDate : $requestModalDate,
             'number_of_seats' => !$hasConfirmedBooking ? $request->number_of_seats : $requestModel->number_of_seats,
-            'budget'          => !$hasConfirmedBooking ? $request->budget : $requestModel->budget,
-            'preferred_time'  => !$hasConfirmedBooking ? $request->preferred_time : $requestModel->preferred_time,
+            // 'budget'          => !$hasConfirmedBooking ? $request->budget : $requestModel->budget,
+            // 'preferred_time'  => !$hasConfirmedBooking ? $request->preferred_time : $requestModel->preferred_time,
             'services'        => !$hasConfirmedBooking ? $request->services : $requestModel->services,
             // ALWAYS update images
-            'parcel_images'   => json_encode($parcelImages),
+            // ✅ ALWAYS ALLOWED (EVEN IF CONFIRMED)
+            'budget'         => $request->budget ?? $requestModel->budget,
+            'preferred_time' => $request->preferred_time ?? $requestModel->preferred_time,
+
+            'parcel_images'  => json_encode($parcelImages),
         ]);
 
           /* =====================================================
