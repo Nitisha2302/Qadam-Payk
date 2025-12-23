@@ -10,6 +10,7 @@
 /public/assets/parcel_image
 /public/assets/vehicle_image
 /public/assets/banner
+/public/assets/story_media
 /storage/*.key
 /vendor
 .env
