@@ -44,7 +44,7 @@ class StoryController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => $validator->errors()->first()
-            ], 422);
+            ], 201);
         }
 
         // 🔹 Save file manually
@@ -57,7 +57,7 @@ class StoryController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'No media uploaded'
-            ], 422);
+            ], 201);
         }
 
         $story = Story::create([
@@ -73,8 +73,9 @@ class StoryController extends Controller
 
         return response()->json([
             'status' => true,
+            'message' => "story uploaded sucessfully.",
             'story' => $story
-        ], 201);
+        ], 200);
     }
 
     public function myStories(Request $request)
@@ -95,6 +96,7 @@ class StoryController extends Controller
 
         return response()->json([
             'status' => true,
+             'message' => "story fetced sucessfully.",
             'stories' => $stories
         ], 200);
     }
@@ -126,6 +128,7 @@ class StoryController extends Controller
 
         return response()->json([
             'status' => true,
+             'message' => "story fetced sucessfully.",
             'stories' => $stories
         ], 200);
     }
@@ -147,7 +150,7 @@ class StoryController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Story not found'
-            ], 404);
+            ], 201);
         }
 
         $story->reported = true;
@@ -155,10 +158,11 @@ class StoryController extends Controller
 
         return response()->json([
             'status' => true,
+             'message' => "Report Submitted sucessfully.",
             'message' => 'Story reported'
         ], 200);
     }
 
 
-    
+
 }
