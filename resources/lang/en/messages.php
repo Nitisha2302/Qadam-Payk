@@ -772,6 +772,40 @@ return [
         ],
     ],
 
+    'story' => [
+
+        // Auth
+        'user_not_authenticated' => 'User not authenticated.',
+
+        // Success
+        'upload_success' => 'Story uploaded successfully.',
+        'fetch_success' => 'Story fetched successfully.',
+        'report_success' => 'Story reported successfully.',
+
+        // Errors
+        'story_not_found' => 'Story not found.',
+        'already_reported' => 'You have already reported this story.',
+        'no_media' => 'No media uploaded.',
+
+        'delete_success' => 'Story deleted successfully.',
+        'delete_not_allowed' => 'You are not allowed to delete this story.',
+
+        // Validation
+        'validation' => [
+            'media_required' => 'Please upload a photo or video.',
+            'media_file' => 'Media must be a valid file.',
+            'media_mimes' => 'Allowed file types: jpg, jpeg, png, mp4, mov.',
+            'type_required' => 'Type is required (photo or video).',
+            'type_invalid' => 'Type must be either photo or video.',
+            'route_string' => 'Route must be a string.',
+            'city_string' => 'City must be a string.',
+            'description_string' => 'Description must be a string.',
+            'description_max' => 'Description cannot exceed 500 characters.',
+            'reason_string' => 'Reason must be a string.',
+            'reason_max' => 'Reason cannot exceed 255 characters.',
+        ],
+    ],
+
 
 
     

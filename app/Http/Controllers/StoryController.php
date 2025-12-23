@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Story;
+use App\Models\StoryReport;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
+use App\Models\UserLang;
+use Illuminate\Support\Facades\App;
 
 class StoryController extends Controller
 {
@@ -18,9 +21,17 @@ class StoryController extends Controller
         if (!$user) {
             return response()->json([
                 'status' => false,
-                'message' => 'User not authenticated',
+                'message' => __('messages.story.user_not_authenticated')
             ], 401);
         }
+
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback
+        App::setLocale($lang);
 
         // 🔹 Validation with custom messages
         $validator = Validator::make($request->all(), [
@@ -31,13 +42,15 @@ class StoryController extends Controller
             'description' => 'nullable|string|max:500',
             'category' => 'nullable'
         ], [
-            'media.required' => 'Please upload a photo or video.',
-            'media.file' => 'Media must be a valid file.',
-            'media.mimes' => 'Allowed file types: jpg, jpeg, png, mp4, mov.',
-            'media.max' => 'File size should not exceed 20MB.',
-            'type.required' => 'Type is required (photo/video).',
-            'type.in' => 'Type must be either photo or video.',
-            'description.max' => 'Description can not exceed 500 characters.',
+            'media.required' => __('messages.story.validation.media_required'),
+            'media.file' => __('messages.story.validation.media_file'),
+            'media.mimes' => __('messages.story.validation.media_mimes'),
+            'type.required' => __('messages.story.validation.type_required'),
+            'type.in' => __('messages.story.validation.type_invalid'),
+            'route.string' => __('messages.story.validation.route_string'),
+            'city.string' => __('messages.story.validation.city_string'),
+            'description.string' => __('messages.story.validation.description_string'),
+            'description.max' => __('messages.story.validation.description_max'),
         ]);
 
         if ($validator->fails()) {
@@ -56,7 +69,7 @@ class StoryController extends Controller
         } else {
             return response()->json([
                 'status' => false,
-                'message' => 'No media uploaded'
+               'message' => __('api.story.no_media'),
             ], 201);
         }
 
@@ -73,7 +86,7 @@ class StoryController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => "story uploaded sucessfully.",
+          'message' => __('messages.story.upload_success'),
             'story' => $story
         ], 200);
     }
@@ -84,9 +97,17 @@ class StoryController extends Controller
         if (!$user) {
             return response()->json([
                 'status' => false,
-                'message' => 'User not authenticated',
+               'message' => __('messages.story.user_not_authenticated')
             ], 401);
         }
+
+         $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback
+        App::setLocale($lang);
 
         $now = Carbon::now();
         $stories = Story::where('user_id', $user->id)
@@ -96,7 +117,7 @@ class StoryController extends Controller
 
         return response()->json([
             'status' => true,
-             'message' => "story fetced sucessfully.",
+            'message' => __('messages.story.fetch_success'),
             'stories' => $stories
         ], 200);
     }
@@ -109,57 +130,153 @@ class StoryController extends Controller
         if (!$user) {
             return response()->json([
                 'status' => false,
-                'message' => 'User not authenticated',
+                'message' => __('messages.story.user_not_authenticated')
+
             ], 401);
         }
 
+         $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru'; // fallback
+        App::setLocale($lang);
+
         $now = Carbon::now();
-        $stories = Story::where('user_id', '!=', $user->id) // exclude self
-                        ->where('expires_at', '>', $now);
 
-        if ($request->has('route')) {
-            $stories->where('route', $request->route);
-        }
-        if ($request->has('city')) {
-            $stories->where('city', $request->city);
-        }
+        $stories = Story::where('user_id', '!=', $user->id)
+            ->where('expires_at', '>', $now)
 
-        $stories = $stories->orderBy('created_at', 'desc')->get();
+            ->when($request->filled('route'), function ($q) use ($request) {
+
+                // Normalize route
+                $route = strtolower(trim($request->route)); // chd-mohali
+                $parts = explode('-', $route);
+
+                if (count($parts) === 2) {
+                    $route1 = $parts[0] . '-' . $parts[1]; // chd-mohali
+                    $route2 = $parts[1] . '-' . $parts[0]; // mohali-chd
+
+                    $q->whereIn('route', [$route1, $route2]);
+                } else {
+                    $q->where('route', $route);
+                }
+            })
+
+            ->when($request->filled('city'), function ($q) use ($request) {
+                $q->where('city', $request->city);
+            })
+
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return response()->json([
-            'status' => true,
-             'message' => "story fetced sucessfully.",
+            'status'  => true,
+          'message' => __('messages.story.fetch_success'),
             'stories' => $stories
         ], 200);
-    }
+     }
+
+
 
 
     // Report a story
-    public function report($id)
+    public function report(Request $request, $id)
     {
         $user = Auth::guard('api')->user();
         if (!$user) {
             return response()->json([
                 'status' => false,
-                'message' => 'User not authenticated',
+                'message' => __('messages.story.user_not_authenticated')
             ], 401);
         }
+
+       $request->validate([
+         'reason' => 'nullable|string|max:255',
+        ], [
+            'reason.string' => __('messages.story.validation.reason_string'),
+            'reason.max' => __('messages.story.validation.reason_max'),
+        ]);
+
 
         $story = Story::find($id);
         if (!$story) {
             return response()->json([
                 'status' => false,
-                'message' => 'Story not found'
+               'message' => __('messages.story.story_not_found'),
             ], 201);
         }
 
-        $story->reported = true;
-        $story->save();
+        // Prevent duplicate report
+        $alreadyReported = StoryReport::where('story_id', $id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if ($alreadyReported) {
+            return response()->json([
+                'status' => false,
+               'message' => __('messages.story.already_reported'),
+
+            ], 201);
+        }
+
+        StoryReport::create([
+            'story_id' => $id,
+            'user_id'  => $user->id,
+            'reason'   => $request->reason,
+        ]);
 
         return response()->json([
             'status' => true,
-             'message' => "Report Submitted sucessfully.",
-            'message' => 'Story reported'
+            'message' => __('messages.story.report_success'),
+        ], 200);
+    }
+
+
+    public function destroy($id)
+    {
+        // 🔹 Auth check
+        $user = Auth::guard('api')->user();
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => __('messages.story.user_not_authenticated'),
+            ], 401);
+        }
+
+        // 🔹 Set language (same as rating)
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru';
+        App::setLocale($lang);
+
+        // 🔹 Find story
+        $story = Story::find($id);
+        if (!$story) {
+            return response()->json([
+                'status' => false,
+                'message' => __('messages.story.story_not_found'),
+            ], 201);
+        }
+
+        // 🔹 Ownership check
+        if ($story->user_id !== $user->id) {
+            return response()->json([
+                'status' => false,
+                'message' => __('messages.story.delete_not_allowed'),
+            ], 201);
+        }
+
+        // 🔹 Delete story
+        $story->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => __('messages.story.delete_success'),
         ], 200);
     }
 

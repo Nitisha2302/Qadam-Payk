@@ -137,7 +137,9 @@ Route::get('blocked-users', [HomeController::class, 'getBlockedUsers']);
 Route::get('get-user-notifications', [HomeController::class, 'getAllNotifications']);
 
 
-Route::post('/stories', [StoryController::class, 'store']);      // upload story
-Route::get('/my-stories', [StoryController::class, 'myStories']);          // Own stories
-Route::get('/others-stories', [StoryController::class, 'othersStories']);  // Other users' stories
-Route::post('/stories/{id}/report', [StoryController::class, 'report']); // report story
+Route::post('/stories', [StoryController::class, 'store']);      
+Route::get('/my-stories', [StoryController::class, 'myStories']);  
+Route::post('/stories/{id}/delete', [StoryController::class, 'destroy']);
+Route::get('/others-stories', [StoryController::class, 'othersStories']);  
+Route::post('/stories/{id}/report', [StoryController::class, 'report']);
+ 
