@@ -293,6 +293,7 @@ class StoryController extends Controller
              ->whereNotIn('user_id', $blockedUserIds)
                 ->where('expires_at', '>', $now)
 
+                
                 ->when($request->filled('route'), function ($q) use ($request) {
 
                     // Normalize route
