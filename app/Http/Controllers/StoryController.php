@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 use App\Models\UserLang;
 use Illuminate\Support\Facades\App;
+use App\Models\StoryView;
 
 class StoryController extends Controller
 {
@@ -91,29 +92,94 @@ class StoryController extends Controller
         ], 200);
     }
 
+    // public function myStories(Request $request)
+    // {
+    //     $user = Auth::guard('api')->user();
+    //     if (!$user) {
+    //         return response()->json([
+    //             'status' => false,
+    //            'message' => __('messages.story.user_not_authenticated')
+    //         ], 401);
+    //     }
+
+    //      $userLang = UserLang::where('user_id', $user->id)
+    //         ->where('device_id', $user->device_id)
+    //         ->where('device_type', $user->device_type)
+    //         ->first();
+
+    //     $lang = $userLang->language ?? 'ru'; // fallback
+    //     App::setLocale($lang);
+
+    //     $now = Carbon::now();
+    //     $stories = Story::where('user_id', $user->id)
+    //                     ->where('expires_at', '>', $now)
+    //                     ->orderBy('created_at', 'desc')
+    //                     ->get();
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => __('messages.story.fetch_success'),
+    //         'stories' => $stories
+    //     ], 200);
+    // }
+
+    // with view user data 
+
     public function myStories(Request $request)
     {
         $user = Auth::guard('api')->user();
         if (!$user) {
             return response()->json([
                 'status' => false,
-               'message' => __('messages.story.user_not_authenticated')
+                'message' => __('messages.story.user_not_authenticated')
             ], 401);
         }
 
-         $userLang = UserLang::where('user_id', $user->id)
+        // 🌐 Language
+        $userLang = UserLang::where('user_id', $user->id)
             ->where('device_id', $user->device_id)
             ->where('device_type', $user->device_type)
             ->first();
 
-        $lang = $userLang->language ?? 'ru'; // fallback
+        $lang = $userLang->language ?? 'ru';
         App::setLocale($lang);
 
         $now = Carbon::now();
+
         $stories = Story::where('user_id', $user->id)
-                        ->where('expires_at', '>', $now)
-                        ->orderBy('created_at', 'desc')
-                        ->get();
+            ->where('expires_at', '>', $now)
+            ->with([
+                'viewers' => function ($q) {
+                    $q->select('users.id', 'users.name', 'users.image');
+                }
+            ])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($story) {
+                return [
+                    'id' => $story->id,
+                    'media' => $story->media,
+                    'type' => $story->type,
+                    'route' => $story->route,
+                    'city' => $story->city,
+                    'description' => $story->description,
+                    'created_at' => $story->created_at,
+
+                    // 👁 View count
+                    'views_count' => $story->viewers->count(),
+
+                    // 👤 Viewers list
+                    'viewers' => $story->viewers->map(function ($user) {
+                        return [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'image' => $user->image
+                                ?  $user->image
+                                : null,
+                        ];
+                    }),
+                ];
+            });
 
         return response()->json([
             'status' => true,
@@ -121,6 +187,7 @@ class StoryController extends Controller
             'stories' => $stories
         ], 200);
     }
+
 
 
     // Fetch active stories (last 24 hours)
@@ -279,6 +346,66 @@ class StoryController extends Controller
             'message' => __('messages.story.delete_success'),
         ], 200);
     }
+
+
+    public function viewStory(Request $request, $id)
+    {
+        $user = Auth::guard('api')->user();
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => __('messages.story.user_not_authenticated'),
+            ], 401);
+        }
+         // 🔹 Set language (same as rating)
+        $userLang = UserLang::where('user_id', $user->id)
+            ->where('device_id', $user->device_id)
+            ->where('device_type', $user->device_type)
+            ->first();
+
+        $lang = $userLang->language ?? 'ru';
+        App::setLocale($lang);
+
+        $story = Story::find($id);
+        if (!$story) {
+            return response()->json([
+                'status' => false,
+                'message' => __('messages.story.story_not_found'),
+            ], 201);
+        }
+
+        // ❌ Prevent owner from viewing own story
+        if ($story->user_id === $user->id) {
+            return response()->json([
+                'status' => false,
+                'message' => __('messages.story.cannot_view_own_story'),
+            ], 201);
+        }
+
+        // 🔒 Prevent duplicate view
+        $alreadyViewed = StoryView::where('story_id', $id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if ($alreadyViewed) {
+            return response()->json([
+                'status' => true,
+                'message' => __('messages.story.already_viewed'),
+            ], 200);
+        }
+
+        // ✅ Store view
+        StoryView::create([
+            'story_id' => $id,
+            'user_id' => $user->id,
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => __('messages.story.view_recorded'),
+        ], 200);
+    }
+
 
 
 

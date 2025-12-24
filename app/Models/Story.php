@@ -32,4 +32,17 @@ class Story extends Model
         return $this->hasMany(StoryReport::class);
     }
 
+    public function views()
+    {
+        return $this->hasMany(StoryView::class);
+    }
+
+    public function viewers()
+    {
+        return $this->belongsToMany(User::class, 'story_views')
+            ->select('users.id', 'users.name', 'users.image')
+            ->withTimestamps();
+    }
+
+
 }

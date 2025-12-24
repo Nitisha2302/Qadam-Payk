@@ -790,6 +790,10 @@ return [
         'delete_success' => 'Story deleted successfully.',
         'delete_not_allowed' => 'You are not allowed to delete this story.',
 
+        'cannot_view_own_story' => 'You cannot view your own story.',
+        'already_viewed' => 'Story already viewed.',
+        'view_recorded' => 'Story view recorded successfully.',
+
         // Validation
         'validation' => [
             'media_required' => 'Please upload a photo or video.',

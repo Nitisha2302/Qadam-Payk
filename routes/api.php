@@ -142,4 +142,6 @@ Route::get('/my-stories', [StoryController::class, 'myStories']);
 Route::post('/stories/{id}/delete', [StoryController::class, 'destroy']);
 Route::get('/others-stories', [StoryController::class, 'othersStories']);  
 Route::post('/stories/{id}/report', [StoryController::class, 'report']);
+Route::post('/stories/{id}/view', [StoryController::class, 'viewStory']);
+
  

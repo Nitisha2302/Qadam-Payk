@@ -92,10 +92,17 @@ class User extends Authenticatable
             return $this->hasMany(UserLang::class);
         }
 
-   public function blockedUser()
+    public function blockedUser()
+        {
+            return $this->belongsTo(\App\Models\User::class, 'blocked_user_id');
+        }
+
+    public function viewedStories()
     {
-        return $this->belongsTo(\App\Models\User::class, 'blocked_user_id');
+        return $this->belongsToMany(Story::class, 'story_views')
+            ->withTimestamps();
     }
+
 
     
 
