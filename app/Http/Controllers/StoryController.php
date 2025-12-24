@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\UserLang;
 use Illuminate\Support\Facades\App;
 use App\Models\StoryView;
+use App\Models\UserBlock;
 
 class StoryController extends Controller
 {
@@ -191,59 +192,137 @@ class StoryController extends Controller
 
 
     // Fetch active stories (last 24 hours)
+    // public function othersStories(Request $request)
+    // {
+    //     $user = Auth::guard('api')->user();
+    //     if (!$user) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => __('messages.story.user_not_authenticated')
+
+    //         ], 401);
+    //     }
+
+    //      $userLang = UserLang::where('user_id', $user->id)
+    //         ->where('device_id', $user->device_id)
+    //         ->where('device_type', $user->device_type)
+    //         ->first();
+
+    //     $lang = $userLang->language ?? 'ru'; // fallback
+    //     App::setLocale($lang);
+
+    //     $now = Carbon::now();
+
+    //     $stories = Story::where('user_id', '!=', $user->id)
+    //         ->where('expires_at', '>', $now)
+
+    //         ->when($request->filled('route'), function ($q) use ($request) {
+
+    //             // Normalize route
+    //             $route = strtolower(trim($request->route)); // chd-mohali
+    //             $parts = explode('-', $route);
+
+    //             if (count($parts) === 2) {
+    //                 $route1 = $parts[0] . '-' . $parts[1]; // chd-mohali
+    //                 $route2 = $parts[1] . '-' . $parts[0]; // mohali-chd
+
+    //                 $q->whereIn('route', [$route1, $route2]);
+    //             } else {
+    //                 $q->where('route', $route);
+    //             }
+    //         })
+
+    //         ->when($request->filled('city'), function ($q) use ($request) {
+    //             $q->where('city', $request->city);
+    //         })
+
+    //         ->orderBy('created_at', 'desc')
+    //         ->get();
+
+    //     return response()->json([
+    //         'status'  => true,
+    //       'message' => __('messages.story.fetch_success'),
+    //         'stories' => $stories
+    //     ], 200);
+    //  }
+
+
+    // final with block 
+
     public function othersStories(Request $request)
-    {
-        $user = Auth::guard('api')->user();
-        if (!$user) {
+        {
+            $user = Auth::guard('api')->user();
+            if (!$user) {
+                return response()->json([
+                    'status' => false,
+                    'message' => __('messages.story.user_not_authenticated')
+
+                ], 401);
+            }
+
+            $userLang = UserLang::where('user_id', $user->id)
+                ->where('device_id', $user->device_id)
+                ->where('device_type', $user->device_type)
+                ->first();
+
+            $lang = $userLang->language ?? 'ru'; // fallback
+            App::setLocale($lang);
+
+            $now = Carbon::now();
+
+            /*
+            |--------------------------------------------------------------------------
+            | 🚫 BLOCK LOGIC
+            |--------------------------------------------------------------------------
+            */
+
+            // Users I blocked
+            $blockedByMe = UserBlock::where('user_id', $user->id)
+                ->pluck('blocked_user_id')
+                ->toArray();
+
+            // Users who blocked me
+            $blockedMe = UserBlock::where('blocked_user_id', $user->id)
+                ->pluck('user_id')
+                ->toArray();
+
+            // Merge both
+            $blockedUserIds = array_unique(array_merge($blockedByMe, $blockedMe));
+
+            $stories = Story::where('user_id', '!=', $user->id)
+             ->whereNotIn('user_id', $blockedUserIds)
+                ->where('expires_at', '>', $now)
+
+                ->when($request->filled('route'), function ($q) use ($request) {
+
+                    // Normalize route
+                    $route = strtolower(trim($request->route)); // chd-mohali
+                    $parts = explode('-', $route);
+
+                    if (count($parts) === 2) {
+                        $route1 = $parts[0] . '-' . $parts[1]; // chd-mohali
+                        $route2 = $parts[1] . '-' . $parts[0]; // mohali-chd
+
+                        $q->whereIn('route', [$route1, $route2]);
+                    } else {
+                        $q->where('route', $route);
+                    }
+                })
+
+                ->when($request->filled('city'), function ($q) use ($request) {
+                    $q->where('city', $request->city);
+                })
+
+                ->orderBy('created_at', 'desc')
+                ->get();
+
             return response()->json([
-                'status' => false,
-                'message' => __('messages.story.user_not_authenticated')
+                'status'  => true,
+            'message' => __('messages.story.fetch_success'),
+                'stories' => $stories
+            ], 200);
+    }
 
-            ], 401);
-        }
-
-         $userLang = UserLang::where('user_id', $user->id)
-            ->where('device_id', $user->device_id)
-            ->where('device_type', $user->device_type)
-            ->first();
-
-        $lang = $userLang->language ?? 'ru'; // fallback
-        App::setLocale($lang);
-
-        $now = Carbon::now();
-
-        $stories = Story::where('user_id', '!=', $user->id)
-            ->where('expires_at', '>', $now)
-
-            ->when($request->filled('route'), function ($q) use ($request) {
-
-                // Normalize route
-                $route = strtolower(trim($request->route)); // chd-mohali
-                $parts = explode('-', $route);
-
-                if (count($parts) === 2) {
-                    $route1 = $parts[0] . '-' . $parts[1]; // chd-mohali
-                    $route2 = $parts[1] . '-' . $parts[0]; // mohali-chd
-
-                    $q->whereIn('route', [$route1, $route2]);
-                } else {
-                    $q->where('route', $route);
-                }
-            })
-
-            ->when($request->filled('city'), function ($q) use ($request) {
-                $q->where('city', $request->city);
-            })
-
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json([
-            'status'  => true,
-          'message' => __('messages.story.fetch_success'),
-            'stories' => $stories
-        ], 200);
-     }
 
 
 
