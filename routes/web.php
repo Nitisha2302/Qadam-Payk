@@ -12,7 +12,7 @@ use App\Http\Controllers\Admin\ReportsController;
 use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Admin\PrivacyPolicyController;
 use App\Http\Controllers\Admin\ReportController;
-
+use App\Http\Controllers\Admin\StoryController;
 
 Route::fallback(function () {
     return response()->view('404', [], 404);
@@ -100,6 +100,17 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
         Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('reports/export/{type}', [ReportController::class, 'export'])->name('reports.export');
       
+
+        Route::get('/reported-stories', [StoryController::class, 'reportedStories'])
+            ->name('reported-stories');
+
+        Route::get('/reported-stories/{id}', [StoryController::class, 'reportedStoryDetail'])
+            ->name('reported-story-detail');
+
+       Route::delete('/stories/{id}', [StoryController::class, 'deleteStory']);
+
+
+
 
     });  
 

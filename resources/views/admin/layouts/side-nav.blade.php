@@ -103,6 +103,15 @@
                 </a>
             </li>
 
+              <li class="@if (Route::currentRouteName() == 'dashboard.admin.reported-stories') active @endif">
+                <a href="{{ route('dashboard.admin.reported-stories') }}">
+                    <span class="d-flex gap-3 align-items-end">
+                       <i class="fas fa-file-alt icon-font-size"></i>
+                        <span class="nav-content-menu">Reported Stories</span>
+                    </span>
+                </a>
+            </li>
+
             <li class="@if (Route::currentRouteName() == 'dashboard.admin.privacy-policy.edit') active @endif">
                 <a href="{{ route('dashboard.admin.privacy-policy.edit') }}">
                     <span class="d-flex gap-3 align-items-end">
