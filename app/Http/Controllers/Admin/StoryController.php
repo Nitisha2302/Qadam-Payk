@@ -30,10 +30,6 @@ class StoryController extends Controller
         return view('admin.story.reported-stories', compact('stories'));
     }
 
-
-    /* =====================================================
-       2️⃣ VIEW SINGLE STORY REPORT DETAILS
-    ===================================================== */
     public function reportedStoryDetail($id)
     {
         $story = Story::with([
@@ -76,38 +72,4 @@ class StoryController extends Controller
 
         return response()->json(['status' => true, 'message' => 'Story deleted successfully']);
     }
-
-    /* =====================================================
-       3️⃣ DELETE STORY (ADMIN)
-    // ===================================================== */
-    // public function deleteStory($id)
-    // {
-    //     $story = Story::find($id);
-
-    //     if (!$story) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => __('messages.story.story_not_found')
-    //         ], 404);
-    //     }
-
-    //     // 🗑 Delete media file
-    //     if ($story->media) {
-    //         $mediaPath = public_path('assets/story_media/' . $story->media);
-    //         if (File::exists($mediaPath)) {
-    //             File::delete($mediaPath);
-    //         }
-    //     }
-
-    //     // 🗑 Delete reports
-    //     StoryReport::where('story_id', $id)->delete();
-
-    //     // 🗑 Delete story
-    //     $story->delete();
-
-    //     return response()->json([
-    //         'status'  => true,
-    //         'message' => __('messages.story.delete_success')
-    //     ], 200);
-    // }
 }

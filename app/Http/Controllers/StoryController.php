@@ -194,12 +194,16 @@ class StoryController extends Controller
         $chunk = $request->file('chunk');
 
         // ⛔ Enforce minimum chunk size 1MB
-        if ($chunk->getSize() < 1024 * 1024) {
+       // ✅ Enforce MAX chunk size = 1MB
+        $maxChunkSize = 1024 * 1024; // 1 MB
+
+        if ($chunk->getSize() > $maxChunkSize) {
             return response()->json([
                 'status' => false,
-                'message' => 'Minimum chunk size is 1MB'
-            ], 201);
+                'message' => 'Maximum chunk size is 1MB'
+            ], 413);
         }
+
 
         $uploadId = $request->upload_id;
         $chunkIndex = $request->chunk_index;
