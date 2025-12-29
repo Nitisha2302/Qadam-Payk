@@ -286,7 +286,7 @@ class StoryController extends Controller
             [
                 'type'          => 'required|in:photo,video',
                 'media'         => 'required_if:type,photo|file|mimes:jpg,jpeg,png',
-                'chunk' => 'required_if:type,video|file',
+                'chunk' => 'required_if:type,video',
                 'chunk_index'   => 'required_if:type,video|integer|min:0',
                 'total_chunks'  => 'required_if:type,video|integer|min:1',
                 'upload_id'     => 'required_if:type,video|string',
@@ -355,14 +355,19 @@ class StoryController extends Controller
             ], 200);
         }
 
-        /* ================= VIDEO CHUNK UPLOAD ================= */
+        /* ================= VIDEO CHUNK ================= */
 
         $chunk = $request->file('chunk');
 
-        // ⛔ Enforce minimum chunk size 1MB
-       // ✅ Enforce MAX chunk size = 1MB
-        $maxChunkSize = 1024 * 1024; // 1 MB
+        if (!$chunk || !$chunk->isValid()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid chunk upload'
+            ], 422);
+        }
 
+        /* ================= CHUNK SIZE CHECK ================= */
+        $maxChunkSize = 1024 * 1024; // 1MB
         if ($chunk->getSize() > $maxChunkSize) {
             return response()->json([
                 'status' => false,
@@ -370,7 +375,15 @@ class StoryController extends Controller
             ], 413);
         }
 
-        $chunk       = $request->file('chunk');
+        /* ================= INDEX SAFETY ================= */
+        if ($request->chunk_index >= $request->total_chunks) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid chunk index'
+            ], 422);
+        }
+
+        /* ================= STORE CHUNK ================= */
         $uploadId = $request->upload_id;
         $chunkIndex = $request->chunk_index;
         $totalChunks = $request->total_chunks;
@@ -382,17 +395,17 @@ class StoryController extends Controller
 
         $chunk->move($chunkDir, "chunk_{$chunkIndex}");
 
-        /* ================= MERGE CHUNKS ================= */
+        /* ================= MERGE ================= */
         if ($chunkIndex == $totalChunks - 1) {
 
-           $finalName = time() . '_' . uniqid() . '.mp4';
+            $finalName = time() . '_' . uniqid() . '.mp4';
             $finalPath = public_path("assets/story_media/{$finalName}");
 
             $output = fopen($finalPath, 'ab');
 
-                for ($i = 0; $i < $totalChunks; $i++) {
-                    $chunkFile = "{$chunkDir}/chunk_{$i}";
-                    if (!file_exists($chunkFile)) {
+            for ($i = 0; $i < $totalChunks; $i++) {
+                $chunkFile = "{$chunkDir}/chunk_{$i}";
+                if (!file_exists($chunkFile)) {
                     fclose($output);
                     return response()->json([
                         'status' => false,
@@ -406,9 +419,9 @@ class StoryController extends Controller
             fclose($output);
             rmdir($chunkDir);
 
-            /* ================= FINAL VIDEO VALIDATION ================= */
-            $extension = strtolower(pathinfo($finalName, PATHINFO_EXTENSION));
-            if (!in_array($extension, ['mp4', 'mov'])) {
+            /* ================= FINAL FILE VALIDATION ================= */
+            $mime = mime_content_type($finalPath);
+            if (!in_array($mime, ['video/mp4', 'video/quicktime'])) {
                 unlink($finalPath);
                 return response()->json([
                     'status' => false,
@@ -425,7 +438,7 @@ class StoryController extends Controller
                 'city' => $request->city,
                 'description' => $request->description,
                 'category' => $request->category,
-                'expires_at' => Carbon::now()->addDay(),
+                'expires_at' => now()->addDay(),
             ]);
 
             return response()->json([
@@ -440,7 +453,6 @@ class StoryController extends Controller
             'message' => 'Chunk uploaded successfully'
         ], 200);
     }
-
 
 
     // public function myStories(Request $request)
