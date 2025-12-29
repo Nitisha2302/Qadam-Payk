@@ -323,6 +323,8 @@ class StoryController extends Controller
         );
 
 
+
+        
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
