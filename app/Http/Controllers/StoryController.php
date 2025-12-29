@@ -96,6 +96,172 @@ class StoryController extends Controller
 
     // with chunks 
 
+    // public function store(Request $request)
+    // {
+    //     /* ================= AUTH ================= */
+    //     $user = Auth::guard('api')->user();
+    //     if (!$user) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => __('messages.story.user_not_authenticated')
+    //         ], 401);
+    //     }
+
+    //     /* ================= LANGUAGE ================= */
+    //     $userLang = UserLang::where('user_id', $user->id)
+    //         ->where('device_id', $user->device_id)
+    //         ->where('device_type', $user->device_type)
+    //         ->first();
+
+    //     App::setLocale($userLang->language ?? 'ru');
+
+    //     $validator = Validator::make(
+    //         $request->all(),
+    //         [
+    //             'type'          => 'required|in:photo,video',
+    //             'media'         => 'required_if:type,photo|file|mimes:jpg,jpeg,png',
+    //             'chunk'         => 'required_if:type,video|file|mimes:mp4,mov',
+    //             'chunk_index'   => 'required_if:type,video|integer|min:0',
+    //             'total_chunks'  => 'required_if:type,video|integer|min:1',
+    //             'upload_id'     => 'required_if:type,video|string',
+    //             'route'         => 'nullable|string',
+    //             'city'          => 'nullable|string',
+    //             'description'   => 'nullable|string|max:500',
+    //             'category'      => 'nullable'
+    //         ],
+    //         [
+    //             // type
+    //             'type.required' => __('messages.story.validation.type_required'),
+    //             'type.in'       => __('messages.story.validation.type_invalid'),
+
+    //             // photo
+    //             'media.required_if' => __('messages.story.validation.media_required'),
+    //             'media.file'        => __('messages.story.validation.media_file'),
+    //             'media.mimes'       => __('messages.story.validation.media_mimes'),
+
+    //             // video
+    //             'chunk.required_if' => __('messages.story.validation.media_required'),
+    //             'chunk.file'        => __('messages.story.validation.media_file'),
+    //             'chunk.mimes'       => __('messages.story.validation.media_mimes'),
+
+    //             'chunk_index.required_if'  => __('validation.required'),
+    //             'total_chunks.required_if' => __('validation.required'),
+    //             'upload_id.required_if'    => __('validation.required'),
+
+    //             // text fields
+    //             'route.string'       => __('messages.story.validation.route_string'),
+    //             'city.string'        => __('messages.story.validation.city_string'),
+    //             'description.string' => __('messages.story.validation.description_string'),
+    //             'description.max'    => __('messages.story.validation.description_max'),
+    //         ]
+    //     );
+
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => $validator->errors()->first()
+    //         ], 201);
+    //     }
+
+    //     /* ================= PHOTO UPLOAD ================= */
+    //     if ($request->type === 'photo') {
+
+    //         $file = $request->file('media');
+    //         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+    //         $file->move(public_path('assets/story_media'), $filename);
+
+    //         $story = Story::create([
+    //             'user_id' => $user->id,
+    //             'type' => 'photo',
+    //             'media' => $filename,
+    //             'route' => $request->route,
+    //             'city' => $request->city,
+    //             'description' => $request->description,
+    //             'category' => $request->category,
+    //             'expires_at' => Carbon::now()->addDay(),
+    //         ]);
+
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => __('messages.story.upload_success'),
+    //             'story' => $story
+    //         ], 200);
+    //     }
+
+    //     /* ================= VIDEO CHUNK UPLOAD ================= */
+
+    //     $chunk = $request->file('chunk');
+
+    //     // ⛔ Enforce minimum chunk size 1MB
+    //    // ✅ Enforce MAX chunk size = 1MB
+    //     $maxChunkSize = 1024 * 1024; // 1 MB
+
+    //     if ($chunk->getSize() > $maxChunkSize) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Maximum chunk size is 1MB'
+    //         ], 413);
+    //     }
+
+
+    //     $uploadId = $request->upload_id;
+    //     $chunkIndex = $request->chunk_index;
+    //     $totalChunks = $request->total_chunks;
+
+    //     $chunkDir = storage_path("app/video_chunks/{$uploadId}");
+    //     if (!file_exists($chunkDir)) {
+    //         mkdir($chunkDir, 0777, true);
+    //     }
+
+    //     $chunk->move($chunkDir, "chunk_{$chunkIndex}");
+
+    //     /* ================= MERGE CHUNKS ================= */
+    //     if ($chunkIndex == $totalChunks - 1) {
+
+    //        $finalName = time() . '_' . uniqid() . '.mp4';
+    //         $finalPath = public_path("assets/story_media/{$finalName}");
+
+    //         $output = fopen($finalPath, 'ab');
+
+    //         for ($i = 0; $i < $totalChunks; $i++) {
+    //             $chunkFile = "{$chunkDir}/chunk_{$i}";
+    //             fwrite($output, file_get_contents($chunkFile));
+    //             unlink($chunkFile);
+    //         }
+
+    //         fclose($output);
+    //         rmdir($chunkDir);
+
+    //         /* ================= SAVE STORY ================= */
+    //         $story = Story::create([
+    //             'user_id' => $user->id,
+    //             'type' => 'video',
+    //             'media' => $finalName,
+    //             'route' => $request->route,
+    //             'city' => $request->city,
+    //             'description' => $request->description,
+    //             'category' => $request->category,
+    //             'expires_at' => Carbon::now()->addDay(),
+    //         ]);
+
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => __('messages.story.upload_success'),
+    //             'story' => $story
+    //         ], 200);
+    //     }
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'Chunk uploaded successfully'
+    //     ], 200);
+    // }
+
+
+    // new without extension
+
+
     public function store(Request $request)
     {
         /* ================= AUTH ================= */
@@ -120,7 +286,7 @@ class StoryController extends Controller
             [
                 'type'          => 'required|in:photo,video',
                 'media'         => 'required_if:type,photo|file|mimes:jpg,jpeg,png',
-                'chunk'         => 'required_if:type,video|file|mimes:mp4,mov',
+                'chunk' => 'required_if:type,video|file',
                 'chunk_index'   => 'required_if:type,video|integer|min:0',
                 'total_chunks'  => 'required_if:type,video|integer|min:1',
                 'upload_id'     => 'required_if:type,video|string',
@@ -204,7 +370,7 @@ class StoryController extends Controller
             ], 413);
         }
 
-
+        $chunk       = $request->file('chunk');
         $uploadId = $request->upload_id;
         $chunkIndex = $request->chunk_index;
         $totalChunks = $request->total_chunks;
@@ -224,14 +390,31 @@ class StoryController extends Controller
 
             $output = fopen($finalPath, 'ab');
 
-            for ($i = 0; $i < $totalChunks; $i++) {
-                $chunkFile = "{$chunkDir}/chunk_{$i}";
+                for ($i = 0; $i < $totalChunks; $i++) {
+                    $chunkFile = "{$chunkDir}/chunk_{$i}";
+                    if (!file_exists($chunkFile)) {
+                    fclose($output);
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Missing video chunk'
+                    ], 500);
+                }
                 fwrite($output, file_get_contents($chunkFile));
                 unlink($chunkFile);
             }
 
             fclose($output);
             rmdir($chunkDir);
+
+            /* ================= FINAL VIDEO VALIDATION ================= */
+            $extension = strtolower(pathinfo($finalName, PATHINFO_EXTENSION));
+            if (!in_array($extension, ['mp4', 'mov'])) {
+                unlink($finalPath);
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Invalid video format'
+                ], 422);
+            }
 
             /* ================= SAVE STORY ================= */
             $story = Story::create([
