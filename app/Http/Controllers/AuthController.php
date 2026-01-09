@@ -440,7 +440,7 @@ class AuthController extends Controller
 
             $otpMsg = [
                 'en' => "Your verification code: {$otp}\nPlease do not share it with anyone.",
-                'ru' => "Ваш код подтверждения: {$otp}\nПожалуйста, никому его не сообщайте.",
+                'ru' => "Рамзи тасдиқи шумо: {$otp}\nЛутфан онро ба касе надиҳед.",
                 'tj' => "Рамзи тасдиқи шумо: {$otp}\nЛутфан онро ба касе надиҳед.",
             ];
 
