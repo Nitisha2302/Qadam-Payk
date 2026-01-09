@@ -15,69 +15,6 @@ use Carbon\Carbon;
 class AuthController extends Controller
 {
 
-    // public function register(Request $request)
-    // {
-    //     // Validate input
-    //     $validator = Validator::make($request->all(), [
-    //         'phone_number' => 'required|digits:11',
-    //         'otp'          => 'required|digits:6',
-    //         'device_type'  => 'nullable|string|max:255',
-    //         'device_id'    => 'nullable|string|max:255',
-    //         'device_token'    => 'nullable|string|max:255',
-    //     ], [
-    //         'phone_number.required' => 'Phone number is required.',
-    //         'phone_number.digits'   => 'Phone number must be 11 digits.',
-    //         'otp.required'          => 'OTP is required.',
-    //         'otp.digits'            => 'OTP must be 6 digits.',
-    //     ]);
-
-    //     // Return first validation error only
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => $validator->errors()->first(),
-    //         ], 201);
-    //     }
-
-    //     // Check if user with same phone number and role already exists
-    //     $existingUser = User::where('phone_number', $request->phone_number)->first();
-
-
-    //     if ($existingUser) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => 'This phone number is already registered.',
-    //         ], 201);
-    //     }
-
-    //     // Create new user
-    //     $user = User::create([
-    //         'phone_number'    => $request->phone_number,
-    //         'otp'             => $request->otp,
-    //         'otp_sent_at'     => now(),
-    //         'is_phone_verify' => false,
-    //         'device_type'     => $request->device_type,
-    //         'device_token'    => $request->device_token,
-    //         'device_id'       => $request->device_id,
-    //     ]);
-
-    //     return response()->json([
-    //         'status'  => true,
-    //         'message' => 'Registration successful. Please verify OTP to continue.',
-    //         'data'    => [
-    //             'user_id'        => $user->id,
-    //             'phone_number'   => $user->phone_number,
-    //             'otp'            => $user->otp, 
-    //             'otp_sent_at'    => $user->otp_sent_at,
-    //             'is_phone_verify'=> $user->is_phone_verify,
-    //             'device_type'    => $user->device_type,
-    //             'device_token'   => $user->device_token,
-    //             'device_id'      => $user->device_id,
-    //         ],
-    //     ], 200);
-    // }
-
-
     public function verifyOtp(Request $request)
     {
          // Find user first
@@ -162,76 +99,14 @@ class AuthController extends Controller
         ], 200);
     }
 
-    // public function login(Request $request)
-    // {
-    //     // Validate input
-    //     $validator = Validator::make($request->all(), [
-    //         'phone_number' => 'required|digits_between:8,15',
-    //         'device_type'  => 'nullable|string|max:255',
-    //         'device_id'    => 'nullable|string|max:255',
-    //         'device_token'    => 'nullable|string|max:255',
-    //     ], [
-    //         'phone_number.required' => 'Phone number is required.',
-    //          'phone_number.digits_between' => 'Phone number must be between 8 and 15 digits.',
-    //         'otp.digits'            => 'OTP must be 6 digits.',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => $validator->errors()->first(),
-    //         ], 201);
-    //     }
-
-    //     // Generate a secure random 6-digit OTP
-    //     try {
-    //         $otp = random_int(100000, 999999);
-    //     } catch (\Exception $e) {
-    //         // Fallback if random_int fails (very unlikely)
-    //         $otp = mt_rand(100000, 999999);
-    //     }
-
-    //     // Find or create user
-    //     $user = User::firstOrCreate(
-    //         [
-    //             'phone_number' => $request->phone_number,
-    //         ],
-    //         [
-    //             'is_phone_verify' => false,
-    //         ]
-    //     );
-
-    //     // Decide message based on new or existing
-    //     $message = $user->wasRecentlyCreated
-    //         ? 'OTP sent successfully. Please verify OTP to complete registration.'
-    //         : 'OTP sent successfully. Please verify OTP to complete login.';
-
-    //     // Generate or update OTP
-    //     $user->otp         = $otp;
-    //     $user->otp_sent_at = now();
-    //     $user->device_type = $request->device_type;
-    //     $user->device_id   = $request->device_id;
-    //     $user->device_token = $request->device_token;
-    //     $user->save();
-
-    //     return response()->json([
-    //         'status'  => true,
-    //         'message' => $message,
-    //         'data'    => [
-    //             'user_id'      => $user->id,
-    //             'phone_number' => $user->phone_number,
-    //             'otp'          => $user->otp, // ⚠️ For testing only
-    //             'otp_sent_at'  => $user->otp_sent_at,
-    //             'is_phone_verify'  => $user->is_phone_verify,
-    //         ],
-    //     ], 200);
-    // }
-
-
-    // with sms api  corererct for live
     
+    // final 
+  
     // public function login(Request $request)
     // {
+    //     // Determine language first (fallback to Russian)
+    //     $lang = $request->language ?? 'ru';
+    //     app()->setLocale($lang);
     //     // Validate input
     //     $validator = Validator::make($request->all(), [
     //         'phone_number' => 'required|digits_between:8,15',
@@ -239,9 +114,8 @@ class AuthController extends Controller
     //         'device_id'    => 'nullable|string|max:255',
     //         'fcm_token'    => 'nullable|string|max:255',
     //     ], [
-    //         'phone_number.required' => 'Phone number is required.',
-    //          'phone_number.digits_between' => 'Phone number must be between 8 and 15 digits.',
-    //         'otp.digits'            => 'OTP must be 6 digits.',
+    //         'phone_number.required' =>__('messages.login.validation.phone_required'),
+    //          'phone_number.digits_between' => __('messages.login.validation.phone_digits_between'),
     //     ]);
 
     //     if ($validator->fails()) {
@@ -252,12 +126,24 @@ class AuthController extends Controller
     //     }
 
     //     // Generate a secure random 6-digit OTP
-    //     try {
-    //         $otp = random_int(100000, 999999);
-    //     } catch (\Exception $e) {
-    //         // Fallback if random_int fails (very unlikely)
-    //         $otp = mt_rand(100000, 999999);
+    //     // try {
+    //     //     $otp = random_int(100000, 999999);
+    //     // } catch (\Exception $e) {
+    //     //     // Fallback if random_int fails (very unlikely)
+    //     //     $otp = mt_rand(100000, 999999);
+    //     // }
+    //     $phone = $request->phone_number;
+
+    //     if ($phone === '123456789') {
+    //         $otp = 123456; // ✅ Always use fixed OTP for test number
+    //     } else {
+    //         try {
+    //             $otp = random_int(100000, 999999);
+    //         } catch (\Exception $e) {
+    //             $otp = mt_rand(100000, 999999);
+    //         }
     //     }
+
 
     //     // Find or create user
     //     $user = User::firstOrCreate(
@@ -269,10 +155,71 @@ class AuthController extends Controller
     //         ]
     //     );
 
+    //     // ✅ Check if user is blocked
+    //     if ($user->is_blocked) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' =>  __('messages.login.blocked_by_admin'),
+    //         ], 403); // 403 Forbidden
+    //     }
+
+    //     // ✅ Check if user deleted their account
+    //     if ($user->is_deleted) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => __('messages.login.account_deleted'),
+    //         ], 403);
+    //     }
+
+    //     //     // Save language per device
+    //     //    $userLang = UserLang::where('user_id', $user->id)->first();
+
+    //     //     if ($userLang) {
+    //     //         $userLang->language = $request->language;
+    //     //         $userLang->device_id = $request->device_id;
+    //     //         $userLang->device_type = $request->device_type;
+    //     //         $userLang->save();
+    //     //     } else {
+    //     //         UserLang::create([
+    //     //             'user_id' => $user->id,
+    //     //             'device_id' => $request->device_id,
+    //     //             'device_type' => $request->device_type,
+    //     //             'language' => $request->language,
+    //     //         ]);
+    //     //     }
+
+    //     // Save language per device
+    //     $userLang = UserLang::where('user_id', $user->id)
+    //         ->where('device_id', $request->device_id)
+    //         ->where('device_type', $request->device_type)
+    //         ->first();
+
+    //     if ($userLang) {
+    //         $userLang->language = $request->language;
+    //         $userLang->save();
+    //     } else {
+    //         UserLang::create([
+    //             'user_id'     => $user->id,
+    //             'device_id'   => $request->device_id,
+    //             'device_type' => $request->device_type,
+    //             'language'    => $request->language,
+    //         ]);
+    //     }
+
+    //     // ✅ Update User table with latest device info
+    //     $user->update([
+    //         'otp'          => $otp,
+    //         'otp_sent_at'  => now(),
+    //         'device_type'  => $request->device_type,
+    //         'device_id'    => $request->device_id,
+    //         'device_token' => $request->fcm_token,
+    //     ]);
+
+
     //     // Decide message based on new or existing
-    //     $message = $user->wasRecentlyCreated
-    //         ? 'OTP sent successfully. Please verify OTP to complete registration.'
-    //         : 'OTP sent successfully. Please verify OTP to complete login.';
+    //      $message = $user->wasRecentlyCreated
+    //     ? __('messages.login.otp_sent_register')
+    //     : __('messages.login.otp_sent_login');
 
     //     // Generate or update OTP
     //     $user->otp         = $otp;
@@ -282,54 +229,56 @@ class AuthController extends Controller
     //     $user->device_token = $request->fcm_token;
     //     $user->save();
 
+    //     $phone = $request->phone_number;
+
     //     // ------------------------------
-    //     // 🔹 Send SMS via OsonSMS
+    //     // 🔹 Condition: 9 digits → OsonSMS
     //     // ------------------------------
-    //     $login   = env('OSONSMS_LOGIN');       // your OsonSMS login
-    //     $from    = env('OSONSMS_FROM');        // sender ID
-    //     $apiKey  = env('OSONSMS_API_KEY');     // pass_salt_hash
-    //     $txnId   = 'otp_' . time();
-    //     $phone   = $request->phone_number;
+    //     if (strlen($phone) === 9) {
+    //         $login   = 'borafzo';
+    //         $from    = 'BORAFZO';
+    //         $apiKey  = 'c3cdbb3f1171320d49f2bf1da20f53fc';
+    //         $txnId   = 'otp_' . time();
+    //         // $login   = env('OSONSMS_LOGIN');
+    //         // $from    = env('OSONSMS_FROM');
+    //         // $apiKey  = env('OSONSMS_API_KEY');
+    //         // $txnId   = 'otp_' . time();
 
-    //     // $msg = "Confirmation Code: {$otp}\nThis is the password to login to the QadamPayk. The code is valid for 5 minutes. Don't tell anyone the code.";
-  
-    //     // $msg = "Confirmation Code: {$otp}\nThis is the password to login to the QadamPayk. The code is valid for 5 minutes. Don't tell anyone the code.";
+    //          $otpMsg = [
+    //             'en' => "OTP verification: {$otp}\nThis is your QadamPayk login code. Valid for 5 minutes. Do not share it.",
+    //             'ru' => "Подтверждение OTP: {$otp}\nЭто ваш код для входа в QadamPayk. Действителен 5 минут. Не сообщайте его.",
+    //             'tj' => "Рамзӣ тасдиқ: {$otp}\nИн рамзӣ воридшавӣ ба QadamPayk аст. Рамз барои 5 дақиқа эътибор дорад. Рамзро ба касе надиҳед."
+    //         ];
 
-    //     $msg = "Рамзӣ тасдиқ: {$otp}\nИн рамзӣ воридшавӣ ба QadamPayk аст. Рамз барои 5 дақиқа эътибор дорад. Рамзро ба касе надиҳед.";
+    //         $msg = $otpMsg[$lang] ?? $otpMsg['ru'];
 
-    //     // ✅ Use helper function
-    //     $input   = "$txnId;$login;$from;$phone;$apiKey";
-    //     $strHash = $this->generateSha256Hex($input);
+    //         $input   = "$txnId;$login;$from;$phone;$apiKey";
+    //         $strHash = $this->generateSha256Hex($input);
 
-    //     // Call OsonSMS API
-    //     $smsResponse = Http::get('https://api.osonsms.com/sendsms_v1.php', [
-    //         'login'        => $login,
-    //         'from'         => $from,
-    //         'phone_number' => $phone,
-    //         'msg'          => $msg,
-    //         'txn_id'       => $txnId,
-    //         'str_hash'     => $strHash,
-    //     ]);
+    //         $smsResponse = Http::get('https://api.osonsms.com/sendsms_v1.php', [
+    //             'login'        => $login,
+    //             'from'         => $from,
+    //             'phone_number' => $phone,
+    //             'msg'          => $msg,
+    //             'txn_id'       => $txnId,
+    //             'str_hash'     => $strHash,
+    //         ]);
 
-    //     // Log request/response
-    //     Log::info('OsonSMS Request: ', [
-    //         'phone' => $phone,
-    //         'msg'   => $msg,
-    //         'txn'   => $txnId,
-    //         'hash'  => $strHash
-    //     ]);
-    //     Log::info('OsonSMS Response: ' . $smsResponse->body());
+    //         Log::info('OsonSMS Request: ', ['phone' => $phone, 'msg' => $msg, 'txn' => $txnId, 'hash' => $strHash]);
+    //         Log::info('OsonSMS Response: ' . $smsResponse->body());
 
-    //     // If SMS failed
-    //     $smsData = $smsResponse->json();
-    //     if (!isset($smsData['status']) || strtolower($smsData['status']) !== 'ok') {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => 'Failed to send OTP. Please try again.',
-    //             'sms'     => $smsData, // optional for debugging
-    //         ], 201);
+    //         $smsData = $smsResponse->json();
+    //         if (!isset($smsData['status']) || strtolower($smsData['status']) !== 'ok') {
+    //             return response()->json([
+    //                 'status'  => false,
+    //                 'message' =>  __('messages.login.invalid_or_expired_otp'),
+    //                 'sms'     => $smsData,
+    //             ], 201);
+    //         }
+    //     } else {
+    //         // ✅ For other phone lengths, just return OTP without sending SMS
+    //         Log::info("Skipping OsonSMS, using local OTP for phone: $phone");
     //     }
-
 
     //     return response()->json([
     //         'status'  => true,
@@ -345,10 +294,8 @@ class AuthController extends Controller
     // }
 
 
-    // with conditional for test 
+    // new otp format 
 
-
-  
     public function login(Request $request)
     {
         // Determine language first (fallback to Russian)
@@ -491,11 +438,17 @@ class AuthController extends Controller
             // $apiKey  = env('OSONSMS_API_KEY');
             // $txnId   = 'otp_' . time();
 
-             $otpMsg = [
-                'en' => "OTP verification: {$otp}\nThis is your QadamPayk login code. Valid for 5 minutes. Do not share it.",
-                'ru' => "Подтверждение OTP: {$otp}\nЭто ваш код для входа в QadamPayk. Действителен 5 минут. Не сообщайте его.",
-                'tj' => "Рамзӣ тасдиқ: {$otp}\nИн рамзӣ воридшавӣ ба QadamPayk аст. Рамз барои 5 дақиқа эътибор дорад. Рамзро ба касе надиҳед."
+            $otpMsg = [
+                'en' => "Your verification code: {$otp}\nPlease do not share it with anyone.",
+                'ru' => "Ваш код подтверждения: {$otp}\nПожалуйста, никому его не сообщайте.",
+                'tj' => "Рамзи тасдиқи шумо: {$otp}\nЛутфан онро ба касе надиҳед.",
             ];
+
+            //  $otpMsg = [
+            //     'en' => "OTP verification: {$otp}\nThis is your QadamPayk login code. Valid for 5 minutes. Do not share it.",
+            //     'ru' => "Подтверждение OTP: {$otp}\nЭто ваш код для входа в QadamPayk. Действителен 5 минут. Не сообщайте его.",
+            //     'tj' => "Рамзӣ тасдиқ: {$otp}\nИн рамзӣ воридшавӣ ба QadamPayk аст. Рамз барои 5 дақиқа эътибор дорад. Рамзро ба касе надиҳед."
+            // ];
 
             $msg = $otpMsg[$lang] ?? $otpMsg['ru'];
 
@@ -539,7 +492,6 @@ class AuthController extends Controller
             ],
         ], 200);
     }
-
 
 
     /**
@@ -727,61 +679,6 @@ class AuthController extends Controller
         ], 200);
     }
 
-
-
-
-    // ✅ Update user language
-    // public function updateLanguage(Request $request)
-    // {
-    //     $user = Auth::guard('api')->user();
-
-    //     if (!$user) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => 'User not authenticated.',
-    //         ], 401);
-    //     }
-    //     // Validate language
-    //     $validator = Validator::make($request->all(), [
-    //         'language' => 'required|in:en,ru,tj',
-    //     ], [
-    //         'language.required' => __('messages.language.validation.required'),
-    //         'language.in' => __('messages.language.validation.in'),
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => $validator->errors()->first(),
-    //         ], 201);
-    //     }
-
-    //     // Save language per device
-    //     $userLang = UserLang::where('user_id', $user->id)->first();
-
-    //     if ($userLang) {
-    //         $userLang->language = $request->language;
-    //         $userLang->device_id = $request->device_id;
-    //         $userLang->device_type = $request->device_type;
-    //         $userLang->save();
-    //     } else {
-    //         UserLang::create([
-    //             'user_id' => $user->id,
-    //             'device_id' => $request->device_id,
-    //             'device_type' => $request->device_type,
-    //             'language' => $request->language,
-    //         ]);
-    //     }
-
-    //     // Set application locale
-    //     app()->setLocale($request->language);
-
-    //     return response()->json([
-    //         'status' => true,
-    //         'message' => __('messages.language.updated'),
-    //         'data' => ['language' => $request->language],
-    //     ], 200);
-    // }
 
     public function updateLanguage(Request $request)
     {
