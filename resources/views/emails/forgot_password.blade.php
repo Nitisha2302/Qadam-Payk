@@ -8,8 +8,8 @@
     <div class="content">
       <h3>Uw nieuwe wachtwoord</h3>
       <p>Hoi, </p>
-      <p>We hebben een verzoek ontvangen om je wachtwoord voor je Hewie-account opnieuw in te stellen. Als je dit verzoek niet hebt gedaan, kun je deze e-mail deze e-mail negeren.</p>
+      <p>We hebben een verzoek ontvangen om je wachtwoord voor je QADAM-account opnieuw in te stellen. Als je dit verzoek niet hebt gedaan, kun je deze e-mail deze e-mail negeren.</p>
       <div class="otp">{{ $password }}</div>
-      <p>Blijf gezond,<br>Het Hewie-team</p>
+      <p>Blijf gezond,<br>Het QADAM-team</p>
     </div>
     @include('emails.email-footer')

@@ -6,9 +6,9 @@
       <img src="{{ $logoPath }}" alt="logo" />
     </div>
     <div class="content">
-      <h2>Welkom bij HEWIE</h2>
+      <h2>Welkom bij QADAM</h2>
       <p>Beste {{ $user->first_name }} {{ $user->last_name }},</p>
-      <p>Je bent succesvol geregistreerd als medewerker bij HEWIE. Hieronder staan je accountgegevens:</p>
+      <p>Je bent succesvol geregistreerd als medewerker bij QADAM. Hieronder staan je accountgegevens:</p>
       <p><strong>E-mail:</strong> {{ $user->email }}</p>
       <p><strong>Wachtwoord:</strong> {{ $generatedPassword }}</p> <!-- This will display the password -->
       <p>Log in en verander je wachtwoord zo snel mogelijk om veiligheidsredenen.</p>

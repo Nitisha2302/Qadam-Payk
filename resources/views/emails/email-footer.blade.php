@@ -1,4 +1,4 @@
-<div class="footer">© 2025 Hewie. All rights reserved.</div>
+<div class="footer">© 2025 QADAM. All rights reserved.</div>
 </div>
 </body>
 

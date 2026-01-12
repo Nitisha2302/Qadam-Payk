@@ -9,7 +9,7 @@
       <p>Hoi,{{ $user->name }}, </p>
       <p>Uw wachtwoord is succesvol gewijzigd.</p>
       <p>Als u deze wijziging niet hebt aangevraagd, neem dan onmiddellijk contact op met ons ondersteuningsteam.</p>
-      <p>Blijf gezond,<br>Het Hewie-team</p>
+      <p>Blijf gezond,<br>Het QADAM-team</p>
     </div>
 @include('emails.email-footer')
 
