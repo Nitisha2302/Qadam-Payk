@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Admin\PrivacyPolicyController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\StoryController;
+use App\Http\Controllers\Admin\CourierDocumentApprovalController;
 
 Route::fallback(function () {
     return response()->view('404', [], 404);
@@ -108,6 +109,11 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
             ->name('reported-story-detail');
 
        Route::delete('/stories/{id}', [StoryController::class, 'deleteStory']);
+
+
+        Route::get('/admin/courier-documents/pending', [CourierDocumentApprovalController::class, 'pendingList']);
+       Route::post('/admin/courier-documents/{id}/approve', [CourierDocumentApprovalController::class, 'approve']);
+      Route::post('/admin/courier-documents/{id}/reject', [CourierDocumentApprovalController::class, 'reject']);
 
 
 

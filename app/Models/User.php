@@ -43,6 +43,14 @@ class User extends Authenticatable
         'vehicle_type',   // car, bike, van (for parcel)
         'is_blocked',
         'is_deleted', 
+
+        'is_online',
+        'courier_doc_status',
+        'passport_images',
+        'passport_images',
+        'license_images',
+        'courier_selfie',
+        'courier_reject_reason',
     ];
 
     public function rides()
@@ -101,6 +109,17 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Story::class, 'story_views')
             ->withTimestamps();
+    }
+
+
+    public function courierRequests()
+    {
+        return $this->hasMany(CourierRequest::class, 'user_id');
+    }
+
+    public function courierDriverInterests()
+    {
+        return $this->hasMany(CourierRequestDriverInterest::class, 'driver_id');
     }
 
 

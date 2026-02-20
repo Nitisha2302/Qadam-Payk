@@ -11,6 +11,9 @@ use App\Http\Controllers\ContentController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\StoryController;
+use App\Http\Controllers\Courier\CourierModeController;
+use App\Http\Controllers\Courier\CourierVerificationController;
+use App\Http\Controllers\Courier\CourierRequestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -143,5 +146,32 @@ Route::post('/stories/{id}/delete', [StoryController::class, 'destroy']);
 Route::get('/others-stories', [StoryController::class, 'othersStories']);  
 Route::post('/stories/{id}/report', [StoryController::class, 'report']);
 Route::post('/stories/{id}/view', [StoryController::class, 'viewStory']);
+
+
+
+
+// online/offline mode
+    Route::post('courier/mode', [CourierModeController::class, 'updateMode']);
+
+    // courier document verification
+    Route::post('/courier/documents/submit', [CourierVerificationController::class, 'submitDocuments']);
+    Route::get('/courier/documents/status', [CourierVerificationController::class, 'status']);
+
+    // sender create courier request (only offline)
+    Route::post('/courier/request/create', [CourierRequestController::class, 'create']);
+
+    // driver list courier requests (only online + approved docs)
+    Route::get('/courier/requests/list', [CourierRequestController::class, 'listForDrivers']);
+
+    // driver interest
+    Route::post('/courier/request/{id}/interest', [CourierRequestController::class, 'showInterest']);
+
+    // sender view interests
+    Route::get('/courier/request/{id}/interests', [CourierRequestController::class, 'myRequestInterests']);
+
+    // sender accept driver
+    Route::post('/courier/request/{id}/accept-driver', [CourierRequestController::class, 'acceptDriver']);
+
+    Route::post('courier/update-status/{courier_request_id}',[CourierRequestController::class, 'updateDeliveryStatus']);
 
  
