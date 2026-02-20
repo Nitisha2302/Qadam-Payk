@@ -145,7 +145,7 @@ class DriverHomeController extends Controller
         app()->setLocale($lang);
 
         // ✅ 3️⃣ Fetch user’s vehicles filtered by language_code
-        $vehicles = Vehicle::select('id', 'brand', 'model', 'number_plate', 'vehicle_image', 'language_code')
+        $vehicles = Vehicle::select('id', 'brand', 'model', 'number_plate', 'vehicle_image', 'language_code','is_selected')
             ->where('user_id', $user->id)
             ->where(function ($q) use ($lang) {
                 $q->where('language_code', $lang)
@@ -241,6 +241,49 @@ class DriverHomeController extends Controller
             'message' => __('messages.vehicle.edit_vehicle.success'),
             'data'    => $vehicle,
         ], 200);
+    }
+
+
+    public function selectVehicle(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+               'message' => __('messages.vehicle.get_vehicles.user_not_authenticated'),
+            ], 401);
+        }
+
+        $request->validate([
+            'vehicle_id' => 'required|exists:vehicles,id'
+        ]);
+
+        // check vehicle belongs to user
+        $vehicle = Vehicle::where('id', $request->vehicle_id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$vehicle) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Vehicle not found'
+            ], 404);
+        }
+
+        // unselect all vehicles of user
+        Vehicle::where('user_id', $user->id)
+            ->update(['is_selected' => 0]);
+
+        // select chosen vehicle
+        $vehicle->is_selected = 1;
+        $vehicle->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Vehicle selected successfully',
+            'data' => $vehicle
+        ]);
     }
 
     public function createRide(Request $request)

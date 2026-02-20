@@ -124,9 +124,49 @@ class CourierRequestController extends Controller
     }
 
     // ✅ Online Courier Driver - List Requests (Only last 30 mins)
-    public function listForDrivers()
+    // public function listForDrivers()
+    // {
+    //     $user = Auth::guard('api')->user();
+    //     if (!$user) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Unauthorized.'
+    //         ], 401);
+    //     }
+
+    //     if ($user->is_online != 1) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'You are offline. Go online to see courier requests.'
+    //         ],403);
+    //     }
+
+    //     if ($user->courier_doc_status != 'approved') {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Courier documents not approved yet.'
+    //         ],403);
+    //     }
+
+    //     // Only show valid requests which are not expired
+    //     $requests = CourierRequest::with('sender')
+    //         ->where('status', 'pending')
+    //         ->where('expires_at', '>=', now())
+    //         ->latest()
+    //         ->get();
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'Courier requests fetched successfully.',
+    //         'data' => $requests
+    //     ]);
+    // }
+
+
+    public function listForDrivers(Request $request)
     {
         $user = Auth::guard('api')->user();
+
         if (!$user) {
             return response()->json([
                 'status' => false,
@@ -148,12 +188,48 @@ class CourierRequestController extends Controller
             ],403);
         }
 
-        // Only show valid requests which are not expired
-        $requests = CourierRequest::with('sender')
-            ->where('status', 'pending')
-            ->where('expires_at', '>=', now())
-            ->latest()
-            ->get();
+        $type = $request->type;
+
+        $query = CourierRequest::with('sender');
+
+        /* ---------- FILTER LOGIC ---------- */
+
+        if ($type == 'searching') {
+
+            $query->where('status','pending')
+                ->where('expires_at','>=',now());
+
+        } elseif ($type == 'accepted') {
+
+            $query->where('status','accepted')
+                ->where('accepted_driver_id',$user->id);
+
+        } elseif ($type == 'in_transit') {
+
+            $query->where('status','in_transit')
+                ->where('accepted_driver_id',$user->id);
+
+        } elseif ($type == 'completed') {
+
+            $query->where('status','completed')
+                ->where('accepted_driver_id',$user->id);
+
+        } else {
+
+            // default = show all relevant to driver
+            $query->where(function($q) use ($user){
+                $q->where(function($sub){
+                    $sub->where('status','pending')
+                        ->where('expires_at','>=',now());
+                })
+                ->orWhere(function($sub) use ($user){
+                    $sub->whereIn('status',['accepted','in_transit','completed'])
+                        ->where('accepted_driver_id',$user->id);
+                });
+            });
+        }
+
+        $requests = $query->latest()->get();
 
         return response()->json([
             'status' => true,
@@ -385,6 +461,42 @@ class CourierRequestController extends Controller
             'status' => true,
             'message' => 'Status updated successfully.',
             'data' => $courierRequest
+        ]);
+    }
+
+
+    // list of courier sender side 
+
+    public function senderRequests(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized.'
+            ], 401);
+        }
+
+        $type = $request->type;
+
+        $query = CourierRequest::with('sender')
+            ->where('user_id', $user->id);
+
+        /* -------- FILTER -------- */
+
+        if ($type && in_array($type, ['pending','accepted','in_transit','completed'])) {
+            $query->where('status', $type);
+        }
+
+        /* -------- FETCH -------- */
+
+        $requests = $query->latest()->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Sender requests fetched successfully.',
+            'data' => $requests
         ]);
     }
 

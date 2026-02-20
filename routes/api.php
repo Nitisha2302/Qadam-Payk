@@ -53,6 +53,7 @@ Route::post('delete-account', [AuthController::class, 'deleteAccount'])->name('d
 Route::post('/driver/add-vehicle', [DriverHomeController::class, 'addVehicle']);
 Route::get('/driver/get-vehicles', [DriverHomeController::class, 'getVehicles']);
 Route::post('/driver/edit-vehicle', [DriverHomeController::class, 'editVehicle']);
+Route::post('select-vehicle', [DriverHomeController::class, 'selectVehicle']);
 Route::post('/driver/create-ride', [DriverHomeController::class, 'createRide']);
 Route::post('/driver/edit-ride', [DriverHomeController::class, 'editRide']);
 Route::post('/driver/delete-ride', [DriverHomeController::class, 'deleteRide']);
@@ -161,7 +162,8 @@ Route::post('/stories/{id}/view', [StoryController::class, 'viewStory']);
     Route::post('/courier/request/create', [CourierRequestController::class, 'create']);
 
     // driver list courier requests (only online + approved docs)
-    Route::get('/courier/requests/list', [CourierRequestController::class, 'listForDrivers']);
+    // Route::get('/courier/requests/list', [CourierRequestController::class, 'listForDrivers']);
+    Route::get('/driver/couriers', [CourierRequestController::class, 'listForDrivers']);
 
     // driver interest
     Route::post('/courier/request/{id}/interest', [CourierRequestController::class, 'showInterest']);
@@ -173,5 +175,8 @@ Route::post('/stories/{id}/view', [StoryController::class, 'viewStory']);
     Route::post('/courier/request/{id}/accept-driver', [CourierRequestController::class, 'acceptDriver']);
 
     Route::post('courier/update-status/{courier_request_id}',[CourierRequestController::class, 'updateDeliveryStatus']);
+
+
+    Route::get('sender/couriers', [CourierRequestController::class, 'senderRequests']);
 
  

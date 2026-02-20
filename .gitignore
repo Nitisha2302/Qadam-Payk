@@ -11,6 +11,10 @@
 /public/assets/vehicle_image
 /public/assets/banner
 /public/assets/story_media
+/public/assets/story_media
+/public/assets/courier/license
+/public/assets/courier/passport
+/public/assets/courier/selfie
 /storage/*.key
 /vendor
 .env
