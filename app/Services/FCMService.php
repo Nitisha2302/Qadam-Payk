@@ -250,4 +250,77 @@ class FCMService
         Log::info("✅ FCMService: sendNotification finished");
     }
 
+
+    public function sendCourierNotification(array $tokens, array $data)
+    {
+        Log::info("🔔 FCM Started", ['tokens_count' => count($tokens)]);
+
+        try {
+            $client = new \Google\Client();
+            $client->setAuthConfig(storage_path('app/service-account.json'));
+            $client->addScope('https://www.googleapis.com/auth/firebase.messaging');
+            $client->fetchAccessTokenWithAssertion();
+
+            $accessToken = $client->getAccessToken()['access_token'];
+
+        } catch (\Exception $e) {
+            Log::error("❌ Firebase Auth Error", ['error' => $e->getMessage()]);
+            return;
+        }
+
+        foreach ($tokens as $tokenInfo) {
+
+            $payload = [
+                'message' => [
+                    'token' => $tokenInfo['device_token'],
+                    'notification' => [
+                        'title' => $data['title'],
+                        'body'  => $data['body'],
+                    ],
+                    'data' => array_map('strval', $data)
+                ]
+            ];
+
+            try {
+
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Content-Type' => 'application/json',
+                ])->post(
+                    'https://fcm.googleapis.com/v1/projects/' . env('FIREBASE_PROJECT_ID') . '/messages:send',
+                    $payload
+                );
+
+                if ($response->successful()) {
+
+                    Log::info("✅ Sent to User ID: " . $tokenInfo['user_id']);
+
+                    Notification::create([
+                        'user_id' => $tokenInfo['user_id'],
+                        'title' => $data['title'],
+                        'description' => $data['body'],
+                        'notification_type' => $data['notification_type'],
+                        'notification_created_at' => now(),
+                    ]);
+
+                } else {
+
+                    Log::error("❌ FCM Failed", [
+                        'user_id' => $tokenInfo['user_id'],
+                        'response' => $response->json()
+                    ]);
+                }
+
+            } catch (\Exception $e) {
+
+                Log::error("🔥 FCM Exception", [
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
+        Log::info("✅ FCM Finished");
+    }
+
+
 }

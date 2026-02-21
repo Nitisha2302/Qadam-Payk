@@ -8,10 +8,136 @@ use App\Models\CourierRequest;
 use App\Models\CourierRequestDriverInterest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use App\Models\User;
+use App\Services\FCMService;
+use Illuminate\Support\Facades\Log;
+
 
 class CourierRequestController extends Controller
 {
     // ✅ Sender Create Courier Request (Only Offline)
+    // public function create(Request $request)
+    // {
+    //     $user = Auth::guard('api')->user();
+    //     if (!$user) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Unauthorized.'
+    //         ], 401);
+    //     }
+
+    //     if ($user->is_online == 1) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'You are online as courier. Go offline to create courier request.'
+    //         ],403);
+    //     }
+
+    //     // ✅ Validation with Custom Messages
+    //     $validator = Validator::make($request->all(), [
+    //         'pickup_location' => 'required|string',
+    //         'drop_location' => 'required|string',
+    //         'distance' => 'required|string',
+    //         'time' => 'required|string',
+    //         'trip_type' => 'required|in:incity,intercity',
+
+    //         'sender_name' => 'required|string',
+    //         'sender_phone' => 'required|string',
+    //         'sender_landmark' => 'nullable|string',
+
+    //         'receiver_name' => 'required|string',
+    //         'receiver_phone' => 'required|string',
+    //         'receiver_landmark' => 'nullable|string',
+
+    //         'package_description' => 'nullable|string',
+    //         'package_size' => 'required|in:small,medium,large',
+    //         'instruction' => 'nullable|string',
+
+    //         'suggested_price' => 'nullable|numeric',
+    //         'payment_method' => 'required|in:cash,card',
+    //         'paid_by' => 'required|in:sender,receiver',
+
+    //         'drop_latitude' => 'required|numeric',
+    //        'drop_longitude' => 'required|numeric',  
+    //     ], [
+    //         // Custom Messages
+    //         'pickup_location.required' => 'Pickup location is required.',
+    //         'drop_location.required' => 'Drop location is required.',
+    //         'distance.required' => 'Distance is required.',
+    //         'time.required' => 'Time is required.',
+    //         'trip_type.required' => 'Trip type is required.',
+    //         'trip_type.in' => 'Trip type must be incity or intercity.',
+
+    //         'sender_name.required' => 'Sender name is required.',
+    //         'sender_phone.required' => 'Sender phone is required.',
+
+    //         'receiver_name.required' => 'Receiver name is required.',
+    //         'receiver_phone.required' => 'Receiver phone is required.',
+
+    //         'package_size.required' => 'Package size is required.',
+    //         'package_size.in' => 'Package size must be small, medium or large.',
+
+    //         'payment_method.required' => 'Payment method is required.',
+    //         'payment_method.in' => 'Payment method must be cash or card.',
+
+    //         'paid_by.required' => 'Paid by field is required.',
+    //         'paid_by.in' => 'Paid by must be sender or receiver.',
+
+    //         'suggested_price.numeric' => 'Suggested price must be a number.',
+
+    //         'drop_latitude.required' => 'Drop latitude is required.',
+    //         'drop_longitude.required' => 'Drop longitude is required.',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => $validator->errors()->first()
+    //         ], status: 201);
+    //     }
+
+    //     $courier = CourierRequest::create([
+    //         'user_id' => $user->id,
+    //         'pickup_location' => $request->pickup_location,
+    //         'drop_location' => $request->drop_location,
+    //         'distance' => $request->distance,
+    //         'time' => $request->time,
+    //         'trip_type' => $request->trip_type,
+
+    //         'sender_name' => $request->sender_name,
+    //         'sender_phone' => $request->sender_phone,
+    //         'sender_landmark' => $request->sender_landmark,
+
+    //         'receiver_name' => $request->receiver_name,
+    //         'receiver_phone' => $request->receiver_phone,
+    //         'receiver_landmark' => $request->receiver_landmark,
+
+    //         'package_description' => $request->package_description,
+    //         'package_size' => $request->package_size,
+    //         'instruction' => $request->instruction,
+
+    //         'suggested_price' => $request->suggested_price,
+    //         'payment_method' => $request->payment_method,
+    //         'paid_by' => $request->paid_by,
+
+    //         'status' => 'pending',
+
+    //         // expiry after 30 minutes
+    //         'expires_at' => now()->addMinutes(30),
+
+    //         'drop_latitude' => $request->drop_latitude,
+    //         'drop_longitude' => $request->drop_longitude,
+    //     ]);
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'Courier request created successfully.',
+    //         'data' => $courier
+    //     ]);
+    // }
+
+    // with notification
+
     public function create(Request $request)
     {
         $user = Auth::guard('api')->user();
@@ -124,6 +250,55 @@ class CourierRequestController extends Controller
             'drop_latitude' => $request->drop_latitude,
             'drop_longitude' => $request->drop_longitude,
         ]);
+
+             // ✅ Get Online Drivers (IMPORTANT)
+       $drivers = User::where('is_online', 1)
+        ->where('courier_doc_status', 'approved')
+        ->whereNotNull('device_token')
+        ->get();
+
+
+        Log::info("🚗 Drivers Found: " . $drivers->count());
+
+        if ($drivers->count() > 0) {
+
+            $tokens = [];
+
+            foreach ($drivers as $driver) {
+                $tokens[] = [
+                    'device_token' => $driver->device_token,
+                    'device_type'  => $driver->device_type ?? 'android',
+                    'user_id'      => $driver->id,
+                ];
+            }
+
+            $fcmService = new FCMService();
+
+            $fcmService->sendCourierNotification($tokens, [
+                'notification_type' => 15,
+                'title' => 'New Courier Request',
+                'body' => $user->name . ' created a courier request.',
+
+                // FULL DATA
+                'courier_id' => $courier->id,
+                'pickup_location' => $courier->pickup_location,
+                'drop_location' => $courier->drop_location,
+                'distance' => $courier->distance,
+                'time' => $courier->time,
+                'trip_type' => $courier->trip_type,
+                'sender_name' => $courier->sender_name,
+                'sender_phone' => $courier->sender_phone,
+                'receiver_name' => $courier->receiver_name,
+                'receiver_phone' => $courier->receiver_phone,
+                'package_size' => $courier->package_size,
+                'suggested_price' => $courier->suggested_price,
+                'payment_method' => $courier->payment_method,
+                'paid_by' => $courier->paid_by,
+                'drop_latitude' => $courier->drop_latitude,
+                'drop_longitude' => $courier->drop_longitude,
+                'expires_at' => $courier->expires_at,
+            ]);
+        }
 
         return response()->json([
             'status' => true,
