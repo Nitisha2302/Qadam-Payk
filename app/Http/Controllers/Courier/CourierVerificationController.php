@@ -29,12 +29,12 @@ class CourierVerificationController extends Controller
             ], 403);
         }
 
-        if ($user->is_online != 1) {
-            return response()->json([
-                'status' => false,
-                'message' => 'You must be online to submit courier documents.'
-            ], 403);
-        }
+        // if ($user->is_online != 1) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'You must be online to submit courier documents.'
+        //     ], 403);
+        // }
 
          $validator = Validator::make($request->all(), [
             'passport_images' => 'required|array|min:1',
