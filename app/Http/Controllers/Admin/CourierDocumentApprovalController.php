@@ -8,61 +8,41 @@ use Illuminate\Http\Request;
 
 class CourierDocumentApprovalController extends Controller
 {
-    // ✅ Pending Courier Document Users
-    public function pendingList()
+    // ✅ Show Only Online Users
+    public function index(Request $request)
     {
-        $users = User::where('courier_doc_status', 'pending')
-            ->latest()
-            ->get();
+        $query = User::where('is_online', 1);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Pending courier documents fetched successfully.',
-            'data' => $users
-        ]);
+        // 🔍 Optional Search
+        if ($request->search) {
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('phone_number', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        $users = $query->latest()->paginate(10);
+
+        return view('admin.courier.courier-document-list', compact('users'));
     }
 
-    // ✅ Approve Courier Document
+    // ✅ Approve
     public function approve($id)
     {
-        $user = User::find($id);
-
-        if (!$user) {
-            return response()->json([
-                'status' => false,
-                'message' => 'User not found.'
-            ]);
-        }
-
+        $user = User::findOrFail($id);
         $user->courier_doc_status = 'approved';
-        $user->courier_reject_reason = null;
         $user->save();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Courier documents approved successfully.'
-        ]);
+        return back()->with('success', 'Courier verified successfully.');
     }
 
-    // ✅ Reject Courier Document
-    public function reject(Request $request, $id)
+    // ✅ Reject
+    public function reject($id)
     {
-        $user = User::find($id);
-
-        if (!$user) {
-            return response()->json([
-                'status' => false,
-                'message' => 'User not found.'
-            ]);
-        }
-
+        $user = User::findOrFail($id);
         $user->courier_doc_status = 'rejected';
-        $user->courier_reject_reason = $request->reason ?? "Rejected by admin";
         $user->save();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Courier documents rejected successfully.'
-        ]);
+        return back()->with('success', 'Courier rejected successfully.');
     }
 }

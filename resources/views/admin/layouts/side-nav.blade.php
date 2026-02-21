@@ -131,6 +131,16 @@
             </li>
 
 
+            <li class="@if (Route::currentRouteName() == 'dashboard.admin.courierDocuments') active @endif">
+                <a href="{{ route('dashboard.admin.courierDocuments') }}">
+                    <span class="d-flex gap-3 align-items-end">
+                       <i class="fas fa-file-alt icon-font-size"></i>
+                        <span class="nav-content-menu">Courier Document</span>
+                    </span>
+                </a>
+            </li>
+
+
         @endif
     </ul>
 </aside>

@@ -111,12 +111,17 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
        Route::delete('/stories/{id}', [StoryController::class, 'deleteStory']);
 
 
-        Route::get('/admin/courier-documents/pending', [CourierDocumentApprovalController::class, 'pendingList']);
-       Route::post('/admin/courier-documents/{id}/approve', [CourierDocumentApprovalController::class, 'approve']);
-      Route::post('/admin/courier-documents/{id}/reject', [CourierDocumentApprovalController::class, 'reject']);
+        Route::get('/courier-documents',
+        [CourierDocumentApprovalController::class, 'index']
+        )->name('courierDocuments');
 
+        Route::post('/courier-documents/approve/{id}',
+            [CourierDocumentApprovalController::class, 'approve']
+        )->name('approveCourier');
 
-
+        Route::post('/courier-documents/reject/{id}',
+            [CourierDocumentApprovalController::class, 'reject']
+        )->name('rejectCourier');
 
     });  
 
