@@ -274,10 +274,17 @@ class CourierRequestController extends Controller
 
             $fcmService = new FCMService();
 
+            $imageUrl = null;
+
+            if (!empty($user->image)) {
+                $imageUrl = asset('assets/profile_image/' . $user->image);
+            }
+
             $fcmService->sendCourierNotification($tokens, [
                 'notification_type' => 15,
                 'title' => 'New Courier Request',
                 'body' => $user->name . ' created a courier request.',
+                'user_image' => $imageUrl,
 
                 // FULL DATA
                 'courier_id' => $courier->id,
