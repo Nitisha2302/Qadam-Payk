@@ -52,6 +52,9 @@ class CourierRequestController extends Controller
             'suggested_price' => 'nullable|numeric',
             'payment_method' => 'required|in:cash,card',
             'paid_by' => 'required|in:sender,receiver',
+
+            'drop_latitude' => 'required|numeric',
+           'drop_longitude' => 'required|numeric',  
         ], [
             // Custom Messages
             'pickup_location.required' => 'Pickup location is required.',
@@ -77,6 +80,9 @@ class CourierRequestController extends Controller
             'paid_by.in' => 'Paid by must be sender or receiver.',
 
             'suggested_price.numeric' => 'Suggested price must be a number.',
+
+            'drop_latitude.required' => 'Drop latitude is required.',
+            'drop_longitude.required' => 'Drop longitude is required.',
         ]);
 
         if ($validator->fails()) {
@@ -114,6 +120,9 @@ class CourierRequestController extends Controller
 
             // expiry after 30 minutes
             'expires_at' => now()->addMinutes(30),
+
+            'drop_latitude' => $request->drop_latitude,
+            'drop_longitude' => $request->drop_longitude,
         ]);
 
         return response()->json([

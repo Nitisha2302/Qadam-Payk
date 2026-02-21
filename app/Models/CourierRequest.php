@@ -31,6 +31,10 @@ class CourierRequest extends Model
         'status',
         'accepted_driver_id',
         'expires_at',
+        'pickup_latitude',
+        'pickup_longitude',
+        'drop_latitude',
+        'drop_longitude',
     ];
 
     protected $casts = [
