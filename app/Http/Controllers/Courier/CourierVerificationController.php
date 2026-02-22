@@ -37,13 +37,13 @@ class CourierVerificationController extends Controller
         // }
 
          $validator = Validator::make($request->all(), [
-            'passport_images' => 'required|array|min:1',
+            'passport_images' => 'nullable|array|min:1',
             'passport_images.*' => 'image|mimes:jpg,jpeg,png|max:2048',
 
             'license_images' => 'nullable|array',
             'license_images.*' => 'image|mimes:jpg,jpeg,png|max:2048',
 
-            'selfie' => 'required|image|mimes:jpg,jpeg,png|max:2048'
+            'selfie' => 'nullable|image|mimes:jpg,jpeg,png|max:2048'
         ], [
             // ✅ Custom Validation Messages
             'passport_images.required' => 'Passport images are required.',
