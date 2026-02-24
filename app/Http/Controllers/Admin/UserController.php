@@ -144,6 +144,7 @@ class UserController extends Controller
         $user->is_blocked = !$user->is_blocked;
         // If the user is being blocked, log them out (clear tokens & device info)
         if ($user->is_blocked) {
+             $user->id_verified = 0;
             $user->api_token      = null;
             $user->google_token   = null;
             $user->facebook_token = null;
@@ -212,7 +213,7 @@ class UserController extends Controller
     }
 
 
-        // ✅ Approve corier 
+        //  Approve corier 
         public function approve($id)
         {
             $user = User::findOrFail($id);
@@ -222,7 +223,7 @@ class UserController extends Controller
             return back()->with('success', 'Courier verified successfully.');
         }
 
-        // ✅ Reject courier
+        //  Reject courier
         public function reject($id)
         {
             $user = User::findOrFail($id);

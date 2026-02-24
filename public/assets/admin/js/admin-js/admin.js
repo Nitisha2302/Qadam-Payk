@@ -438,6 +438,7 @@ $(document).on('click', '.reject-user-btn', function () {
                     let msgBox = $('#successMessage');
                     msgBox.text(response.message).removeClass('d-none');
                     setTimeout(() => msgBox.addClass('d-none').text(''), 4000);
+                       location.reload();
                 } else {
                     alert(response.message || 'Something went wrong!');
                 }
