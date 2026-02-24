@@ -18,6 +18,15 @@
                     </span>
                 </a>
             </li>
+
+            <li class="@if (in_array(Route::currentRouteName(), ['dashboard.admin.allUsers'])) active @endif">
+                <a href="{{ route('dashboard.admin.allUsers') }}">
+                    <span class="d-flex gap-3 align-items-end">
+                        <i class="fa fa-users icon-font-size"></i>
+                        <span class="nav-content-menu">Users</span>
+                    </span>
+                </a>
+            </li>
     
            <li class="@if (in_array(Route::currentRouteName(), ['dashboard.admin.all-drivers', 'dashboard.admin.driverRideHistory'])) active @endif">
                 <a href="{{ route('dashboard.admin.all-drivers') }}">
@@ -131,14 +140,14 @@
             </li>
 
 
-            <li class="@if (Route::currentRouteName() == 'dashboard.admin.courierDocuments') active @endif">
+            <!-- <li class="@if (Route::currentRouteName() == 'dashboard.admin.courierDocuments') active @endif">
                 <a href="{{ route('dashboard.admin.courierDocuments') }}">
                     <span class="d-flex gap-3 align-items-end">
                        <i class="fas fa-file-alt icon-font-size"></i>
                         <span class="nav-content-menu">Courier Document</span>
                     </span>
                 </a>
-            </li>
+            </li> -->
 
 
         @endif

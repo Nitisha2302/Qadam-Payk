@@ -6,15 +6,15 @@
        <div class="ai-training-data-wrapper d-flex align-items-baseline justify-content-between">
            <div class="heading-content-box">
                 <h2>All Drivers</h2>
-                <form method="GET" action="{{ route('dashboard.admin.all-drivers') }}" class="d-flex gap-2 mb-3">
+                <form method="GET" action="{{ route('dashboard.admin.allUsers') }}" class="d-flex gap-2 mb-3">
                     <input type="text" name="search" class="form-control" placeholder="Search by name or phone number" value="{{ request('search') }}">
 
-                    <select name="status" class="form-control">
+                    <!-- <select name="status" class="form-control">
                         <option value="">All Status</option>
                         <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Pending</option>
                         <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Verified</option>
                         <option value="2" {{ request('status') == '2' ? 'selected' : '' }}>Rejected</option>
-                    </select>
+                    </select> -->
 
                     <!-- <select name="blocked" class="form-control">
                         <option value="">All</option>
@@ -52,31 +52,31 @@
                     <th>Profile Image</th>
                     <th>Name</th>
                     <th>Phone Number</th>
-                    <th>Goverment Id</th>
-                    <th>Status</th>
+                    <th>Gov.Id</th>
+                    <th>Passport</th>
+                    <th>Lisence</th>
+                    <th>Selfie</th>
+
+                    <th>Id verification status</th>
+                    <th>Courier status</th>
+                    <th>status</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($users as $user)
+                 @php
+                        $passports = json_decode($user->passport_images, true) ?? [];
+                        $licenses = json_decode($user->license_images, true) ?? [];
+
+                        $hasPassport = !empty($passports);
+                        $hasLicense  = !empty($licenses);
+                        $hasSelfie   = !empty($user->courier_selfie);
+
+                        $documentsUploaded = $hasPassport && $hasLicense && $hasSelfie;
+                    @endphp
                     <tr>
-                        <!-- @php
-                            $imagePath = 'assets/profile_image/' . $user->image;
-                            $imageUrl = file_exists(public_path($imagePath)) 
-                                ? asset($imagePath) 
-                                : asset('assets/admin/images/default_user_profile.jpg');
-                        @endphp -->
                         <td>
-                            <!-- <a href="{{ $imageUrl }}" target="_blank">
-                                        <img class="listing-img" 
-                                            src="{{ $imageUrl }}" 
-                                            alt="gov-id" width="80">
-                            </a> -->
-                            <!-- <a href="{{ asset('assets/profile_image/' . $user->image) }}" target="_blank">
-                                        <img class="listing-img" 
-                                            src="{{ file_exists(public_path('assets/profile_image/' . $user->image)) ? asset('assets/profile_image/' . $user->image) : asset('assets/admin/images/default_user_profile.jpg') }}" 
-                                            alt="gov-id" width="80">
-                            </a> -->
                             <a href="{{ asset('assets/profile_image/' . $user->image) }}" target="_blank"></a>
                                 <img class="listing-img" 
                                     src="{{ $user->image ? asset('assets/profile_image/' . $user->image) : asset('assets/admin/images/default_user_profile.jpg') }}" 
@@ -112,42 +112,165 @@
                             @endif
                         </td>
                         <td>
+                            @if($hasPassport)
+                                @foreach($passports as $img)
+                                    <a href="{{ asset('assets/courier/passport/'.$img) }}" target="_blank">
+                                        <img src="{{ asset('assets/courier/passport/'.$img) }}" width="60">
+                                    </a>
+                                @endforeach
+                            @else
+                                <span class="text-danger">Not Uploaded</span>
+                            @endif
+                        </td>
+
+                        {{-- License --}}
+                        <td>
+                            @if($hasLicense)
+                                @foreach($licenses as $img)
+                                    <a href="{{ asset('assets/courier/license/'.$img) }}" target="_blank">
+                                        <img src="{{ asset('assets/courier/license/'.$img) }}" width="60">
+                                    </a>
+                                @endforeach
+                            @else
+                                <span class="text-danger">Not Uploaded</span>
+                            @endif
+                        </td>
+
+                        {{-- Selfie --}}
+                        <td>
+                            @if($hasSelfie)
+                                <a href="{{ asset('assets/courier/selfie/'.$user->courier_selfie) }}" target="_blank">
+                                    <img src="{{ asset('assets/courier/selfie/'.$user->courier_selfie) }}" width="60">
+                                </a>
+                            @else
+                                <span class="text-danger">Not Uploaded</span>
+                            @endif
+                        </td>
+                        <!-- <td>
+                        <div class="d-flex align-items-center gap-2">
                             @if($user->id_verified == 0)
-                                <span class="badge bg-warning">Pending</span>
+                                <button class="btn btn-success btn-sm verify-user-btn" data-user-id="{{ $user->id }}">Verify</button>
+                                <button class="btn btn-danger btn-sm reject-user-btn" data-user-id="{{ $user->id }}">Reject</button>
+                            @endif
+                            <button class="btn btn-sm toggle-block-btn {{ $user->is_blocked ? 'btn-warning' : 'btn-danger' }}" 
+                                    data-user-id="{{ $user->id }}">
+                                {{ $user->is_blocked ? 'Unblock' : 'Block' }}
+                            </button>
+                        </div>
+                        </td> -->
+
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+
+                                {{-- BLOCKED --}}
+                                @if($user->is_blocked)
+
+                                    <button class="btn btn-warning btn-sm toggle-block-btn"
+                                        data-user-id="{{ $user->id }}">
+                                        Unblock
+                                    </button>
+
+                                {{-- NOT BLOCKED --}}
+                                @else
+
+                                    {{-- PENDING --}}
+                                    @if($user->id_verified == 0)
+
+                                        <button class="btn btn-success btn-sm verify-user-btn"
+                                            data-user-id="{{ $user->id }}">
+                                            Verify
+                                        </button>
+
+                                        <button class="btn btn-danger btn-sm reject-user-btn"
+                                            data-user-id="{{ $user->id }}">
+                                            Reject
+                                        </button>
+
+                                    {{-- VERIFIED --}}
+                                    @elseif($user->id_verified == 1)
+
+                                        <button class="btn btn-danger btn-sm reject-user-btn"
+                                            data-user-id="{{ $user->id }}">
+                                            Reject
+                                        </button>
+
+                                    {{-- REJECTED --}}
+                                    @elseif($user->id_verified == 2)
+
+                                        <button class="btn btn-success btn-sm verify-user-btn"
+                                            data-user-id="{{ $user->id }}">
+                                            Verify
+                                        </button>
+
+                                    @endif
+
+                                    {{-- BLOCK BUTTON ALWAYS IF NOT BLOCKED --}}
+                                    <button class="btn btn-danger btn-sm toggle-block-btn"
+                                        data-user-id="{{ $user->id }}">
+                                        Block
+                                    </button>
+
+                                @endif
+
+                            </div>
+                        </td>
+                         
+                        <td>
+                            @if($user->courier_doc_status == 'approved')
+                                <form method="POST"
+                                    action="{{ route('dashboard.admin.rejectCourier',$user->id) }}"
+                                    style="display:inline;">
+                                    @csrf
+                                    <button class="btn btn-danger btn-sm">Reject</button>
+                                </form>
+
+                            @elseif($user->courier_doc_status == 'rejected')
+                                <form method="POST"
+                                    action="{{ route('dashboard.admin.approveCourier',$user->id) }}"
+                                    style="display:inline;">
+                                    @csrf
+                                    <button class="btn btn-success btn-sm">Verify</button>
+                                </form>
+
+                            @else
+                                <form method="POST"
+                                    action="{{ route('dashboard.admin.approveCourier',$user->id) }}"
+                                    style="display:inline;">
+                                    @csrf
+                                    <button class="btn btn-success btn-sm">Verify</button>
+                                </form>
+                            @endif
+                        </td>
+                        <td>
+                            @if($user->is_blocked)
+                                <span class="badge bg-dark">Blocked</span>
+
+                            @elseif($user->id_verified == 0)
+                                <span class="badge bg-warning text-dark">Pending</span>
+
                             @elseif($user->id_verified == 1)
                                 <span class="badge bg-success">Verified</span>
+
                             @elseif($user->id_verified == 2)
                                 <span class="badge bg-danger">Rejected</span>
+
+                            @else
+                                <span class="badge bg-secondary">Unknown</span>
                             @endif
                         </td>
                         <td>
                             <div class="d-flex align-items-center gap-2">
                                 <a href="javascript:;" 
-                                class="action-btn me-3 view-user-details"
-                                data-user='@json($user)'
-                                data-bs-toggle="modal"
-                                data-bs-target="#userModal">
-                                    <i class="fa fa-eye"></i>
+                                    class="action-btn me-3 view-user-details"
+                                    data-user='@json($user)'
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#userModal">
+                                        <i class="fa fa-eye"></i>
                                 </a>
-                                <!-- @if($user->id_verified == 0)
-                                    <button class="btn btn-success btn-sm verify-user-btn" data-user-id="{{ $user->id }}">Verify</button>
-                                    <button class="btn btn-danger btn-sm reject-user-btn" data-user-id="{{ $user->id }}">Reject</button>
-                                @endif
-                                <button class="btn btn-sm toggle-block-btn {{ $user->is_blocked ? 'btn-warning' : 'btn-danger' }}" 
-                                        data-user-id="{{ $user->id }}">
-                                    {{ $user->is_blocked ? 'Unblock' : 'Block' }}
-                                </button> -->
-
-                                    <!-- Ride History Button -->
-                                <a href="{{ route('dashboard.admin.driverRideHistory', ['driver_id' => $user->id]) }}" 
-                                    class="btn btn-sm btn-ride-history">
-                                    <i class="fas fa-car"></i>
-                                </a>
-
                                 <button  class="dropdown-item delete-btn-design delete-user-btn d-flex justify-content-center" data-user-id="{{ $user->id }}" type="button" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
                                     <i class="fa fa-regular fa-trash"></i>
                                 </button>
-                            </div>
+                             </div>
                         </td>
                     </tr>
                 @empty
@@ -202,10 +325,33 @@
 
       <div class="modal-body">
         <table class="table table-striped table-bordered table-notification-list">
-          <tbody>
-            <tr><th>Name</th><td id="modal-name">-</td></tr>
-            <tr><th>Phone NUmber</th><td id="modal-phone_number">-</td></tr>
-          </tbody>
+           <tbody>
+
+                <tr><th>Profile Image</th><td><img id="modal-image" width="120"></td></tr>
+
+                <tr><th>Name</th><td id="modal-name">-</td></tr>
+                <tr><th>Email</th><td id="modal-email">-</td></tr>
+                <tr><th>Phone</th><td id="modal-phone_number">-</td></tr>
+                <tr><th>DOB</th><td id="modal-dob">-</td></tr>
+                <tr><th>Gender</th><td id="modal-gender">-</td></tr>
+
+                <tr><th>ID Status</th><td id="modal-id-status">-</td></tr>
+                <tr><th>Courier Status</th><td id="modal-courier-status">-</td></tr>
+                <tr><th>Online Status</th><td id="modal-online">-</td></tr>
+
+                <tr><th>Government ID</th>
+                <td id="modal-gov"></td></tr>
+
+                <tr><th>Passport Images</th>
+                <td id="modal-passport"></td></tr>
+
+                <tr><th>License Images</th>
+                <td id="modal-license"></td></tr>
+
+                <tr><th>Selfie</th>
+                <td><img id="modal-selfie" width="120"></td></tr>
+
+            </tbody>
         </table>
       </div>
 

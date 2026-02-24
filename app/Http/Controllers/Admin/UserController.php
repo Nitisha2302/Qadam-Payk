@@ -187,6 +187,52 @@ class UserController extends Controller
     }
 
 
+    public function allUsers(Request $request)
+    {
+        $query = User::query()
+        ->where('is_deleted', 0)
+        ->where(function ($q) {
+            $q->where('role', NULL)
+              ->orWhereNull('role');
+        });
+
+        // 🔎 Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                ->orWhere('phone_number', 'like', "%$search%");
+            });
+        }
+
+        $users = $query->latest()->paginate(10);
+
+        return view('admin.users.allUsers', compact('users'));
+    }
+
+
+        // ✅ Approve corier 
+        public function approve($id)
+        {
+            $user = User::findOrFail($id);
+            $user->courier_doc_status = 'approved';
+            $user->save();
+
+            return back()->with('success', 'Courier verified successfully.');
+        }
+
+        // ✅ Reject courier
+        public function reject($id)
+        {
+            $user = User::findOrFail($id);
+            $user->courier_doc_status = 'rejected';
+            $user->save();
+
+            return back()->with('success', 'Courier rejected successfully.');
+        }
+
+
 
 
 }

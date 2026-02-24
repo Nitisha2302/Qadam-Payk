@@ -52,6 +52,7 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
         Route::post('reject-user', [UserController::class, 'rejectUser']);
         Route::post('toggle-block-user', [UserController::class, 'toggleBlockUser'])->name('toggleBlockUser');
         Route::get('driver/{driver_id}/rides', [UserController::class, 'driverRideHistory'])->name('driverRideHistory');
+        Route::get('users', [UserController::class, 'allUsers'])->name('allUsers');
 
         Route::get('all-cities', [CityController::class, 'cityList'])->name('all-cities');
         Route::get('cities', [CityController::class, 'addCity'])->name('cities');
@@ -112,15 +113,15 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
 
 
         Route::get('/courier-documents',
-        [CourierDocumentApprovalController::class, 'index']
+        [UserController::class, 'index']
         )->name('courierDocuments');
 
         Route::post('/courier-documents/approve/{id}',
-            [CourierDocumentApprovalController::class, 'approve']
+            [UserController::class, 'approve']
         )->name('approveCourier');
 
         Route::post('/courier-documents/reject/{id}',
-            [CourierDocumentApprovalController::class, 'reject']
+            [UserController::class, 'reject']
         )->name('rejectCourier');
 
     });  

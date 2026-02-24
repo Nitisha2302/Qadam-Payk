@@ -451,26 +451,103 @@ $(document).on('click', '.reject-user-btn', function () {
 
 // block unblock user end 
 
+$(document).on('click', '.view-user-details', function () {
 
-$(document).ready(function(){
-    
-    // js for the view driver details 
+    let user = $(this).data('user');
 
-    $(document).on('click', '.view-user-details', function() {
-        var payload = $(this).attr('data-user');
+    /* TEXT FIELDS */
+    $('#modal-name').text(user.name ?? '-');
+    $('#modal-email').text(user.email ?? '-');
+    $('#modal-phone_number').text(user.phone_number ?? '-');
+    $('#modal-dob').text(user.dob ?? '-');
+    $('#modal-gender').text(user.gender ?? '-');
+
+    /* IMAGE */
+    $('#modal-image').attr(
+        'src',
+        user.image
+        ? '/assets/profile_image/' + user.image
+        : '/assets/admin/images/default_user_profile.jpg'
+    );
+
+    /* STATUS */
+    let idStatus = {
+        0: 'Pending',
+        1: 'Verified',
+        2: 'Rejected'
+    };
+
+    $('#modal-id-status').text(idStatus[user.id_verified] ?? 'Unknown');
+    $('#modal-courier-status').text(user.courier_doc_status ?? '-');
+    $('#modal-online').text(user.is_online ? 'Online' : 'Offline');
+
+    /* GOVERNMENT ID */
+    let govHtml = '';
+    if (user.government_id) {
         try {
-        var user = (typeof payload === 'string') ? JSON.parse(payload) : payload;
-        } catch(e) {
-        user = $(this).data('user') || {};
+            let gov = JSON.parse(user.government_id);
+            gov.forEach(img => {
+                govHtml += `<img src="/assets/identity/${img}" width="80" class="me-2 mb-2">`;
+            });
+        } catch {
+            govHtml = 'Invalid data';
         }
+    } else {
+        govHtml = 'Not uploaded';
+    }
+    $('#modal-gov').html(govHtml);
 
-        // update modal title and fields
-        $('#userModalLabel').text('Driver Details - ' + (user.name || '-'));
-        $('#modal-name').text(user.name ?? '-');
-        $('#modal-phone_number').text(user.phone_number ?? '-');
-    });
+    /* PASSPORT */
+    let passportHtml = '';
+    if (user.passport_images) {
+        let arr = JSON.parse(user.passport_images);
+        arr.forEach(img => {
+            passportHtml += `<img src="/assets/courier/passport/${img}" width="80" class="me-2 mb-2">`;
+        });
+    } else {
+        passportHtml = 'Not uploaded';
+    }
+    $('#modal-passport').html(passportHtml);
+
+    /* LICENSE */
+    let licenseHtml = '';
+    if (user.license_images) {
+        let arr = JSON.parse(user.license_images);
+        arr.forEach(img => {
+            licenseHtml += `<img src="/assets/courier/license/${img}" width="80" class="me-2 mb-2">`;
+        });
+    } else {
+        licenseHtml = 'Not uploaded';
+    }
+    $('#modal-license').html(licenseHtml);
+
+    /* SELFIE */
+    if (user.courier_selfie) {
+        $('#modal-selfie').attr('src', '/assets/courier/selfie/' + user.courier_selfie).show();
+    } else {
+        $('#modal-selfie').hide();
+    }
 
 });
+// $(document).ready(function(){
+    
+//     // js for the view driver details 
+
+//     $(document).on('click', '.view-user-details', function() {
+//         var payload = $(this).attr('data-user');
+//         try {
+//         var user = (typeof payload === 'string') ? JSON.parse(payload) : payload;
+//         } catch(e) {
+//         user = $(this).data('user') || {};
+//         }
+
+//         // update modal title and fields
+//         $('#userModalLabel').text('Driver Details - ' + (user.name || '-'));
+//         $('#modal-name').text(user.name ?? '-');
+//         $('#modal-phone_number').text(user.phone_number ?? '-');
+//     });
+
+// });
 
 // view booking details 
 $(document).ready(function() {

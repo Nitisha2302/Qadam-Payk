@@ -1494,4 +1494,7 @@ canvas {
 
 
  /* dashboard responsive end */
- 
+  table.table.table-striped.table-bordered.table-notification-list img {
+    max-height: 26px;
+    max-width: 26px;
+}
