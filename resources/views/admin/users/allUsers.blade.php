@@ -5,25 +5,9 @@
     <section class="project-doorbox">
        <div class="ai-training-data-wrapper d-flex align-items-baseline justify-content-between">
            <div class="heading-content-box">
-                <h2>All Drivers</h2>
+                <h2>All Users</h2>
                 <form method="GET" action="{{ route('dashboard.admin.allUsers') }}" class="d-flex gap-2 mb-3">
                     <input type="text" name="search" class="form-control" placeholder="Search by name or phone number" value="{{ request('search') }}">
-
-                    <!-- <select name="status" class="form-control">
-                        <option value="">All Status</option>
-                        <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Pending</option>
-                        <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Verified</option>
-                        <option value="2" {{ request('status') == '2' ? 'selected' : '' }}>Rejected</option>
-                    </select> -->
-
-                    <!-- <select name="blocked" class="form-control">
-                        <option value="">All</option>
-                        <option value="0" {{ request()->get('blocked') === '0' ? 'selected' : '' }}>Unblocked</option>
-                        <option value="1" {{ request()->get('blocked') === '1' ? 'selected' : '' }}>Blocked</option>
-                    </select> -->
-
-
-
 
                     <button type="submit" class="btn btn-success">Filter</button>
                       @if(request()->hasAny(['search','status']))
@@ -57,9 +41,9 @@
                     <th>Lisence</th>
                     <th>Selfie</th>
 
-                    <th>Id verification status</th>
+                    <!-- <th>Id verification status</th> -->
                     <th>Courier status</th>
-                    <th>status</th>
+                    <th>Profile Status</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -146,20 +130,8 @@
                                 <span class="text-danger">Not Uploaded</span>
                             @endif
                         </td>
-                        <!-- <td>
-                        <div class="d-flex align-items-center gap-2">
-                            @if($user->id_verified == 0)
-                                <button class="btn btn-success btn-sm verify-user-btn" data-user-id="{{ $user->id }}">Verify</button>
-                                <button class="btn btn-danger btn-sm reject-user-btn" data-user-id="{{ $user->id }}">Reject</button>
-                            @endif
-                            <button class="btn btn-sm toggle-block-btn {{ $user->is_blocked ? 'btn-warning' : 'btn-danger' }}" 
-                                    data-user-id="{{ $user->id }}">
-                                {{ $user->is_blocked ? 'Unblock' : 'Block' }}
-                            </button>
-                        </div>
-                        </td> -->
 
-                        <td>
+                        <!-- <td>
                             <div class="d-flex align-items-center gap-2">
 
                                 {{-- BLOCKED --}}
@@ -213,7 +185,7 @@
                                 @endif
 
                             </div>
-                        </td>
+                        </td> -->
                          
                         <td>
                             @if($user->courier_doc_status == 'approved')
@@ -260,6 +232,59 @@
                         </td>
                         <td>
                             <div class="d-flex align-items-center gap-2">
+                                 <div class="d-flex align-items-center gap-2">
+
+                                {{-- BLOCKED --}}
+                                @if($user->is_blocked)
+
+                                    <button class="btn btn-warning btn-sm toggle-block-btn"
+                                        data-user-id="{{ $user->id }}">
+                                        Unblock
+                                    </button>
+
+                                {{-- NOT BLOCKED --}}
+                                @else
+
+                                    {{-- PENDING --}}
+                                    @if($user->id_verified == 0)
+
+                                        <button class="btn btn-success btn-sm verify-user-btn"
+                                            data-user-id="{{ $user->id }}">
+                                            Verify
+                                        </button>
+
+                                        <button class="btn btn-danger btn-sm reject-user-btn"
+                                            data-user-id="{{ $user->id }}">
+                                            Reject
+                                        </button>
+
+                                    {{-- VERIFIED --}}
+                                    @elseif($user->id_verified == 1)
+
+                                        <button class="btn btn-danger btn-sm reject-user-btn"
+                                            data-user-id="{{ $user->id }}">
+                                            Reject
+                                        </button>
+
+                                    {{-- REJECTED --}}
+                                    @elseif($user->id_verified == 2)
+
+                                        <button class="btn btn-success btn-sm verify-user-btn"
+                                            data-user-id="{{ $user->id }}">
+                                            Verify
+                                        </button>
+
+                                    @endif
+
+                                    {{-- BLOCK BUTTON ALWAYS IF NOT BLOCKED --}}
+                                    <button class="btn btn-danger btn-sm toggle-block-btn"
+                                        data-user-id="{{ $user->id }}">
+                                        Block
+                                    </button>
+
+                                @endif
+
+                            </div>
                                 <a href="javascript:;" 
                                     class="action-btn me-3 view-user-details"
                                     data-user='@json($user)'
