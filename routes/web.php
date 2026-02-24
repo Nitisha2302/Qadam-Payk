@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\PrivacyPolicyController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\StoryController;
 use App\Http\Controllers\Admin\CourierDocumentApprovalController;
+use App\Http\Controllers\Admin\AdminCourierController;
 
 Route::fallback(function () {
     return response()->view('404', [], 404);
@@ -123,6 +124,17 @@ Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
         Route::post('/courier-documents/reject/{id}',
             [UserController::class, 'reject']
         )->name('rejectCourier');
+
+
+         Route::get('/couriers', [AdminCourierController::class, 'index'])->name('couriers.index');
+
+        Route::get('/couriers/{id}', [AdminCourierController::class, 'show'])->name('couriers.show');
+
+        Route::get('courier-reports', [AdminCourierController::class, 'indexReport'])
+        ->name('courier.reports.index');
+
+        Route::get('courier-reports/export', [AdminCourierController::class, 'export'])
+         ->name('courier.reports.export');
 
     });  
 

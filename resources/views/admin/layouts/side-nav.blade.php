@@ -87,7 +87,7 @@
                   <a href="{{ route('dashboard.admin.reports.index') }}">
                     <span class="d-flex gap-3 align-items-end">
                           <i class="fas fa-chart-bar icon-font-size"></i>
-                        <span class="nav-content-menu">Reports & Analytics</span>
+                        <span class="nav-content-menu">Ride Reports & Analytics</span>
                     </span>
                 </a>
             </li>
@@ -138,6 +138,25 @@
                     </span>
                 </a>
             </li>
+
+            <li class="@if (Route::currentRouteName() == 'dashboard.admin.couriers.index') active @endif">
+                <a href="{{ route('dashboard.admin.couriers.index') }}">
+                    <span class="d-flex gap-3 align-items-end">
+                         <i class="fas fa-shipping-fast icon-font-size"></i>
+                        <span class="nav-content-menu">Courier Management</span>
+                    </span>
+                </a>
+            </li>
+
+            <li class="@if (Route::currentRouteName() == 'dashboard.admin.courier.reports.index') active @endif">
+                <a href="{{ route('dashboard.admin.courier.reports.index') }}">
+                    <span class="d-flex gap-3 align-items-end">
+                        <i class="fas fa-shipping-fast icon-font-size"></i>
+                        <span class="nav-content-menu">Courier Reports</span>
+                    </span>
+                </a>
+            </li>
+
 
 
             <!-- <li class="@if (Route::currentRouteName() == 'dashboard.admin.courierDocuments') active @endif">
