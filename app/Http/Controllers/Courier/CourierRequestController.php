@@ -430,6 +430,75 @@ class CourierRequestController extends Controller
     }
 
     // ✅ Courier Driver Show Interest with Price
+    // public function showInterest(Request $request, $courier_request_id)
+    // {
+    //      $user = Auth::guard('api')->user();
+    //     if (!$user) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Unauthorized.'
+    //         ], 401);
+    //     }
+
+    //     if ($user->is_online != 1) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'You must be online to send interest.'
+    //         ]);
+    //     }
+
+    //     if ($user->courier_doc_status != 'approved') {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Courier documents not approved yet.'
+    //         ]);
+    //     }
+
+    //     $courierRequest = CourierRequest::where('id', $courier_request_id)
+    //         ->where('status', 'pending')
+    //         ->where('expires_at', '>=', now())
+    //         ->first();
+
+    //     if (!$courierRequest) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Courier request not found or expired.'
+    //         ]);
+    //     }
+
+    //     $validator = Validator::make($request->all(), [
+    //         'driver_price' => 'required|numeric',
+    //         'message' => 'nullable|string'
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => $validator->errors()->first()
+    //         ],201);
+    //     }
+
+    //     $interest = CourierRequestDriverInterest::updateOrCreate(
+    //         [
+    //             'courier_request_id' => $courier_request_id,
+    //             'driver_id' => $user->id,
+    //         ],
+    //         [
+    //             'driver_price' => $request->driver_price,
+    //             'message' => $request->message
+    //         ]
+    //     );
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'Interest sent successfully.',
+    //         'data' => $interest
+    //     ]);
+    // }
+
+
+    // with notification
+
     public function showInterest(Request $request, $courier_request_id)
     {
          $user = Auth::guard('api')->user();
@@ -488,6 +557,71 @@ class CourierRequestController extends Controller
                 'message' => $request->message
             ]
         );
+
+        // ===============================
+        // 🔔 SEND NOTIFICATION TO REQUEST CREATOR
+        // ===============================
+
+        $requestOwner = User::find($courierRequest->user_id);
+
+        if ($requestOwner && !empty($requestOwner->device_token)) {
+
+            Log::info("📲 Sending interest notification to user", [
+                'user_id' => $requestOwner->id
+            ]);
+
+            $driverImage = null;
+
+            if (!empty($user->image)) {
+                $driverImage = asset('assets/profile_image/' . $user->image);
+            }
+
+            $tokens[] = [
+                'device_token' => $requestOwner->device_token,
+                'device_type'  => $requestOwner->device_type ?? 'android',
+                'user_id'      => $requestOwner->id,
+            ];
+
+            $fcmService = new FCMService();
+
+            $fcmService->sendCourierNotification($tokens, [
+
+                'notification_type' => 16,
+                'title' => 'Driver Interested',
+                'body' => $user->name . ' is interested in your courier request.',
+
+                // DRIVER DATA
+                'driver_id' => $user->id,
+                'driver_name' => $user->name,
+                'driver_phone' => $user->phone_number,
+                'driver_price' => $interest->driver_price,
+                'driver_message' => $interest->message,
+                'driver_image' => $driverImage,
+
+                // COURIER FULL DATA
+                'courier_id' => $courierRequest->id,
+                'pickup_location' => $courierRequest->pickup_location,
+                'drop_location' => $courierRequest->drop_location,
+                'distance' => $courierRequest->distance,
+                'time' => $courierRequest->time,
+                'trip_type' => $courierRequest->trip_type,
+                'sender_name' => $courierRequest->sender_name,
+                'sender_phone' => $courierRequest->sender_phone,
+                'receiver_name' => $courierRequest->receiver_name,
+                'receiver_phone' => $courierRequest->receiver_phone,
+                'package_size' => $courierRequest->package_size,
+                'suggested_price' => $courierRequest->suggested_price,
+                'payment_method' => $courierRequest->payment_method,
+                'paid_by' => $courierRequest->paid_by,
+                'drop_latitude' => $courierRequest->drop_latitude,
+                'drop_longitude' => $courierRequest->drop_longitude,
+                'expires_at' => $courierRequest->expires_at,
+            ]);
+
+            Log::info("✅ Interest notification sent successfully.");
+        } else {
+            Log::info("❌ User device token not found.");
+        }
 
         return response()->json([
             'status' => true,
@@ -591,6 +725,66 @@ class CourierRequestController extends Controller
             ->where('driver_id', '!=', $request->driver_id)
             ->delete();
 
+
+            // =========================================
+            // 🔔 SEND NOTIFICATION TO ACCEPTED DRIVER
+            // =========================================
+
+            $driver = User::find($request->driver_id);
+
+            if ($driver && !empty($driver->device_token)) {
+
+                $userImage = null;
+
+                if (!empty($user->image)) {
+                    $userImage = asset('assets/profile_image/' . $user->image);
+                }
+
+                $tokens[] = [
+                    'device_token' => $driver->device_token,
+                    'device_type'  => $driver->device_type ?? 'android',
+                    'user_id'      => $driver->id,
+                ];
+
+                $fcmService = new FCMService();
+
+                $fcmService->sendCourierNotification($tokens, [
+
+                    'notification_type' => 17,
+                    'title' => 'Request Accepted 🎉',
+                    'body' => 'Your interest has been accepted by ' . $user->name,
+
+                    // USER (REQUEST CREATOR) DATA
+                    'user_id' => $user->id,
+                    'user_name' => $user->name,
+                    'user_phone' => $user->phone_number,
+                    'user_image' => $userImage,
+
+                    // COURIER FULL DATA
+                    'courier_id' => $courierRequest->id,
+                    'pickup_location' => $courierRequest->pickup_location,
+                    'drop_location' => $courierRequest->drop_location,
+                    'distance' => $courierRequest->distance,
+                    'time' => $courierRequest->time,
+                    'trip_type' => $courierRequest->trip_type,
+                    'sender_name' => $courierRequest->sender_name,
+                    'sender_phone' => $courierRequest->sender_phone,
+                    'receiver_name' => $courierRequest->receiver_name,
+                    'receiver_phone' => $courierRequest->receiver_phone,
+                    'package_size' => $courierRequest->package_size,
+                    'suggested_price' => $courierRequest->suggested_price,
+                    'driver_price' => $interest->driver_price,
+                    'payment_method' => $courierRequest->payment_method,
+                    'paid_by' => $courierRequest->paid_by,
+                    'drop_latitude' => $courierRequest->drop_latitude,
+                    'drop_longitude' => $courierRequest->drop_longitude,
+                ]);
+
+                Log::info("📲 Acceptance notification sent to driver.");
+            } else {
+                Log::info("❌ Driver device token missing.");
+            }
+
         return response()->json([
             'status' => true,
             'message' => 'Driver accepted successfully.',
@@ -647,6 +841,80 @@ class CourierRequestController extends Controller
 
         $courierRequest->status = $request->status;
         $courierRequest->save();
+
+        // ===================================
+        // 🔔 SEND NOTIFICATION TO USER
+        // ===================================
+
+        $requestOwner = User::find($courierRequest->user_id);
+
+        if ($requestOwner && !empty($requestOwner->device_token)) {
+
+            $driverImage = null;
+
+            if (!empty($user->image)) {
+                $driverImage = asset('assets/profile_image/' . $user->image);
+            }
+
+            $tokens[] = [
+                'device_token' => $requestOwner->device_token,
+                'device_type'  => $requestOwner->device_type ?? 'android',
+                'user_id'      => $requestOwner->id,
+            ];
+
+            $title = '';
+            $body = '';
+            $notificationType = 0;
+
+            if ($request->status == 'in_transit') {
+                $title = 'Order In Transit 🚚';
+                $body = 'Your parcel is on the way!';
+                $notificationType = 18;
+            }
+
+            if ($request->status == 'completed') {
+                $title = 'Order Delivered ✅';
+                $body = 'Your parcel has been delivered successfully.';
+                $notificationType = 19;
+            }
+
+            $fcmService = new FCMService();
+
+            $fcmService->sendCourierNotification($tokens, [
+
+                'notification_type' => $notificationType,
+                'title' => $title,
+                'body' => $body,
+
+                // DRIVER DATA
+                'driver_id' => $user->id,
+                'driver_name' => $user->name,
+                'driver_phone' => $user->phone_number,
+                'driver_image' => $driverImage,
+
+                // COURIER FULL DATA
+                'courier_id' => $courierRequest->id,
+                'pickup_location' => $courierRequest->pickup_location,
+                'drop_location' => $courierRequest->drop_location,
+                'distance' => $courierRequest->distance,
+                'time' => $courierRequest->time,
+                'trip_type' => $courierRequest->trip_type,
+                'sender_name' => $courierRequest->sender_name,
+                'sender_phone' => $courierRequest->sender_phone,
+                'receiver_name' => $courierRequest->receiver_name,
+                'receiver_phone' => $courierRequest->receiver_phone,
+                'package_size' => $courierRequest->package_size,
+                'suggested_price' => $courierRequest->suggested_price,
+                'payment_method' => $courierRequest->payment_method,
+                'paid_by' => $courierRequest->paid_by,
+                'drop_latitude' => $courierRequest->drop_latitude,
+                'drop_longitude' => $courierRequest->drop_longitude,
+            ]);
+
+            Log::info("📲 Status notification sent to user.");
+        } else {
+            Log::info("❌ User device token missing.");
+        }
 
         return response()->json([
             'status' => true,
