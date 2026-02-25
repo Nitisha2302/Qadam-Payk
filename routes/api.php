@@ -164,6 +164,7 @@ Route::post('/stories/{id}/view', [StoryController::class, 'viewStory']);
     // driver list courier requests (only online + approved docs)
     // Route::get('/courier/requests/list', [CourierRequestController::class, 'listForDrivers']);
     Route::get('/driver/couriers', [CourierRequestController::class, 'listForDrivers']);
+    Route::get('/driver/couriers/{id}', [CourierRequestController::class, 'detailForDriver']);
 
     // driver interest
     Route::post('/courier/request/{id}/interest', [CourierRequestController::class, 'showInterest']);

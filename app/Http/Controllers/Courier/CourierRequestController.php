@@ -429,6 +429,60 @@ class CourierRequestController extends Controller
         ]);
     }
 
+    public function detailForDriver($id)
+    {
+        $user = Auth::guard('api')->user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized.'
+            ], 401);
+        }
+
+        if ($user->is_online != 1) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You are offline. Go online to see courier details.'
+            ], 403);
+        }
+
+        if ($user->courier_doc_status != 'approved') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Courier documents not approved yet.'
+            ], 403);
+        }
+
+        $courier = CourierRequest::with('sender')
+            ->where(function ($q) use ($user) {
+
+                $q->where(function ($sub) {
+                    $sub->where('status', 'pending')
+                        ->where('expires_at', '>=', now());
+                })
+                ->orWhere(function ($sub) use ($user) {
+                    $sub->whereIn('status', ['accepted','in_transit','completed'])
+                        ->where('accepted_driver_id', $user->id);
+                });
+
+            })
+            ->find($id);
+
+        if (!$courier) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Courier request not found or not accessible.'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Courier detail fetched successfully.',
+            'data' => $courier
+        ]);
+    }
+
     // ✅ Courier Driver Show Interest with Price
     // public function showInterest(Request $request, $courier_request_id)
     // {
