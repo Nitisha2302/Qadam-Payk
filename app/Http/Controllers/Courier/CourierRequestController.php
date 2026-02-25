@@ -1018,4 +1018,38 @@ class CourierRequestController extends Controller
     }
 
 
+        public function senderRequestDetail($id)
+    {
+        $user = Auth::guard('api')->user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized.'
+            ], 401);
+        }
+
+        $courier = CourierRequest::with([
+                'sender',
+                
+            ])
+            ->where('user_id', $user->id) // VERY IMPORTANT (security)
+            ->where('id', $id)
+            ->first();
+
+        if (!$courier) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Courier request not found.'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Courier detail fetched successfully.',
+            'data' => $courier
+        ]);
+    }
+
+
 }

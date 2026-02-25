@@ -179,5 +179,5 @@ Route::post('/stories/{id}/view', [StoryController::class, 'viewStory']);
 
 
     Route::get('sender/couriers', [CourierRequestController::class, 'senderRequests']);
-
+     Route::get('/sender/couriers/{id}', [CourierRequestController::class, 'senderRequestDetail']);
  
