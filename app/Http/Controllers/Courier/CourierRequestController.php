@@ -454,7 +454,10 @@ class CourierRequestController extends Controller
             ], 403);
         }
 
-        $courier = CourierRequest::with('sender')
+        $courier = CourierRequest::with([
+                'sender',
+                'acceptedDriver' // ✅ Driver info added
+            ])
             ->where(function ($q) use ($user) {
 
                 $q->where(function ($sub) {
@@ -482,6 +485,7 @@ class CourierRequestController extends Controller
             'data' => $courier
         ]);
     }
+
 
     // ✅ Courier Driver Show Interest with Price
     // public function showInterest(Request $request, $courier_request_id)
