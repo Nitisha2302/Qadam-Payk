@@ -15,6 +15,7 @@
 /public/assets/courier/license
 /public/assets/courier/passport
 /public/assets/courier/selfie
+/public/assets/courier/walking_gov
 /storage/*.key
 /vendor
 .env
