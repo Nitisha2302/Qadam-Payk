@@ -529,6 +529,19 @@ $(document).on('click', '.view-user-details', function () {
         $('#modal-selfie').hide();
     }
 
+
+     /* gov id for walking driver */
+    let walkingHtml = '';
+    if (user.walking_gov_id) {
+        let arr = JSON.parse(user.walking_gov_id);
+        arr.forEach(img => {
+            walkingHtml += `<img src="/assets/courier/walking_gov/${img}" width="80" class="me-2 mb-2">`;
+        });
+    } else {
+        walkingHtml = 'Not uploaded';
+    }
+    $('#modal-walking').html(walkingHtml);
+
 });
 // $(document).ready(function(){
     

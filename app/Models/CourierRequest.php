@@ -56,5 +56,11 @@ class CourierRequest extends Model
         return $this->hasMany(CourierRequestDriverInterest::class, 'courier_request_id');
     }
 
+    public function liveTracking()
+    {
+        return $this->hasOne(CourierLiveTracking::class)
+            ->latestOfMany();
+    }
+
     
 }

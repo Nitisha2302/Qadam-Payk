@@ -14,6 +14,7 @@ use App\Http\Controllers\StoryController;
 use App\Http\Controllers\Courier\CourierModeController;
 use App\Http\Controllers\Courier\CourierVerificationController;
 use App\Http\Controllers\Courier\CourierRequestController;
+use App\Http\Controllers\Courier\CourierTrackingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -179,5 +180,12 @@ Route::post('/stories/{id}/view', [StoryController::class, 'viewStory']);
 
 
     Route::get('sender/couriers', [CourierRequestController::class, 'senderRequests']);
-     Route::get('/sender/couriers/{id}', [CourierRequestController::class, 'senderRequestDetail']);
+    Route::get('/sender/couriers/{id}', [CourierRequestController::class, 'senderRequestDetail']);
+
+
+    // DRIVER
+    Route::post('courier/update-location', [CourierTrackingController::class, 'updateLocation']);
+
+    // USER
+    Route::get('courier/live-location/{id}',[CourierTrackingController::class, 'getLiveLocation']);
  

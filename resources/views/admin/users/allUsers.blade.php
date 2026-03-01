@@ -37,6 +37,7 @@
                     <th>Name</th>
                     <th>Phone Number</th>
                     <th>Gov.Id</th>
+                    <th>Gov.Id(for walking)</th>
                     <th>Passport</th>
                     <th>Lisence</th>
                     <th>Selfie</th>
@@ -52,9 +53,11 @@
                  @php
                         $passports = json_decode($user->passport_images, true) ?? [];
                         $licenses = json_decode($user->license_images, true) ?? [];
+                         $walking_gov_id = json_decode($user->walking_gov_id, true) ?? [];
 
                         $hasPassport = !empty($passports);
                         $hasLicense  = !empty($licenses);
+                        $haswalking_gov_id = !empty($walking_gov_id);
                         $hasSelfie   = !empty($user->courier_selfie);
 
                         $documentsUploaded = $hasPassport && $hasLicense && $hasSelfie;
@@ -93,6 +96,17 @@
                                 @endforeach
                             @else
                                 <img class="listing-img" src="{{ asset('assets/admin/images/default_user_profile.jpg') }}" alt="" width="80">
+                            @endif
+                        </td>
+                          <td>
+                            @if($haswalking_gov_id)
+                                @foreach($passports as $img)
+                                    <a href="{{ asset('assets/courier/walking_gov/'.$img) }}" target="_blank">
+                                        <img src="{{ asset('assets/courier/walking_gov/'.$img) }}" width="60">
+                                    </a>
+                                @endforeach
+                            @else
+                                <span class="text-danger">Not Uploaded</span>
                             @endif
                         </td>
                         <td>
@@ -366,6 +380,9 @@
 
                 <tr><th>Government ID</th>
                 <td id="modal-gov"></td></tr>
+
+                <tr><th>Government ID(for walking courier)</th>
+                <td id="modal-walking"></td></tr>
 
                 <tr><th>Passport Images</th>
                 <td id="modal-passport"></td></tr>

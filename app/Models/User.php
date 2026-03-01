@@ -51,6 +51,8 @@ class User extends Authenticatable
         'license_images',
         'courier_selfie',
         'courier_reject_reason',
+        'walking_gov_id',
+        'delivery_mode',
     ];
 
     public function rides()

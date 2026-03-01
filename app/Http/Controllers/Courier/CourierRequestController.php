@@ -315,44 +315,6 @@ class CourierRequestController extends Controller
     }
 
     // ✅ Online Courier Driver - List Requests (Only last 30 mins)
-    // public function listForDrivers()
-    // {
-    //     $user = Auth::guard('api')->user();
-    //     if (!$user) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'Unauthorized.'
-    //         ], 401);
-    //     }
-
-    //     if ($user->is_online != 1) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'You are offline. Go online to see courier requests.'
-    //         ],403);
-    //     }
-
-    //     if ($user->courier_doc_status != 'approved') {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'Courier documents not approved yet.'
-    //         ],403);
-    //     }
-
-    //     // Only show valid requests which are not expired
-    //     $requests = CourierRequest::with('sender')
-    //         ->where('status', 'pending')
-    //         ->where('expires_at', '>=', now())
-    //         ->latest()
-    //         ->get();
-
-    //     return response()->json([
-    //         'status' => true,
-    //         'message' => 'Courier requests fetched successfully.',
-    //         'data' => $requests
-    //     ]);
-    // }
-
 
     public function listForDrivers(Request $request)
     {
@@ -382,6 +344,20 @@ class CourierRequestController extends Controller
         $type = $request->type;
 
         $query = CourierRequest::with('sender');
+
+            /*
+        |--------------------------------------------------------------------------
+        | ✅ AUTOMATION FILTER (WALK / VEHICLE LOGIC)
+        |--------------------------------------------------------------------------
+        */
+
+       if ($user->delivery_mode == 'walk') {
+
+            $query->where('trip_type', '!=', 'incity')
+                ->whereRaw("
+                    CAST(REPLACE(distance,'km','') AS DECIMAL(10,2)) <= 10
+                ");
+        }
 
         /* ---------- FILTER LOGIC ---------- */
 
