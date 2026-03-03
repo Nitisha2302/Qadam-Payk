@@ -472,12 +472,26 @@ class CourierRequestController extends Controller
             })
             ->find($id);
 
-        if (!$courier) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Courier request not found or not accessible.'
-            ], 404);
+             if (!$courier) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Courier request not found or not accessible.'
+                ], 404);
+            }
+
+            if ($user->delivery_mode == 'walk') {
+
+            $distance = (float) str_replace('km', '', $courier->distance);
+
+            if ($distance > 10) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'You are not eligible to view this courier request.'
+                ], 403);
+            }
         }
+
+       
 
         return response()->json([
             'status' => true,
@@ -592,6 +606,20 @@ class CourierRequestController extends Controller
                 'message' => 'Courier request not found or expired.'
             ]);
         }
+            
+            if ($user->delivery_mode == 'walk') {
+
+            $distance = (float) str_replace('km', '', $courierRequest->distance);
+
+            if ($distance > 10) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'You are not eligible for this request.'
+                ], 403);
+            }
+        }
+
+        
 
         $validator = Validator::make($request->all(), [
             'driver_price' => 'required|numeric',
