@@ -100,7 +100,7 @@
                         </td>
                           <td>
                             @if($haswalking_gov_id)
-                                @foreach($passports as $img)
+                                @foreach($walking_gov_id as $img)
                                     <a href="{{ asset('assets/courier/walking_gov/'.$img) }}" target="_blank">
                                         <img src="{{ asset('assets/courier/walking_gov/'.$img) }}" width="60">
                                     </a>
