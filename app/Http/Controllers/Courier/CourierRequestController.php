@@ -252,10 +252,36 @@ class CourierRequestController extends Controller
         ]);
 
              // ✅ Get Online Drivers (IMPORTANT)
-       $drivers = User::where('is_online', 1)
+        //    $drivers = User::where('is_online', 1)
+        //     ->where('courier_doc_status', 'approved')
+        //     ->whereNotNull('device_token')
+        //     ->get();
+
+
+        $drivers = User::where('is_online', 1)
         ->where('courier_doc_status', 'approved')
         ->whereNotNull('device_token')
-        ->get();
+        ->get()
+        ->filter(function ($driver) use ($courier) {
+
+            // WALK DRIVER LOGIC
+            if ($driver->delivery_mode == 'walk') {
+
+                // Extract numeric distance
+                $distance = (float) str_replace('km', '', $courier->distance);
+
+                // Walk driver rules
+                if ($courier->trip_type == 'incity') {
+                    return false;
+                }
+
+                if ($distance > 10) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
 
 
         Log::info("🚗 Drivers Found: " . $drivers->count());
