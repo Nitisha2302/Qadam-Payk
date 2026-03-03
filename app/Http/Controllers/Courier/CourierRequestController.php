@@ -259,30 +259,22 @@ class CourierRequestController extends Controller
 
 
         $drivers = User::where('is_online', 1)
-        ->where('courier_doc_status', 'approved')
-        ->whereNotNull('device_token')
-        ->get()
-        ->filter(function ($driver) use ($courier) {
+            ->where('courier_doc_status', 'approved')
+            ->whereNotNull('device_token')
+            ->get()
+            ->filter(function ($driver) use ($courier) {
 
-            // WALK DRIVER LOGIC
-            if ($driver->delivery_mode == 'walk') {
+                if ($driver->delivery_mode == 'walk') {
 
-                // Extract numeric distance
-                $distance = (float) str_replace('km', '', $courier->distance);
+                    $distance = (float) str_replace('km', '', $courier->distance);
 
-                // Walk driver rules
-                if ($courier->trip_type == 'incity') {
-                    return false;
+                    if ($distance > 10) {
+                        return false;
+                    }
                 }
 
-                if ($distance > 10) {
-                    return false;
-                }
-            }
-
-            return true;
-        });
-
+                return true;
+            });
 
         Log::info("🚗 Drivers Found: " . $drivers->count());
 
@@ -377,12 +369,18 @@ class CourierRequestController extends Controller
         |--------------------------------------------------------------------------
         */
 
-       if ($user->delivery_mode == 'walk') {
+        //    if ($user->delivery_mode == 'walk') {
 
-            $query->where('trip_type', '!=', 'incity')
-                ->whereRaw("
-                    CAST(REPLACE(distance,'km','') AS DECIMAL(10,2)) <= 10
-                ");
+        //         $query->where('trip_type', '!=', 'incity')
+        //             ->whereRaw("
+        //                 CAST(REPLACE(distance,'km','') AS DECIMAL(10,2)) <= 10
+        //             ");
+        //     }
+
+        if ($user->delivery_mode == 'walk') {
+            $query->whereRaw("
+                CAST(REPLACE(distance,'km','') AS DECIMAL(10,2)) <= 10
+            ");
         }
 
         /* ---------- FILTER LOGIC ---------- */
