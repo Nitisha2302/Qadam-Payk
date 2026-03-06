@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use App\Models\CourierRequest;
+use App\Models\CourierRequestDriverInterest;
+use App\Models\User;
 
 class CourierModeController extends Controller
 {
@@ -40,15 +43,14 @@ class CourierModeController extends Controller
         |--------------------------------------------------------------------------
         */
         if ($request->is_online == 0) {
-
             $activeTrip = CourierRequest::where('accepted_driver_id', $user->id)
-                ->where('status', 'in_transit')
-                ->exists();
+                ->whereIn('status', ['accepted', 'in_transit'])
+                ->count();
 
-            if ($activeTrip) {
+            if ($activeTrip > 0) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'You cannot go offline while a delivery is in transit.'
+                    'message' => 'Complete your active delivery before going offline.'
                 ], 201);
             }
         }
