@@ -37,12 +37,12 @@ class CourierModeController extends Controller
         // If user wants to go online, check ID verified
         if ($request->is_online == 1) {
 
-            if ($user->id_verified != 1) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Your ID is not verified. You cannot go online.'
-                ], 201);
-            }
+            // if ($user->id_verified != 1) {
+            //     return response()->json([
+            //         'status' => false,
+            //         'message' => 'Your ID is not verified. You cannot go online.'
+            //     ], 201);
+            // }
 
             // optional: check courier docs approved
             // if ($user->courier_doc_status != 'approved') {
