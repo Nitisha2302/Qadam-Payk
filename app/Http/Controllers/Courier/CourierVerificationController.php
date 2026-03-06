@@ -177,12 +177,12 @@ class CourierVerificationController extends Controller
             ], 401);
         }
 
-        if ($user->id_verified != 1) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Your ID is not verified. You cannot become courier.'
-            ], 403);
-        }
+        // if ($user->id_verified != 1) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => 'Your ID is not verified. You cannot become courier.'
+        //     ], 403);
+        // }
 
         // if ($user->is_online != 1) {
         //     return response()->json([
