@@ -62,5 +62,17 @@ class CourierRequest extends Model
             ->latestOfMany();
     }
 
+    public function driverInterests()
+    {
+        return $this->hasMany(CourierRequestDriverInterest::class,'courier_request_id');
+    }
+
+    // app/Models/CourierRequest.php
+
+    public function cancellations()
+    {
+        return $this->hasMany(CourierRequestCancellation::class, 'courier_request_id');
+    }
+
     
 }

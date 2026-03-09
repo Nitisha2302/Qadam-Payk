@@ -161,6 +161,7 @@ Route::post('/stories/{id}/view', [StoryController::class, 'viewStory']);
 
     // sender create courier request (only offline)
     Route::post('/courier/request/create', [CourierRequestController::class, 'create']);
+    Route::post('/courier/edit-payment', [CourierRequestController::class, 'editCourierRequest']);
 
     // driver list courier requests (only online + approved docs)
     // Route::get('/courier/requests/list', [CourierRequestController::class, 'listForDrivers']);
@@ -181,6 +182,10 @@ Route::post('/stories/{id}/view', [StoryController::class, 'viewStory']);
 
     Route::get('sender/couriers', [CourierRequestController::class, 'senderRequests']);
     Route::get('/sender/couriers/{id}', [CourierRequestController::class, 'senderRequestDetail']);
+    // cancel courier via driver  only when accepted 
+    Route::post('/driver/courier/cancel/{courier_request_id}', [CourierRequestController::class, 'driverCancelCourier']);
+     Route::post('/sender/courier/cancel/{courier_request_id}', [CourierRequestController::class, 'senderCancelCourier']);
+
 
 
     // DRIVER

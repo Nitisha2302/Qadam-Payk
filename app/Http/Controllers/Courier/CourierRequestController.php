@@ -10,132 +10,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Services\FCMService;
+use App\Models\CourierRequestCancellation;
+
 use Illuminate\Support\Facades\Log;
 
 
 class CourierRequestController extends Controller
 {
-    // ✅ Sender Create Courier Request (Only Offline)
-    // public function create(Request $request)
-    // {
-    //     $user = Auth::guard('api')->user();
-    //     if (!$user) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'Unauthorized.'
-    //         ], 401);
-    //     }
-
-    //     if ($user->is_online == 1) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'You are online as courier. Go offline to create courier request.'
-    //         ],403);
-    //     }
-
-    //     // ✅ Validation with Custom Messages
-    //     $validator = Validator::make($request->all(), [
-    //         'pickup_location' => 'required|string',
-    //         'drop_location' => 'required|string',
-    //         'distance' => 'required|string',
-    //         'time' => 'required|string',
-    //         'trip_type' => 'required|in:incity,intercity',
-
-    //         'sender_name' => 'required|string',
-    //         'sender_phone' => 'required|string',
-    //         'sender_landmark' => 'nullable|string',
-
-    //         'receiver_name' => 'required|string',
-    //         'receiver_phone' => 'required|string',
-    //         'receiver_landmark' => 'nullable|string',
-
-    //         'package_description' => 'nullable|string',
-    //         'package_size' => 'required|in:small,medium,large',
-    //         'instruction' => 'nullable|string',
-
-    //         'suggested_price' => 'nullable|numeric',
-    //         'payment_method' => 'required|in:cash,card',
-    //         'paid_by' => 'required|in:sender,receiver',
-
-    //         'drop_latitude' => 'required|numeric',
-    //        'drop_longitude' => 'required|numeric',  
-    //     ], [
-    //         // Custom Messages
-    //         'pickup_location.required' => 'Pickup location is required.',
-    //         'drop_location.required' => 'Drop location is required.',
-    //         'distance.required' => 'Distance is required.',
-    //         'time.required' => 'Time is required.',
-    //         'trip_type.required' => 'Trip type is required.',
-    //         'trip_type.in' => 'Trip type must be incity or intercity.',
-
-    //         'sender_name.required' => 'Sender name is required.',
-    //         'sender_phone.required' => 'Sender phone is required.',
-
-    //         'receiver_name.required' => 'Receiver name is required.',
-    //         'receiver_phone.required' => 'Receiver phone is required.',
-
-    //         'package_size.required' => 'Package size is required.',
-    //         'package_size.in' => 'Package size must be small, medium or large.',
-
-    //         'payment_method.required' => 'Payment method is required.',
-    //         'payment_method.in' => 'Payment method must be cash or card.',
-
-    //         'paid_by.required' => 'Paid by field is required.',
-    //         'paid_by.in' => 'Paid by must be sender or receiver.',
-
-    //         'suggested_price.numeric' => 'Suggested price must be a number.',
-
-    //         'drop_latitude.required' => 'Drop latitude is required.',
-    //         'drop_longitude.required' => 'Drop longitude is required.',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => $validator->errors()->first()
-    //         ], status: 201);
-    //     }
-
-    //     $courier = CourierRequest::create([
-    //         'user_id' => $user->id,
-    //         'pickup_location' => $request->pickup_location,
-    //         'drop_location' => $request->drop_location,
-    //         'distance' => $request->distance,
-    //         'time' => $request->time,
-    //         'trip_type' => $request->trip_type,
-
-    //         'sender_name' => $request->sender_name,
-    //         'sender_phone' => $request->sender_phone,
-    //         'sender_landmark' => $request->sender_landmark,
-
-    //         'receiver_name' => $request->receiver_name,
-    //         'receiver_phone' => $request->receiver_phone,
-    //         'receiver_landmark' => $request->receiver_landmark,
-
-    //         'package_description' => $request->package_description,
-    //         'package_size' => $request->package_size,
-    //         'instruction' => $request->instruction,
-
-    //         'suggested_price' => $request->suggested_price,
-    //         'payment_method' => $request->payment_method,
-    //         'paid_by' => $request->paid_by,
-
-    //         'status' => 'pending',
-
-    //         // expiry after 30 minutes
-    //         'expires_at' => now()->addMinutes(30),
-
-    //         'drop_latitude' => $request->drop_latitude,
-    //         'drop_longitude' => $request->drop_longitude,
-    //     ]);
-
-    //     return response()->json([
-    //         'status' => true,
-    //         'message' => 'Courier request created successfully.',
-    //         'data' => $courier
-    //     ]);
-    // }
-
     // with notification
 
     public function create(Request $request)
@@ -334,6 +215,103 @@ class CourierRequestController extends Controller
 
     // ✅ Online Courier Driver - List Requests (Only last 30 mins)
 
+    // public function listForDrivers(Request $request)
+    // {
+    //     $user = Auth::guard('api')->user();
+
+    //     if (!$user) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Unauthorized.'
+    //         ], 401);
+    //     }
+
+    //     if ($user->is_online != 1) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'You are offline. Go online to see courier requests.'
+    //         ],403);
+    //     }
+
+    //     if ($user->courier_doc_status != 'approved') {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Courier documents not approved yet.'
+    //         ],403);
+    //     }
+
+    //     $type = $request->type;
+
+    //     $query = CourierRequest::with('sender');
+
+    //         /*
+    //     |--------------------------------------------------------------------------
+    //     | ✅ AUTOMATION FILTER (WALK / VEHICLE LOGIC)
+    //     |--------------------------------------------------------------------------
+    //     */
+
+    //     //    if ($user->delivery_mode == 'walk') {
+
+    //     //         $query->where('trip_type', '!=', 'incity')
+    //     //             ->whereRaw("
+    //     //                 CAST(REPLACE(distance,'km','') AS DECIMAL(10,2)) <= 10
+    //     //             ");
+    //     //     }
+
+    //     if ($user->delivery_mode == 'walk') {
+    //         $query->whereRaw("
+    //             CAST(REPLACE(distance,'km','') AS DECIMAL(10,2)) <= 10
+    //         ");
+    //     }
+
+    //     /* ---------- FILTER LOGIC ---------- */
+
+    //     if ($type == 'searching') {
+
+    //         $query->where('status','pending')
+    //             ->where('expires_at','>=',now());
+
+    //     } elseif ($type == 'accepted') {
+
+    //         $query->where('status','accepted')
+    //             ->where('accepted_driver_id',$user->id);
+
+    //     } elseif ($type == 'in_transit') {
+
+    //         $query->where('status','in_transit')
+    //             ->where('accepted_driver_id',$user->id);
+
+    //     } elseif ($type == 'completed') {
+
+    //         $query->where('status','completed')
+    //             ->where('accepted_driver_id',$user->id);
+
+    //     } else {
+
+    //         // default = show all relevant to driver
+    //         $query->where(function($q) use ($user){
+    //             $q->where(function($sub){
+    //                 $sub->where('status','pending')
+    //                     ->where('expires_at','>=',now());
+    //             })
+    //             ->orWhere(function($sub) use ($user){
+    //                 $sub->whereIn('status',['accepted','in_transit','completed'])
+    //                     ->where('accepted_driver_id',$user->id);
+    //             });
+    //         });
+    //     }
+
+    //     $requests = $query->latest()->get();
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'Courier requests fetched successfully.',
+    //         'data' => $requests
+    //     ]);
+    // }
+
+    // with cancel logic 
+
     public function listForDrivers(Request $request)
     {
         $user = Auth::guard('api')->user();
@@ -363,19 +341,13 @@ class CourierRequestController extends Controller
 
         $query = CourierRequest::with('sender');
 
-            /*
-        |--------------------------------------------------------------------------
-        | ✅ AUTOMATION FILTER (WALK / VEHICLE LOGIC)
-        |--------------------------------------------------------------------------
-        */
-
-        //    if ($user->delivery_mode == 'walk') {
-
-        //         $query->where('trip_type', '!=', 'incity')
-        //             ->whereRaw("
-        //                 CAST(REPLACE(distance,'km','') AS DECIMAL(10,2)) <= 10
-        //             ");
-        //     }
+        // ✅ Only exclude requests cancelled by this driver if NOT fetching cancelled
+        if ($type !== 'cancelled') {
+            $query->whereDoesntHave('cancellations', function($q) use ($user){
+                $q->where('cancelled_by', 'driver')
+                ->where('cancelled_by_user_id', $user->id);
+            });
+        }
 
         if ($user->delivery_mode == 'walk') {
             $query->whereRaw("
@@ -405,8 +377,16 @@ class CourierRequestController extends Controller
             $query->where('status','completed')
                 ->where('accepted_driver_id',$user->id);
 
-        } else {
-
+        } elseif ($type == 'cancelled') {
+            // fetch cancelled requests visible to driver
+            $query->where(function($q) use ($user) {
+                $q->whereHas('cancellations', function($q2) use ($user){
+                    $q2->where('cancelled_by', 'driver')
+                    ->where('cancelled_by_user_id', $user->id);
+                })
+                ->orWhere('status', 'cancelled'); // user-cancelled requests
+            });
+        }else {
             // default = show all relevant to driver
             $query->where(function($q) use ($user){
                 $q->where(function($sub){
@@ -499,74 +479,6 @@ class CourierRequestController extends Controller
             'data' => $courier
         ]);
     }
-
-
-    // ✅ Courier Driver Show Interest with Price
-    // public function showInterest(Request $request, $courier_request_id)
-    // {
-    //      $user = Auth::guard('api')->user();
-    //     if (!$user) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'Unauthorized.'
-    //         ], 401);
-    //     }
-
-    //     if ($user->is_online != 1) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'You must be online to send interest.'
-    //         ]);
-    //     }
-
-    //     if ($user->courier_doc_status != 'approved') {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'Courier documents not approved yet.'
-    //         ]);
-    //     }
-
-    //     $courierRequest = CourierRequest::where('id', $courier_request_id)
-    //         ->where('status', 'pending')
-    //         ->where('expires_at', '>=', now())
-    //         ->first();
-
-    //     if (!$courierRequest) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'Courier request not found or expired.'
-    //         ]);
-    //     }
-
-    //     $validator = Validator::make($request->all(), [
-    //         'driver_price' => 'required|numeric',
-    //         'message' => 'nullable|string'
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => $validator->errors()->first()
-    //         ],201);
-    //     }
-
-    //     $interest = CourierRequestDriverInterest::updateOrCreate(
-    //         [
-    //             'courier_request_id' => $courier_request_id,
-    //             'driver_id' => $user->id,
-    //         ],
-    //         [
-    //             'driver_price' => $request->driver_price,
-    //             'message' => $request->message
-    //         ]
-    //     );
-
-    //     return response()->json([
-    //         'status' => true,
-    //         'message' => 'Interest sent successfully.',
-    //         'data' => $interest
-    //     ]);
-    // }
 
 
     // with notification
@@ -878,6 +790,139 @@ class CourierRequestController extends Controller
         ]);
     }
 
+    // public function updateDeliveryStatus(Request $request, $courier_request_id)
+    // {
+    //      $user = Auth::guard('api')->user();
+    //     if (!$user) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Unauthorized.'
+    //         ], 401);
+    //     }
+
+    //     $validator = Validator::make($request->all(), [
+    //         'status' => 'required|in:in_transit,completed'
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => $validator->errors()->first()
+    //         ], 422);
+    //     }
+
+    //     $courierRequest = CourierRequest::where('id', $courier_request_id)
+    //         ->where('accepted_driver_id', $user->id)
+    //         ->first();
+
+    //     if (!$courierRequest) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Courier request not found or not assigned to you.'
+    //         ]);
+    //     }
+
+    //     // 🔒 Status Flow Protection
+    //     if ($request->status == 'in_transit' && $courierRequest->status != 'accepted') {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Order must be accepted before going in transit.'
+    //         ]);
+    //     }
+
+    //     if ($request->status == 'completed' && $courierRequest->status != 'in_transit') {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Order must be in transit before completing.'
+    //         ]);
+    //     }
+
+    //     $courierRequest->status = $request->status;
+    //     $courierRequest->save();
+
+    //     // ===================================
+    //     // 🔔 SEND NOTIFICATION TO USER
+    //     // ===================================
+
+    //     $requestOwner = User::find($courierRequest->user_id);
+
+    //     if ($requestOwner && !empty($requestOwner->device_token)) {
+
+    //         $driverImage = null;
+
+    //         if (!empty($user->image)) {
+    //             $driverImage = asset('assets/profile_image/' . $user->image);
+    //         }
+
+    //         $tokens[] = [
+    //             'device_token' => $requestOwner->device_token,
+    //             'device_type'  => $requestOwner->device_type ?? 'android',
+    //             'user_id'      => $requestOwner->id,
+    //         ];
+
+    //         $title = '';
+    //         $body = '';
+    //         $notificationType = 0;
+
+    //         if ($request->status == 'in_transit') {
+    //             $title = 'Order In Transit 🚚';
+    //             $body = 'Your parcel is on the way!';
+    //             $notificationType = 18;
+    //         }
+
+    //         if ($request->status == 'completed') {
+    //             $title = 'Order Delivered ✅';
+    //             $body = 'Your parcel has been delivered successfully.';
+    //             $notificationType = 19;
+    //         }
+
+    //         $fcmService = new FCMService();
+
+    //         $fcmService->sendCourierNotification($tokens, [
+
+    //             'notification_type' => $notificationType,
+    //             'title' => $title,
+    //             'body' => $body,
+
+    //             // DRIVER DATA
+    //             'driver_id' => $user->id,
+    //             'driver_name' => $user->name,
+    //             'driver_phone' => $user->phone_number,
+    //             'driver_image' => $driverImage,
+
+    //             // COURIER FULL DATA
+    //             'courier_id' => $courierRequest->id,
+    //             'pickup_location' => $courierRequest->pickup_location,
+    //             'drop_location' => $courierRequest->drop_location,
+    //             'distance' => $courierRequest->distance,
+    //             'time' => $courierRequest->time,
+    //             'trip_type' => $courierRequest->trip_type,
+    //             'sender_name' => $courierRequest->sender_name,
+    //             'sender_phone' => $courierRequest->sender_phone,
+    //             'receiver_name' => $courierRequest->receiver_name,
+    //             'receiver_phone' => $courierRequest->receiver_phone,
+    //             'package_size' => $courierRequest->package_size,
+    //             'suggested_price' => $courierRequest->suggested_price,
+    //             'payment_method' => $courierRequest->payment_method,
+    //             'paid_by' => $courierRequest->paid_by,
+    //             'drop_latitude' => $courierRequest->drop_latitude,
+    //             'drop_longitude' => $courierRequest->drop_longitude,
+    //         ]);
+
+    //         Log::info("📲 Status notification sent to user.");
+    //     } else {
+    //         Log::info("❌ User device token missing.");
+    //     }
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'Status updated successfully.',
+    //         'data' => $courierRequest
+    //     ]);
+    // }
+
+    // with picked up status
+
     public function updateDeliveryStatus(Request $request, $courier_request_id)
     {
          $user = Auth::guard('api')->user();
@@ -889,7 +934,7 @@ class CourierRequestController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:in_transit,completed'
+             'status' => 'required|in:picked_up,in_transit,completed'
         ]);
 
         if ($validator->fails()) {
@@ -911,10 +956,17 @@ class CourierRequestController extends Controller
         }
 
         // 🔒 Status Flow Protection
-        if ($request->status == 'in_transit' && $courierRequest->status != 'accepted') {
+           if ($request->status == 'picked_up' && $courierRequest->status != 'accepted') {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Order must be accepted before pickup.'
+                ]);
+            }
+
+        if ($request->status == 'in_transit' && $courierRequest->status != 'picked_up') {
             return response()->json([
                 'status' => false,
-                'message' => 'Order must be accepted before going in transit.'
+                'message' => 'Parcel must be picked up before going in transit.'
             ]);
         }
 
@@ -951,6 +1003,13 @@ class CourierRequestController extends Controller
             $title = '';
             $body = '';
             $notificationType = 0;
+
+            if ($request->status == 'picked_up') {
+                $title = 'Parcel Picked Up 📦';
+                $body = 'Driver has picked up your parcel.';
+                $notificationType = 17;
+            }
+
 
             if ($request->status == 'in_transit') {
                 $title = 'Order In Transit 🚚';
@@ -1030,7 +1089,7 @@ class CourierRequestController extends Controller
 
         /* -------- FILTER -------- */
 
-        if ($type && in_array($type, ['pending','accepted','in_transit','completed'])) {
+        if ($type && in_array($type, ['pending','accepted','in_transit','completed' ,'cancelled'])) {
             $query->where('status', $type);
         }
 
@@ -1046,7 +1105,7 @@ class CourierRequestController extends Controller
     }
 
 
-        public function senderRequestDetail($id)
+    public function senderRequestDetail($id)
     {
         $user = Auth::guard('api')->user();
 
@@ -1076,6 +1135,356 @@ class CourierRequestController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Courier detail fetched successfully.',
+            'data' => $courier
+        ]);
+    }
+
+
+    public function driverCancelCourier($courier_request_id)
+    {
+        $user = Auth::guard('api')->user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized.'
+            ], 401);
+        }
+
+        $courierRequest = CourierRequest::where('id', $courier_request_id)
+            ->where('accepted_driver_id', $user->id)
+            ->first();
+
+        if (!$courierRequest) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Courier request not found.'
+            ]);
+        }
+
+        if ($courierRequest->status != 'accepted') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Cannot cancel after pickup.'
+            ]);
+        }
+
+        // ===============================
+        // SAVE CANCELLATION HISTORY
+        // ===============================
+
+        CourierRequestCancellation::create([
+            'courier_request_id' => $courierRequest->id,
+            'cancelled_by_user_id' => $user->id,
+            'cancelled_by' => 'driver',
+            'reason' => 'Driver cancelled before pickup'
+        ]);
+
+        // Reset request so other drivers can take it
+        $courierRequest->status = 'pending';
+        $courierRequest->accepted_driver_id = null;
+        $courierRequest->save();
+
+        // ===================================
+        // 🔔 SEND NOTIFICATION TO USER
+        // ===================================
+
+        $requestOwner = User::find($courierRequest->user_id);
+
+        if ($requestOwner && !empty($requestOwner->device_token)) {
+
+            $driverImage = null;
+
+            if (!empty($user->image)) {
+                $driverImage = asset('assets/profile_image/' . $user->image);
+            }
+
+            $tokens = [];
+
+            $tokens[] = [
+                'device_token' => $requestOwner->device_token,
+                'device_type'  => $requestOwner->device_type ?? 'android',
+                'user_id'      => $requestOwner->id,
+            ];
+
+            $title = 'Driver Cancelled ❌';
+            $body = 'The driver cancelled your courier request. Searching for another driver.';
+
+            $notificationType = 20;
+
+            $fcmService = new FCMService();
+
+            $fcmService->sendCourierNotification($tokens, [
+
+                'notification_type' => $notificationType,
+                'title' => $title,
+                'body' => $body,
+
+                // DRIVER DATA
+                'driver_id' => $user->id,
+                'driver_name' => $user->name,
+                'driver_phone' => $user->phone_number,
+                'driver_image' => $driverImage,
+
+                // COURIER FULL DATA
+                'courier_id' => $courierRequest->id,
+                'pickup_location' => $courierRequest->pickup_location,
+                'drop_location' => $courierRequest->drop_location,
+                'distance' => $courierRequest->distance,
+                'time' => $courierRequest->time,
+                'trip_type' => $courierRequest->trip_type,
+                'sender_name' => $courierRequest->sender_name,
+                'sender_phone' => $courierRequest->sender_phone,
+                'receiver_name' => $courierRequest->receiver_name,
+                'receiver_phone' => $courierRequest->receiver_phone,
+                'package_size' => $courierRequest->package_size,
+                'suggested_price' => $courierRequest->suggested_price,
+                'payment_method' => $courierRequest->payment_method,
+                'paid_by' => $courierRequest->paid_by,
+                'drop_latitude' => $courierRequest->drop_latitude,
+                'drop_longitude' => $courierRequest->drop_longitude,
+            ]);
+
+            Log::info("📲 Driver cancellation notification sent to sender.");
+        } else {
+            Log::info("❌ Sender device token missing.");
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Courier cancelled by driver.'
+        ]);
+    }
+
+
+    public function senderCancelCourier($courier_request_id)
+    {
+        $user = Auth::guard('api')->user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized.'
+            ], 401);
+        }
+
+        $courierRequest = CourierRequest::where('id', $courier_request_id)
+            ->where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->first();
+
+        if (!$courierRequest) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Courier request not found or already accepted by driver.'
+            ]);
+        }
+
+        // ===============================
+        // GET ALL INTERESTED DRIVERS
+        // ===============================
+
+        $interests = CourierRequestDriverInterest::where('courier_request_id', $courier_request_id)->get();
+
+        // ===============================
+        // SAVE CANCEL HISTORY
+        // ===============================
+
+        CourierRequestCancellation::create([
+            'courier_request_id' => $courierRequest->id,
+            'cancelled_by_user_id' => $user->id,
+            'cancelled_by' => 'user',
+            'reason' => 'User cancelled request before driver acceptance'
+        ]);
+
+        // ===============================
+        // UPDATE REQUEST STATUS
+        // ===============================
+
+        $courierRequest->status = 'cancelled';
+        $courierRequest->save();
+
+        // ===============================
+        // SEND NOTIFICATION TO DRIVERS
+        // ===============================
+
+        if ($interests->count() > 0) {
+
+            $tokens = [];
+
+            foreach ($interests as $interest) {
+
+                $driver = User::find($interest->driver_id);
+
+                if ($driver && !empty($driver->device_token)) {
+
+                    $tokens[] = [
+                        'device_token' => $driver->device_token,
+                        'device_type'  => $driver->device_type ?? 'android',
+                        'user_id'      => $driver->id,
+                    ];
+                }
+            }
+
+            if (!empty($tokens)) {
+
+                $userImage = null;
+
+                if (!empty($user->image)) {
+                    $userImage = asset('assets/profile_image/' . $user->image);
+                }
+
+                $fcmService = new FCMService();
+
+                $fcmService->sendCourierNotification($tokens, [
+
+                    'notification_type' => 21,
+                    'title' => 'Request Cancelled ❌',
+                    'body' => 'User has cancelled this courier request.',
+
+                    // USER DATA
+                    'user_id' => $user->id,
+                    'user_name' => $user->name,
+                    'user_phone' => $user->phone_number,
+                    'user_image' => $userImage,
+
+                    // COURIER FULL DATA
+                    'courier_id' => $courierRequest->id,
+                    'pickup_location' => $courierRequest->pickup_location,
+                    'drop_location' => $courierRequest->drop_location,
+                    'distance' => $courierRequest->distance,
+                    'time' => $courierRequest->time,
+                    'trip_type' => $courierRequest->trip_type,
+                    'sender_name' => $courierRequest->sender_name,
+                    'sender_phone' => $courierRequest->sender_phone,
+                    'receiver_name' => $courierRequest->receiver_name,
+                    'receiver_phone' => $courierRequest->receiver_phone,
+                    'package_size' => $courierRequest->package_size,
+                    'suggested_price' => $courierRequest->suggested_price,
+                    'payment_method' => $courierRequest->payment_method,
+                    'paid_by' => $courierRequest->paid_by,
+                    'drop_latitude' => $courierRequest->drop_latitude,
+                    'drop_longitude' => $courierRequest->drop_longitude,
+                ]);
+
+                Log::info("📲 Cancellation notification sent to interested drivers.");
+            }
+        }
+
+        // ===============================
+        // DELETE ALL INTERESTS
+        // ===============================
+
+        CourierRequestDriverInterest::where('courier_request_id', $courier_request_id)->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Courier request cancelled successfully.'
+        ]);
+    }
+
+
+    public function editCourierRequest(Request $request)
+    {
+        $user = Auth::guard('api')->user();
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized.'
+            ], 401);
+        }
+
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'courier_request_id' => 'required|exists:courier_requests,id',
+            'payment_method' => 'required|in:cash,card',
+            'paid_by' => 'required|in:sender,receiver',
+            'suggested_price' => 'nullable|numeric',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()->first()
+            ], 201);
+        }
+
+        $courier = CourierRequest::where('id', $request->courier_request_id)
+            ->where('status', 'pending')
+            ->first();
+
+        if (!$courier) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Cannot edit this courier request. It may be accepted by a driver or does not exist.'
+            ], 403);
+        }
+
+        // Update payment fields
+        $courier->payment_method = $request->payment_method;
+        $courier->paid_by = $request->paid_by;
+        if ($request->has('suggested_price')) {
+            $courier->suggested_price = $request->suggested_price;
+        }
+
+        // Reset expiry 30 minutes
+        $courier->expires_at = now()->addMinutes(30);
+        $courier->save();
+
+        // Send notification to drivers (same logic as create)
+        $drivers = User::where('is_online', 1)
+            ->where('courier_doc_status', 'approved')
+            ->whereNotNull('device_token')
+            ->get()
+            ->filter(function ($driver) use ($courier) {
+                if ($driver->delivery_mode == 'walk') {
+                    $distance = (float) str_replace('km', '', $courier->distance);
+                    if ($distance > 10) return false;
+                }
+                return true;
+            });
+
+        if ($drivers->count() > 0) {
+            $tokens = [];
+            foreach ($drivers as $driver) {
+                $tokens[] = [
+                    'device_token' => $driver->device_token,
+                    'device_type'  => $driver->device_type ?? 'android',
+                    'user_id'      => $driver->id,
+                ];
+            }
+
+            $fcmService = new FCMService();
+            $imageUrl = !empty($user->image) ? asset('assets/profile_image/' . $user->image) : null;
+
+            $fcmService->sendCourierNotification($tokens, [
+                'notification_type' => 15,
+                'title' => 'Courier Payment Updated',
+                'body' => $user->name . ' updated payment for a courier request.',
+                'user_image' => $imageUrl,
+                'courier_id' => $courier->id,
+                'pickup_location' => $courier->pickup_location,
+                'drop_location' => $courier->drop_location,
+                'distance' => $courier->distance,
+                'time' => $courier->time,
+                'trip_type' => $courier->trip_type,
+                'sender_name' => $courier->sender_name,
+                'sender_phone' => $courier->sender_phone,
+                'receiver_name' => $courier->receiver_name,
+                'receiver_phone' => $courier->receiver_phone,
+                'package_size' => $courier->package_size,
+                'suggested_price' => $courier->suggested_price,
+                'payment_method' => $courier->payment_method,
+                'paid_by' => $courier->paid_by,
+                'drop_latitude' => $courier->drop_latitude,
+                'drop_longitude' => $courier->drop_longitude,
+                'expires_at' => $courier->expires_at,
+            ]);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Courier payment updated successfully.',
             'data' => $courier
         ]);
     }
