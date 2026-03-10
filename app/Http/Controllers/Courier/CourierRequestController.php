@@ -62,6 +62,9 @@ class CourierRequestController extends Controller
 
             'drop_latitude' => 'required|numeric',
            'drop_longitude' => 'required|numeric',  
+
+           'pickup_latitude' => 'required|numeric',
+           'pickup_longitude' => 'required|numeric',  
         ], [
             // Custom Messages
             'pickup_location.required' => 'Pickup location is required.',
@@ -90,6 +93,9 @@ class CourierRequestController extends Controller
 
             'drop_latitude.required' => 'Drop latitude is required.',
             'drop_longitude.required' => 'Drop longitude is required.',
+
+            'pickup_latitude.required' => 'pickup latitude is required.',
+            'pickup_longitude.required' => 'pickup longitude is required.',
         ]);
 
         if ($validator->fails()) {
@@ -130,6 +136,8 @@ class CourierRequestController extends Controller
 
             'drop_latitude' => $request->drop_latitude,
             'drop_longitude' => $request->drop_longitude,
+              'pickup_latitude' => $request->pickup_latitude,
+            'pickup_longitude' => $request->pickup_longitude,
         ]);
 
              // ✅ Get Online Drivers (IMPORTANT)
@@ -202,6 +210,8 @@ class CourierRequestController extends Controller
                 'paid_by' => $courier->paid_by,
                 'drop_latitude' => $courier->drop_latitude,
                 'drop_longitude' => $courier->drop_longitude,
+                'pickup_latitude' => $courier->pickup_latitude,
+                'pickup_longitude' => $courier->pickup_longitude,
                 'expires_at' => $courier->expires_at,
             ]);
         }
