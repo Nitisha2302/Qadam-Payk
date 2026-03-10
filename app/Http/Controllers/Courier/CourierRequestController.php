@@ -445,7 +445,7 @@ class CourierRequestController extends Controller
                         ->where('expires_at', '>=', now());
                 })
                 ->orWhere(function ($sub) use ($user) {
-                    $sub->whereIn('status', ['accepted','in_transit','completed'])
+                    $sub->whereIn('status', ['accepted','started','in_transit','completed'])
                         ->where('accepted_driver_id', $user->id);
                 });
 
