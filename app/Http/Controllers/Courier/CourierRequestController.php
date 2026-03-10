@@ -934,7 +934,7 @@ class CourierRequestController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-             'status' => 'required|in:picked_up,in_transit,completed'
+             'status' => 'required|in:started,picked_up,in_transit,completed'
         ]);
 
         if ($validator->fails()) {
@@ -956,26 +956,34 @@ class CourierRequestController extends Controller
         }
 
         // 🔒 Status Flow Protection
-           if ($request->status == 'picked_up' && $courierRequest->status != 'accepted') {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Order must be accepted before pickup.'
-                ]);
-            }
+        if ($request->status == 'started' && $courierRequest->status != 'accepted') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Order must be accepted before starting delivery.'
+            ]);
+        }
+
+        if ($request->status == 'picked_up' && $courierRequest->status != 'started') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Driver must start delivery before pickup.'
+            ]);
+        }
 
         if ($request->status == 'in_transit' && $courierRequest->status != 'picked_up') {
             return response()->json([
                 'status' => false,
-                'message' => 'Parcel must be picked up before going in transit.'
+                'message' => 'Parcel must be picked up before transit.'
             ]);
         }
 
         if ($request->status == 'completed' && $courierRequest->status != 'in_transit') {
             return response()->json([
                 'status' => false,
-                'message' => 'Order must be in transit before completing.'
+                'message' => 'Order must be in transit before completion.'
             ]);
         }
+
 
         $courierRequest->status = $request->status;
         $courierRequest->save();
@@ -1003,6 +1011,12 @@ class CourierRequestController extends Controller
             $title = '';
             $body = '';
             $notificationType = 0;
+
+            if ($request->status == 'started') {
+                $title = 'Driver Started Delivery 🚚';
+                $body = 'Driver has started the delivery and is heading to pickup.';
+                $notificationType = 16;
+            }
 
             if ($request->status == 'picked_up') {
                 $title = 'Parcel Picked Up 📦';
