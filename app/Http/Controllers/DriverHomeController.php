@@ -209,9 +209,11 @@ class DriverHomeController extends Controller
             'message' => __('messages.vehicle.edit_vehicle.success'),
             'data'    => $vehicle,
         ], 200);
-        
+
     }
 
+
+    
 
     public function selectVehicle(Request $request)
     {
