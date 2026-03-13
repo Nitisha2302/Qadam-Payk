@@ -37,6 +37,7 @@ class BookingController extends Controller
         // ✅ Validation
         $validator = Validator::make($request->all(), [
             'ride_id'      => 'required|exists:rides,id',
+            'ride_date' => 'required|date_format:d-m-Y',
             'seats_booked' => 'required_if:type,0|integer|min:1', // required only for rides
             'services'     => 'nullable|array',
             'services.*'   => 'exists:services,id',
@@ -65,7 +66,9 @@ class BookingController extends Controller
 
         // Find the ride
         $ride = \App\Models\Ride::find($request->ride_id);
-
+        $bookingDate = $ride->is_permanent
+            ? Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d')
+            : Carbon::parse($ride->ride_date)->format('Y-m-d');
         // Prevent user from booking their own ride or parcel
         if ($ride->user_id == $user->id) {
             return response()->json([
@@ -75,14 +78,27 @@ class BookingController extends Controller
         }
 
         // Check existing bookings for this ride by the user
-        $bookedRide   = \App\Models\RideBooking::where('ride_id', $ride->id)
+        // $bookedRide   = \App\Models\RideBooking::where('ride_id', $ride->id)
+        //     ->where('user_id', $user->id)
+        //     ->where('type', 0)   // 0 = ride
+        //     ->first();
+
+        // $bookedParcel = \App\Models\RideBooking::where('ride_id', $ride->id)
+        //     ->where('user_id', $user->id)
+        //     ->where('type', 1)  // 1 = parcel
+        //     ->first();
+
+
+        $bookedRide = RideBooking::where('ride_id', $ride->id)
             ->where('user_id', $user->id)
-            ->where('type', 0)   // 0 = ride
+            ->where('type', 0)
+            ->whereDate('ride_date', $bookingDate)
             ->first();
 
-        $bookedParcel = \App\Models\RideBooking::where('ride_id', $ride->id)
+        $bookedParcel = RideBooking::where('ride_id', $ride->id)
             ->where('user_id', $user->id)
-            ->where('type', 1)  // 1 = parcel
+            ->where('type', 1)
+            ->whereDate('ride_date', $bookingDate)
             ->first();
 
         // If user already booked both ride and parcel, do not allow booking
@@ -104,50 +120,6 @@ class BookingController extends Controller
             ], 201);
         }
 
-
-        //Start by anukool
-        // $ride = \App\Models\Ride::find($request->ride_id);
-
-        // // ❌ Prevent user from booking their own ride
-        // if ($ride->user_id == $user->id) {
-        //     return response()->json([
-        //         'status'  => false,
-        //         'message' => 'You cannot book your own ride.'
-        //     ], 201);
-        // }
-
-        // // ❌ Prevent duplicate bookings by same user
-        // $existingBooking = \App\Models\RideBooking::where('ride_id', $ride->id)
-        //     ->where('user_id', $user->id)
-        //     ->first();
-
-        // if ($existingBooking) {
-        //     return response()->json([
-        //         'status'  => false,
-        //         'message' => 'You have already booked this ride.'
-        //     ], 201);
-        // }
-
-        //End by anukool
-
-        // if ($request->type == 0) { // Ride booking
-        //     $availableSeats = $ride->number_of_seats - $ride->bookings()->sum('seats_booked');
-        //     $seatsBooked = $request->seats_booked ?? 1;
-
-        //     if ($seatsBooked > $availableSeats) {
-        //         return response()->json([
-        //             'status'  => false,
-        //             'message' => 'Not enough seats available'
-        //         ], 201);
-        //     }
-
-        //     $totalPrice = $ride->price * $seatsBooked;
-
-        // } else { // Parcel booking
-        //     $seatsBooked = 1; // Parcel usually counts as 1
-        //     $totalPrice = $ride->price;
-        // }
-
         $seatsBooked = $request->type == 0 ? ($request->seats_booked ?? 1) : 1;
         $totalPrice = $ride->price * $seatsBooked;
 
@@ -160,7 +132,10 @@ class BookingController extends Controller
             'services'     => $request->services ?? [],
             'status'       => 'pending',
             'type'         => $request->type,
-            'ride_date'    => Carbon::parse($ride->ride_date)->format('Y-m-d'), // copy from ride
+            'ride_date' => $ride->is_permanent
+            ? Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d')
+            : Carbon::parse($ride->ride_date)->format('Y-m-d'),
+            // 'ride_date'    => Carbon::parse($ride->ride_date)->format('Y-m-d'), // copy from ride
             'ride_time'    => $ride->ride_time, // copy from ride
              'comment'      => $request->comment,
         ]);
@@ -214,7 +189,7 @@ class BookingController extends Controller
                 'price'        => $booking->price,
                 'status'       => $booking->status,
                 'type'         => $booking->type,
-                'ride_date'    => $ride->ride_date, // copy from ride
+                'ride_date'    =>Carbon::parse($booking->ride_date)->format('d-m-Y'), 
                 'ride_time'    => $ride->ride_time, // copy from ride
                 'created_at'   => $booking->created_at,
                 'updated_at'   => $booking->updated_at,
@@ -293,7 +268,7 @@ class BookingController extends Controller
                 }),
                 'pickup_location' => $booking->ride->pickup_location ?? null,
                 'destination'     => $booking->ride->destination ?? null,
-                'ride_date'       => $booking->ride->ride_date ?? null,
+                'ride_date' => Carbon::parse($booking->ride_date)->format('d-m-Y'),
                 'ride_time'       => $booking->ride->ride_time ?? null,
                 'accept_parcel'   => $booking->ride->accept_parcel ?? null,
                 'created_at'      => $booking->created_at,
@@ -356,7 +331,7 @@ class BookingController extends Controller
                 }),
                 'pickup_location' => $booking->ride->pickup_location ?? null,
                 'destination'     => $booking->ride->destination ?? null,
-                'ride_date'       => $booking->ride->ride_date ?? null,
+                  'ride_date' => Carbon::parse($booking->ride_date)->format('d-m-Y'),
                 'ride_time'       => $booking->ride->ride_time ?? null,
                 'accept_parcel'   => $booking->ride->accept_parcel ?? null,
                 'created_at'      => $booking->created_at,
@@ -422,7 +397,10 @@ class BookingController extends Controller
 
         if ($request->status === 'confirmed') {
             // Calculate available seats
-            $confirmedSeats = $ride->bookings()->where('status', 'confirmed')->sum('seats_booked');
+           $confirmedSeats = $ride->bookings()
+            ->where('status', 'confirmed')
+            ->whereDate('ride_date', $booking->ride_date)
+            ->sum('seats_booked');
             $availableSeats = $ride->number_of_seats - $confirmedSeats;
 
             if ($booking->seats_booked > $availableSeats) {
@@ -505,170 +483,6 @@ class BookingController extends Controller
             'data'    => $booking
         ],200);
     }
-
-    // public function updateBookingActiveStatus(Request $request)
-    //     {
-    //         // ✅ Get authenticated driver
-    //         $driver = Auth::guard('api')->user();
-    //         if (!$driver) {
-    //             return response()->json([
-    //                 'status'  => false,
-    //                 'message' => 'User not authenticated.',
-    //             ], 401);
-    //         }
-
-
-    //         // Validate input
-    //         $validator = Validator::make($request->all(), [
-    //             'booking_id' => 'required|exists:ride_bookings,id',
-    //         ], [
-    //             'booking_id.required' => 'Booking ID is required.',
-    //             'booking_id.exists'   => 'Booking does not exist.',
-    //         ]);
-
-    //         if ($validator->fails()) {
-    //             return response()->json([
-    //                 'status'  => false,
-    //                 'message' => $validator->errors()->first(),
-    //             ], 422);
-    //         }
-
-    //         // Find the booking
-    //         $booking = RideBooking::find($request->booking_id);
-    //         if (!$booking) {
-    //             return response()->json([
-    //                 'status'  => false,
-    //                 'message' => 'Booking not found.',
-    //             ], 404);
-    //         }
-
-
-    //         // Update booking status to active
-    //         $booking->active_status = '1';
-    //         $booking->save();
-
-    //     // ✅ Send notification to passenger
-    //     $passenger = $booking->user;
-    //     if ($passenger && $passenger->device_token) {
-    //         $fcmService = new \App\Services\FCMService();
-
-    //         $ride = $booking->ride;
-    //         $pickup = $ride->pickup_location ?? '';
-    //         $destination = $ride->destination ?? '';
-
-    //         $notificationData = [
-    //             'notification_type' => 2,
-    //             'title' => "Booking Activated",
-    //             'body'  => "Your booking for the ride from {$pickup} to {$destination} has been started.",
-    //         ];
-
-    //         $fcmService->sendNotification([
-    //             [
-    //                 'device_token' => $passenger->device_token,
-    //                 'device_type'  => $passenger->device_type ?? 'android',
-    //                 'user_id'      => $passenger->id,
-    //             ]
-    //         ], $notificationData);
-    //     }
-
-    //         return response()->json([
-    //             'status'  => true,
-    //             'message' => 'Booking status updated to active successfully.',
-    //             'data'    => [
-    //                 'booking_id'    => $booking->id,
-    //                 'ride_id'       => $booking->ride_id,
-    //                 'driver_id'     => $driver->id,
-    //                 'active_status' => $booking->active_status,
-    //             ],
-    //         ], 200);
-    // }
-
-
-    // public function updateBookingCompleteStatus(Request $request)
-    // {
-    //     // ✅ Get authenticated driver
-    //     $driver = Auth::guard('api')->user();
-    //     if (!$driver) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => 'User not authenticated.',
-    //         ], 401);
-    //     }
-
-    //     // Validate input
-    //     $validator = Validator::make($request->all(), [
-    //         'booking_id' => 'required|exists:ride_bookings,id',
-    //     ], [
-    //         'booking_id.required' => 'Booking ID is required.',
-    //         'booking_id.exists'   => 'Booking does not exist.',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => $validator->errors()->first(),
-    //         ], 422);
-    //     }
-
-    //     // Find the booking
-    //     $booking = RideBooking::find($request->booking_id);
-    //     if (!$booking) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => 'Booking not found.',
-    //         ], 404);
-    //     }
-
-    //     // // Get the ride and check if the authenticated user is the driver
-    //     // $ride = Ride::find($booking->ride_id);
-    //     // if (!$ride || $ride->user_id != $driver->id) {
-    //     //     return response()->json([
-    //     //         'status'  => false,
-    //     //         'message' => 'You are not authorized to complete this booking.',
-    //     //     ], 403);
-    //     // }
-
-    //     // Update booking status to complete
-    //     $booking->active_status = '2';
-    //     $booking->save();
-
-    //     // ✅ Send notification to passenger
-    //     $passenger = $booking->user;
-    //     if ($passenger && $passenger->device_token) {
-    //         $fcmService = new \App\Services\FCMService();
-
-    //         $ride = $booking->ride;
-    //         $pickup = $ride->pickup_location ?? '';
-    //         $destination = $ride->destination ?? '';
-
-    //         $notificationData = [
-    //             'notification_type' => 2,
-    //             'title' => "Booking Completed",
-    //             'body'  => "Your booking for the ride from {$pickup} to {$destination} has been  completed.",
-    //         ];
-
-    //         $fcmService->sendNotification([
-    //             [
-    //                 'device_token' => $passenger->device_token,
-    //                 'device_type'  => $passenger->device_type ?? 'android',
-    //                 'user_id'      => $passenger->id,
-    //             ]
-    //         ], $notificationData);
-    //     }
-
-    //     return response()->json([
-    //         'status'  => true,
-    //         'message' => 'Booking status updated to complete successfully.',
-    //         'data'    => [
-    //             'booking_id'    => $booking->id,
-    //             'ride_id'       => $booking->ride_id,
-    //             'driver_id'     => $driver->id,
-    //             'active_status' => $booking->active_status,
-    //         ],
-    //     ], 200);
-    // }
-
-
 
     // with notification correct 
 
@@ -1016,7 +830,10 @@ class BookingController extends Controller
                 'booking_id' => $item->id,
                 'pickup_location' => data_get($item,'ride.pickup_location',$item->pickup_location),
                 'destination' => data_get($item,'ride.destination',$item->destination),
-                'ride_date' => data_get($item,'ride.ride_date',$item->ride_date),
+                'ride_date' => $item instanceof RideBooking
+                    ? $item->ride_date
+                    : $item->ride_date,
+                // 'ride_date' => data_get($item,'ride.ride_date',$item->ride_date),
                 'ride_time' => data_get($item,'ride.ride_time',$item->ride_time),
                 'price' => $item instanceof RideBooking ? $item->price : $item->budget,
                 // ✅ Add number of passengers / seats booked
@@ -1094,7 +911,7 @@ class BookingController extends Controller
                 'booking_id' => $item->id,
                 'pickup_location' => data_get($item,'ride.pickup_location',$item->pickup_location),
                 'destination' => data_get($item,'ride.destination',$item->destination),
-                'ride_date' => data_get($item,'ride.ride_date',$item->ride_date),
+                'ride_date' => $item->ride_date,
                 'ride_time' => data_get($item,'ride.ride_time',$item->ride_time),
                 'price' => $item instanceof RideBooking ? $item->price : $item->budget,
                 'status' => $item->status,
@@ -1250,8 +1067,8 @@ class BookingController extends Controller
                 'status'           => $booking->status,
                 'active_status'    => $booking->active_status ?? 0,
                 'services'         => $booking->services ?? [],
-                'ride_date'        => optional($ride)->ride_date,
-                'ride_time'        => optional($ride)->ride_time,
+               'ride_date' => $booking->ride_date,
+              'ride_time' => $booking->ride_time,
                 'created_at'       => $booking->created_at,
             ];
         })->filter(); // ✅ remove null entries
@@ -1304,252 +1121,6 @@ class BookingController extends Controller
         ]);
     }
 
-   
-    // public function getReceivedResponse(Request $request)
-    // {
-    //     $user = Auth::guard('api')->user();
-    //     if (!$user) {
-    //         return response()->json([
-    //             'status'  => false,
-    //              'message' => __('messages.getReceivedResponse.user_not_authenticated')
-    //         ], 401);
-    //     }
-
-    //     // 🔹 Detect user's preferred language from UserLang table
-    //     $userLang = UserLang::where('user_id', $user->id)
-    //         ->where('device_id', $user->device_id)
-    //         ->where('device_type', $user->device_type)
-    //         ->first();
-
-    //     $lang = $userLang->language ?? 'ru'; // fallback to Russian
-    //     app()->setLocale($lang);
-
-    //     //  DRIVER VIEW: rides created by the driver
-    //     $driverRides = \App\Models\Ride::with(['rideBookings.user', 'vehicle'])
-    //         ->where('user_id', $user->id)
-    //         ->orderBy('created_at', 'desc')
-    //         ->get();
-
-    //     //  If driver has rides
-    //     if ($driverRides->isNotEmpty()) {
-    //         $rideData = $driverRides->map(function ($ride) {
-    //             $vehicle = $ride->vehicle;
-
-    //             //  Filter out completed & cancelled bookings
-    //             $filteredBookings = $ride->rideBookings
-    //                 ->filter(fn($b) => $b->active_status != 2 && $b->status != 'cancelled')
-    //                 ->map(function ($booking) {
-    //                     return [
-    //                         'created_by'      => __('messages.getReceivedResponse.created_by.passenger'),
-    //                         'booking_id'      => $booking->id,
-    //                         'passenger_id'    => $booking->user_id,
-    //                         'passenger_name'  => optional($booking->user)->name,
-    //                         'passenger_phone' => optional($booking->user)->phone_number,
-    //                         'passenger_image' => optional($booking->user)->image,
-    //                         'seats_booked'    => $booking->seats_booked,
-    //                         'price'           => $booking->price,
-    //                         'status'          => $booking->status,
-    //                         'active_status'   => $booking->active_status,
-    //                         'comment'         => $booking->comment,
-    //                         'services'        => $booking->services ?? [],
-    //                         'created_at'      => $booking->created_at,
-    //                     ];
-    //                 })
-    //                 ->values();
-
-    //             //  Skip rides that have no valid bookings
-    //             // if ($filteredBookings->isEmpty()) {
-    //             //     return null;
-    //             // }
-
-    //             //  Skip ride only if it had bookings and all are completed
-    //            // Skip ride ONLY if it had bookings and ALL are completed
-    //             if ($ride->rideBookings->isNotEmpty() && $filteredBookings->isEmpty()) {
-    //                 return null; // ride fully completed, skip it
-    //             }
-
-    //             return [
-    //                 'created_by'      => __('messages.getReceivedResponse.created_by.driver'),
-    //                 'ride_id'         => $ride->id,
-    //                 'pickup_location' => $ride->pickup_location,
-    //                 'destination'     => $ride->destination,
-    //                  'price'           => $ride->price,
-    //                 'ride_date'       => $ride->ride_date,
-    //                 'ride_time'       => $ride->ride_time,
-    //                 'accept_parcel'   => $ride->accept_parcel,
-    //                 'services'            => $ride->services,
-    //                 'number_of_seats' => $ride->number_of_seats,
-    //                 'vehicle_id'      => $ride->vehicle_id,
-    //                 'vehicle_name'    => $vehicle->brand ?? null,
-    //                 'vehicle_model'   => $vehicle->model ?? null,
-    //                 'vehicle_number'  => $vehicle->number_plate ?? null,
-    //                 'vehicle_image'   => $vehicle->vehicle_image ?? null,
-    //                 'bookings'        => $filteredBookings,
-    //             ];
-    //         })->filter()->values();
-
-    //         // ✅ Driver’s created passenger requests (exclude completed/cancelled)
-    //         $requests = \App\Models\PassengerRequest::with(['interests.driver.vehicle'])
-    //             ->where('user_id', $user->id)
-    //             ->where('status', '!=', 'cancelled')
-    //             ->orderBy('created_at', 'desc')
-    //             ->get();
-
-    //         $requestData = $requests->map(function ($req) {
-    //             // ✅ Skip completed requests
-    //             $booking = \App\Models\RideBooking::where('request_id', $req->id)->first();
-    //             if (($booking && $booking->active_status == 2) || $req->status == 'cancelled') {
-    //                 return null;
-    //             }
-
-    //             $rideDetails = [
-    //                 'created_by'      => __('messages.getReceivedResponse.created_by.driver'),
-    //                 'request_id'          => $req->id,
-    //                 'pickup_location'     => $req->pickup_location,
-    //                 'destination'         => $req->destination,
-    //                 'number_of_seats'     => $req->number_of_seats,
-    //                 'pickup_contact_name' => $req->pickup_contact_name,
-    //                 'pickup_contact_no'   => $req->pickup_contact_no,
-    //                 'drop_contact_name'   => $req->drop_contact_name,
-    //                 'drop_contact_no'     => $req->drop_contact_no,
-    //                 'parcel_details'      => $req->parcel_details,
-    //                 'parcel_images'       => $req->parcel_images,
-    //                 'budget'              => $req->budget,
-    //                 'status'              => $req->status,
-    //                 'active_status'       => $booking->active_status ?? null,
-    //                 'comment'             => null,
-    //                 'services'            => $req->services ?? [],
-    //                 'ride_date'           => $req->ride_date,
-    //                 'ride_time'           => $req->ride_time,
-    //                 'created_at'          => $req->created_at,
-    //             ];
-
-    //             // Interested drivers (exclude completed/cancelled)
-    //             $interestedDrivers = $req->interests
-    //                 ->filter(function ($interest) use ($booking) {
-    //                     return (!$booking || $booking->active_status != 2) && ($interest->status != 'cancelled');
-    //                 })
-    //                 ->map(function ($interest) use ($rideDetails) {
-    //                     $driver = $interest->driver;
-    //                     if (!$driver) return null;
-
-    //                     $driverData = [
-    //                         'driver_id'       => $driver->id,
-    //                         'name'            => $driver->name,
-    //                         'phone_number'    => $driver->phone_number,
-    //                         'email'           => $driver->email,
-    //                         'image'           => $driver->image,
-    //                         'dob'             => $driver->dob,
-    //                         'gender'          => $driver->gender,
-    //                         'id_verified'     => $driver->id_verified,
-    //                         'is_phone_verify' => $driver->is_phone_verify,
-    //                         'device_type'     => $driver->device_type,
-    //                         'device_id'       => $driver->device_id,
-    //                     ];
-
-    //                     $vehicleData = $driver->vehicle ? [
-    //                         'vehicle_number' => $driver->vehicle->vehicle_number,
-    //                         'vehicle_type'   => $driver->vehicle->vehicle_type,
-    //                     ] : [];
-
-    //                     return array_merge($rideDetails, [
-    //                         'interest_id' => $interest->id,
-    //                         'request_id'  => $interest->passenger_request_id,
-    //                     ], $driverData, $vehicleData);
-    //                 })
-    //                 ->filter()
-    //                 ->values();
-
-    //             return array_merge($rideDetails, ['bookings' => $interestedDrivers]);
-    //         })->filter()->values();
-
-    //         $receivedData = [
-    //             'rides_with_bookings' => $rideData,
-    //             'passenger_requests'  => $requestData,
-    //         ];
-    //     } else {
-    //         // ✅ PASSENGER VIEW: Exclude cancelled and completed requests
-    //         $receivedRequests = \App\Models\PassengerRequest::with(['interests.driver.vehicle'])
-    //             ->where('user_id', $user->id)
-    //             ->where('status', '!=', 'cancelled')
-    //             ->orderBy('created_at', 'desc')
-    //             ->get();
-
-    //         $passengerRequests = $receivedRequests
-    //             ->filter(function ($req) {
-    //                 $booking = \App\Models\RideBooking::where('request_id', $req->id)->first();
-    //                 return !$booking || $booking->active_status != 2;
-    //             })
-    //             ->map(function ($req) {
-    //                 $rideDetails = [
-    //                     'created_by'      => 'passenger',
-    //                     'request_id'      => $req->id,
-    //                     'driver_id'       => $req->driver_id,
-    //                     'pickup_location' => $req->pickup_location,
-    //                     'destination'     => $req->destination,
-    //                     'number_of_seats' => $req->number_of_seats,
-    //                     'budget'          => $req->budget,
-    //                     'status'          => $req->status,
-    //                     'active_status'   => $req->active_status,
-    //                     'services'        => $req->services ?? [],
-    //                     'ride_date'       => $req->ride_date,
-    //                     'ride_time'       => $req->ride_time,
-    //                     'created_at'      => $req->created_at,
-    //                 ];
-
-    //                 // Interested drivers (exclude completed)
-    //                 $interestedDrivers = $req->interests
-    //                     ->filter(function ($interest) {
-    //                         $booking = \App\Models\RideBooking::where('request_id', $interest->passenger_request_id)->first();
-    //                         return !$booking || $booking->active_status != 2;
-    //                     })
-    //                     ->map(function ($interest) use ($rideDetails) {
-    //                         $driver = $interest->driver;
-    //                         if (!$driver) return null;
-
-    //                         $driverData = [
-    //                             'driver_id'       => $driver->id,
-    //                             'name'            => $driver->name,
-    //                             'phone_number'    => $driver->phone_number,
-    //                             'email'           => $driver->email,
-    //                             'image'           => $driver->image,
-    //                             'dob'             => $driver->dob,
-    //                             'gender'          => $driver->gender,
-    //                             'id_verified'     => $driver->id_verified,
-    //                             'is_phone_verify' => $driver->is_phone_verify,
-    //                             'device_type'     => $driver->device_type,
-    //                             'device_id'       => $driver->device_id,
-    //                         ];
-
-    //                         $vehicleData = $driver->vehicle ? [
-    //                             'vehicle_number' => $driver->vehicle->vehicle_number,
-    //                             'vehicle_type'   => $driver->vehicle->vehicle_type,
-    //                         ] : [];
-
-    //                         return array_merge($rideDetails, [
-    //                             'interest_id' => $interest->id,
-    //                             'request_id'  => $interest->passenger_request_id,
-    //                         ], $driverData, $vehicleData);
-    //                     })
-    //                     ->filter()
-    //                     ->values();
-
-    //                 return array_merge($rideDetails, ['bookings' => $interestedDrivers]);
-    //             })->values();
-
-    //         $receivedData = [
-    //             'rides_with_bookings' => [],
-    //             'passenger_requests'  => $passengerRequests,
-    //         ];
-    //     }
-
-    //     return response()->json([
-    //         'status'  => true,
-    //        'message' => __('messages.getReceivedResponse.success'),
-    //         'data'    => $receivedData
-    //     ]);
-    // }
-
 
     public function getReceivedResponse(Request $request)
     {
@@ -1599,6 +1170,8 @@ class BookingController extends Controller
                             'comment'         => $booking->comment,
                             'services'        => $booking->services ?? [],
                             'created_at'      => $booking->created_at,
+                            'ride_date' => $booking->ride_date,
+                           'ride_time' => $booking->ride_time,
                         ];
                     })
                     ->values();

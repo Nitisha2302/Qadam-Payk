@@ -22,6 +22,7 @@ class Ride extends Model
         'reaching_time',
         'services',
         'accept_parcel',
+        'is_permanent',
     ];
 
     /**

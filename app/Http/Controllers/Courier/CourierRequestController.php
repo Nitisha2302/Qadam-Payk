@@ -345,7 +345,7 @@ class CourierRequestController extends Controller
 
         $query = CourierRequest::with('sender');
 
-            /*
+        /*
         |--------------------------------------------------------------------------
         | ✅ AUTOMATION FILTER (WALK / VEHICLE LOGIC)
         |--------------------------------------------------------------------------
