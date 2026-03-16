@@ -351,6 +351,7 @@ class CourierRequestController extends Controller
 
         $query = CourierRequest::with('sender');
 
+<<<<<<< HEAD
         // ✅ Only exclude requests cancelled by this driver if NOT fetching cancelled
         if ($type !== 'cancelled') {
             $query->whereDoesntHave('cancellations', function($q) use ($user){
@@ -358,6 +359,13 @@ class CourierRequestController extends Controller
                 ->where('cancelled_by_user_id', $user->id);
             });
         }
+=======
+        /*
+        |--------------------------------------------------------------------------
+        | ✅ AUTOMATION FILTER (WALK / VEHICLE LOGIC)
+        |--------------------------------------------------------------------------
+        */
+>>>>>>> refs/remotes/origin/main
 
         if ($user->delivery_mode == 'walk') {
             $query->whereRaw("
