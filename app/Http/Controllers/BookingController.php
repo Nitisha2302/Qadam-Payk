@@ -37,7 +37,7 @@ class BookingController extends Controller
         // ✅ Validation
         $validator = Validator::make($request->all(), [
             'ride_id'      => 'required|exists:rides,id',
-            'ride_date' => 'required|date_format:d-m-Y',
+            'ride_date' => 'nullable|date_format:d-m-Y',
             'seats_booked' => 'required_if:type,0|integer|min:1', // required only for rides
             'services'     => 'nullable|array',
             'services.*'   => 'exists:services,id',
