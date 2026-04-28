@@ -1054,7 +1054,10 @@ class DriverHomeController extends Controller
                 'destination'     => $ride->destination,
                 'number_of_seats' => $ride->number_of_seats,
                 'price'           => $totalPrice,
-                'ride_date'       => $ride->ride_date,
+                // 'ride_date'       => $ride->ride_date,
+                'ride_date' => $ride->is_permanent && $request->ride_date
+                    ? Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d')
+                    : $ride->ride_date,
                 'ride_time'       => $ride->ride_time,
                 'services'        => $ride->services_details,
                 'accept_parcel'   => $ride->accept_parcel,
@@ -1375,7 +1378,10 @@ class DriverHomeController extends Controller
                 'destination'     => $ride->destination,
                 'number_of_seats' => $ride->number_of_seats,
                 'price'           => $totalPrice,
-                'ride_date'       => $ride->ride_date,
+                // 'ride_date'       => $ride->ride_date,
+                'ride_date' => $ride->is_permanent && $request->ride_date
+                    ? Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d')
+                    : $ride->ride_date,
                 'ride_time'       => $ride->ride_time,
                 'services'        => $ride->services_details,
                 'accept_parcel'   => $ride->accept_parcel,
