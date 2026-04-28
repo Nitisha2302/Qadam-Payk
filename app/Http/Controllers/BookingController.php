@@ -9,7 +9,7 @@ use App\Models\ParcelBooking;
 use App\Models\Service;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon; // ✅ Add this line
+use Carbon\Carbon; 
 use App\Services\FCMService;
 use App\Models\UserLang;
 
@@ -484,8 +484,11 @@ class BookingController extends Controller
         ],200);
     }
 
+<<<<<<< HEAD
     // with notification correct 
 
+=======
+>>>>>>> refs/remotes/origin/main
 
     public function updateBookingActiveStatus(Request $request)
     {
@@ -1121,6 +1124,10 @@ class BookingController extends Controller
         ]);
     }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> refs/remotes/origin/main
 
     public function getReceivedResponse(Request $request)
     {
