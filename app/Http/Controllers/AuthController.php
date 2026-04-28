@@ -577,9 +577,6 @@ class AuthController extends Controller
         ], 200);
     }
 
-
-   
-
     public function updateProfile(Request $request)
     {
         $user = Auth::guard('api')->user();
@@ -742,9 +739,6 @@ class AuthController extends Controller
             'data' => ['language' => $request->language],
         ], 200);
     }
-
-
-
 
 
     public function getLanguage()

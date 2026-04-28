@@ -87,9 +87,6 @@ class DriverHomeController extends Controller
         ], 200);
     }
 
-    
-    // with language 
-
     public function getVehicles(Request $request)
     {
         // ✅ 1️⃣ Authenticate user
@@ -438,242 +435,8 @@ class DriverHomeController extends Controller
     }
 
 
-    // public function editRide(Request $request)
-    // {
-    //     /* =====================================================
-    //     🔐 AUTH CHECK
-    //     ====================================================== */
-    //     $user = Auth::guard('api')->user();
 
-    //     if (!$user) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => __('messages.ride.edit.user_not_authenticated')
-    //         ], 401);
-    //     }
-
-    //     /* =====================================================
-    //     🌐 LANGUAGE DETECTION
-    //     ====================================================== */
-    //     $userLang = UserLang::where('user_id', $user->id)
-    //         ->where('device_id', $user->device_id)
-    //         ->where('device_type', $user->device_type)
-    //         ->first();
-
-    //     $lang = $userLang->language ?? 'ru';
-    //     app()->setLocale($lang);
-
-    //     /* =====================================================
-    //     ✅ VALIDATION
-    //     ====================================================== */
-    //     $validator = Validator::make($request->all(), [
-    //         'ride_id'         => 'required|exists:rides,id',
-    //         'vehicle_id'      => 'required|exists:vehicles,id',
-    //         'pickup_location' => 'required|string|max:255',
-    //         'destination'     => 'required|string|max:255',
-    //         'number_of_seats' => 'required|integer|min:1',
-    //         'price'           => 'required|numeric|min:0',
-    //         'ride_date'       => 'required|date|after_or_equal:today',
-    //         'ride_time'       => 'required|date_format:H:i',
-    //         'reaching_time'   => 'nullable|date_format:H:i',
-    //         'accept_parcel'   => 'nullable|boolean',
-    //         'services'        => 'nullable|array',
-    //     ], [
-    //         'ride_id.required' => __('messages.ride.edit.validation.ride_id_required'),
-    //         'ride_id.exists'   => __('messages.ride.edit.validation.ride_not_found'),
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => $validator->errors()->first(),
-    //         ], 201);
-    //     }
-
-    //     /* =====================================================
-    //     🚗 FIND RIDE (OWNER CHECK)
-    //     ====================================================== */
-    //     $ride = Ride::where('id', $request->ride_id)
-    //         ->where('user_id', $user->id)
-    //         ->first();
-
-    //     if (!$ride) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => __('messages.ride.edit.ride_not_found'),
-    //         ], 201);
-    //     }
-        
-
-    //     /* =====================================================
-    //     🔒 BOOKING-BASED RULES
-    //     ====================================================== */
-
-    //     // 🔢 Total CONFIRMED seats booked
-    //     $bookedSeats = $ride->bookings()
-    //         ->where('status', 'confirmed')
-    //         ->sum('seats_booked');
-
-    //     // 🚫 Ride started or completed
-    //     $rideLocked = $ride->bookings()
-    //         ->whereIn('active_status', [1, 2]) // 1=active, 2=complete
-    //         ->exists();
-            
-    //     if ($rideLocked) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => __('messages.ride.edit.ride_already_started'),
-    //         ], 201);
-    //     }
-    //     // 🚫 ALL SEATS FILLED → NO EDIT ALLOWED
-    //     if ($bookedSeats >= $ride->number_of_seats) {
-    //         return response()->json([
-    //             'status'  => false,
-    //             'message' => __('messages.ride.edit.all_seats_filled'),
-    //         ], 201);
-    //     }
-
-    //      /* =====================================================
-    //         🔔 CANCEL PENDING REQUESTS (NO CONFIRMED)
-    //         ====================================================== */
-
-    //         if ($bookedSeats == 0) {
-
-    //             $routeChanged =
-    //                 $request->pickup_location !== $ride->pickup_location ||
-    //                 $request->destination !== $ride->destination ||
-    //                 $request->ride_date !== $ride->ride_date ||
-    //                 $request->ride_time !== $ride->ride_time;
-
-    //             if ($routeChanged) {
-
-    //                 $pendingBookings = $ride->bookings()
-    //                     ->where('status', 'pending')
-    //                     ->with('user')
-    //                     ->get();
-
-    //                 if ($pendingBookings->count() > 0) {
-
-    //                     $fcmService = new FCMService();
-    //                     $driverName = $user->name ?? __('messages.common.driver');
-    //                     $originalLocale = app()->getLocale();
-
-    //                     foreach ($pendingBookings as $booking) {
-
-    //                         $passenger = $booking->user;
-    //                         if (!$passenger || !$passenger->device_token) {
-    //                             continue;
-    //                         }
-
-    //                         // Passenger language
-    //                         $pLang = UserLang::where('user_id', $passenger->id)
-    //                             ->where('device_id', $passenger->device_id)
-    //                             ->where('device_type', $passenger->device_type)
-    //                             ->first();
-
-    //                         app()->setLocale($pLang->language ?? 'ru');
-
-    //                         // ❌ Cancel booking
-    //                         $booking->update([
-    //                             'status'        => 'cancelled',
-    //                             'active_status' => 0,
-    //                         ]);
-
-    //                         // 🔔 Notification
-    //                         $fcmService->sendNotification([[
-    //                             'device_token' => $passenger->device_token,
-    //                             'device_type'  => $passenger->device_type ?? 'android',
-    //                             'user_id'      => $passenger->id,
-    //                         ]], [
-    //                             'notification_type' => 11,
-    //                             'title' => __('messages.ride.notifications.request_cancelled.title'),
-    //                             'body'  => __('messages.ride.notifications.request_cancelled.body', [
-    //                                 'driver'      => $driverName,
-    //                                 'pickup'      => $ride->pickup_location,
-    //                                 'destination' => $ride->destination,
-    //                             ]),
-    //                         ]);
-    //                     }
-    //                       // 🗑️ DELETE BOOKING RECORD
-    //                     $booking->delete();
-
-    //                     app()->setLocale($originalLocale);
-                        
-    //                 }
-    //             }
-    //         }
-
-    //     // 🚫 Restrictions when passengers exist
-    //     if ($bookedSeats > 0) {
-
-    //         // ❌ Route cannot change
-    //         if (
-    //             $request->pickup_location !== $ride->pickup_location ||
-    //             $request->destination !== $ride->destination
-    //         ) {
-    //             return response()->json([
-    //                 'status'  => false,
-    //                 'message' => __('messages.ride.edit.route_change_not_allowed'),
-    //             ], 201);
-    //         }
-
-    //         // ❌ Date / Time cannot change
-    //         if (
-    //             $request->ride_date !== $ride->ride_date ||
-    //             $request->ride_time !== $ride->ride_time
-    //         ) {
-    //             return response()->json([
-    //                 'status'  => false,
-    //                 'message' => __('messages.ride.edit.time_change_not_allowed'),
-    //             ], 201);
-    //         }
-
-    //         // ❌ Seats cannot be less than booked
-    //         if ($request->number_of_seats < $bookedSeats) {
-    //             return response()->json([
-    //                 'status'  => false,
-    //                 'message' => __('messages.ride.edit.seats_less_than_booked'),
-    //             ], 201);
-    //         }
-    //     }
-
-    //     /* =====================================================
-    //     ✅ SAFE UPDATE
-    //     ====================================================== */
-    //     $ride->update([
-    //         'vehicle_id'      => $request->vehicle_id,
-    //         'price'           => $request->price,
-    //         'number_of_seats' => $request->number_of_seats,
-    //         'reaching_time'   => $request->reaching_time ?? $ride->reaching_time,
-    //         'accept_parcel'   => $request->accept_parcel ?? $ride->accept_parcel,
-    //         'services'        => $request->services,
-    //         'comment'         => $request->comment ?? $ride->comment,
-
-    //         // Only editable if no confirmed bookings
-    //         'pickup_location' => $bookedSeats == 0 ? $request->pickup_location : $ride->pickup_location,
-    //         'destination'     => $bookedSeats == 0 ? $request->destination : $ride->destination,
-    //         'ride_date'       => $bookedSeats == 0 ? $request->ride_date : $ride->ride_date,
-    //         'ride_time'       => $bookedSeats == 0 ? $request->ride_time : $ride->ride_time,
-    //     ]);
-
-    //     /* =====================================================
-    //     📦 RESPONSE DATA
-    //     ====================================================== */
-    //     $ride->services = Service::whereIn('id', $request->services ?? [])
-    //         ->get(['id', 'service_name', 'service_image']);
-
-    //     return response()->json([
-    //         'status'  => true,
-    //         'message' => __('messages.ride.edit.success'),
-    //         'data'    => $ride,
-    //     ], 200);
-    // }
-
-
-    // new with edit permanmenr paaram ride 
-
-
-        public function editRide(Request $request)
+    public function editRide(Request $request)
     {
         /* =====================================================
         🔐 AUTH CHECK
@@ -890,9 +653,7 @@ class DriverHomeController extends Controller
             'destination'     => $bookedSeats == 0 ? $request->destination : $ride->destination,
             'ride_date'       => $bookedSeats == 0 ? $request->ride_date : $ride->ride_date,
             'ride_time'       => $bookedSeats == 0 ? $request->ride_time : $ride->ride_time,
-            'is_permanent' => $request->has('is_permanent')
-                    ? $request->is_permanent
-                    : $ride->is_permanent,
+            'is_permanent' => $request->is_permanent ?? $ride->is_permanent,
         ]);
 
         /* =====================================================
@@ -983,6 +744,162 @@ class DriverHomeController extends Controller
 
 
 
+    // public function searchRides(Request $request)
+    // {
+    //     $user = Auth::guard('api')->user(); // may be null for guest
+
+    //     $validator = Validator::make($request->all(), [
+    //         'pickup_location' => 'nullable|string|max:255',
+    //         'destination'     => 'nullable|string|max:255',
+    //         'ride_date'       => 'nullable|date_format:d-m-Y|after_or_equal:today',
+    //         'number_of_seats' => 'nullable|integer|min:1',
+    //         'services'        => 'nullable|array',
+    //         'services.*'      => 'string|max:50',
+    //     ], [
+    //         'pickup_location.string'   => 'Pickup location must be a valid string.',
+    //         'pickup_location.max'      => 'Pickup location must not exceed 255 characters.',
+    //         'destination.string'       => 'Destination must be a valid string.',
+    //         'destination.max'          => 'Destination must not exceed 255 characters.',
+    //         'ride_date.date_format'    => 'Ride date must be in DD-MM-YYYY format.',
+    //         'ride_date.after_or_equal' => 'Ride date must be today or a future date.',
+    //         'number_of_seats.integer'  => 'Number of seats must be a valid number.',
+    //         'number_of_seats.min'      => 'Number of seats must be at least 1.',
+    //         'services.array'           => 'Services must be an array.',
+    //         'services.*.string'        => 'Each service must be a string.',
+    //         'services.*.max'           => 'Each service cannot exceed 50 characters.',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => $validator->errors()->first(),
+    //         ], 422);
+    //     }
+
+    //     // ✅ Default seats = 1 if not provided
+    //     $numberOfSeats = $request->number_of_seats ?? 1;
+
+    //     $query = \App\Models\Ride::query();
+
+    //     // ✅ Exclude rides created by authenticated user (only if logged in)
+    //     if ($user) {
+    //         $query->where('user_id', '!=', $user->id);
+    //         // ✅ Get list of users blocked by current user
+    //         $blockedUserIds = UserBlock::where('user_id', $user->id)
+    //             ->pluck('blocked_user_id')
+    //             ->toArray();
+
+    //         // ✅ Get list of users who blocked current user
+    //         $blockedByUserIds = UserBlock::where('blocked_user_id', $user->id)
+    //             ->pluck('user_id')
+    //             ->toArray();
+
+    //         // ✅ Combine both
+    //         $allBlockedIds = array_unique(array_merge($blockedUserIds, $blockedByUserIds));
+
+    //         // ✅ Exclude rides from or to blocked users
+    //         if (!empty($allBlockedIds)) {
+    //             $query->whereNotIn('user_id', $allBlockedIds);
+    //         }
+    //     }
+
+    //     if ($request->pickup_location) {
+    //         $query->where('pickup_location', 'like', '%'.$request->pickup_location.'%');
+    //     }
+
+    //     if ($request->destination) {
+    //         $query->where('destination', 'like', '%'.$request->destination.'%');
+    //     }
+
+    //     if ($request->ride_date) {
+    //         try {
+    //             $rideDate = Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d');
+    //             $query->whereDate('ride_date', $rideDate);
+    //         } catch (\Exception $e) {
+    //             return response()->json([
+    //                 'status'  => false,
+    //                 'message' => 'Invalid ride_date format. Please use DD-MM-YYYY.',
+    //             ], 422);
+    //         }
+    //     }
+
+    //     // ✅ Always apply seat filter
+    //     // $query->where('number_of_seats', '>=', $numberOfSeats);
+
+    //     $query->whereRaw('
+    //         number_of_seats - (
+    //             SELECT COALESCE(SUM(seats_booked), 0)
+    //             FROM ride_bookings
+    //             WHERE ride_bookings.ride_id = rides.id
+    //             AND ride_bookings.status = "confirmed"
+    //         ) >= ?
+    //     ', [$numberOfSeats]);
+
+
+
+    //     // ✅ Optional: Filter by services
+    //     if ($request->services && is_array($request->services)) {
+    //         foreach ($request->services as $service) {
+    //             $query->whereJsonContains('services', $service);
+    //         }
+    //     }
+
+    //     $rides = $query->orderBy('ride_date', 'asc')
+    //                 ->orderBy('ride_time', 'asc')
+    //                 ->get();
+
+    //        // Filter out rides where ANY booking has active_status = 2
+    //         $rides = $rides->filter(function ($ride) {
+    //             return $ride->rideBookings->every(fn($b) => $b->active_status != 2);
+    //         })->values();
+
+    //     $ridesData = $rides->map(function ($ride) use ($request) {
+    //         $vehicle = Vehicle::find($ride->vehicle_id);
+    //         $driver  = $vehicle ? User::find($vehicle->user_id) : null;
+
+    //         $totalPrice = $request->number_of_seats 
+    //                     ? $ride->price * $request->number_of_seats 
+    //                     : $ride->price;
+
+    //         return [
+    //             'ride_id'         => $ride->id,
+    //             'pickup_location' => $ride->pickup_location,
+    //             'destination'     => $ride->destination,
+    //             'number_of_seats' => $ride->number_of_seats,
+    //             'price'           => $totalPrice,
+    //             'ride_date'       => $ride->ride_date,
+    //             'ride_time'       => $ride->ride_time,
+    //             'services'        => $ride->services_details,
+    //             'accept_parcel'   => $ride->accept_parcel,
+    //             'is_permanent'   => $ride->is_permanent ?? 0,
+
+    //             // Vehicle
+    //             'vehicle_id'    => $vehicle->id ?? null,
+    //             'brand'         => $vehicle->brand ?? null,
+    //             'model'         => $vehicle->model ?? null,
+    //             'vehicle_image' => $vehicle->vehicle_image ?? null,
+    //             'vehicle_type'  => $vehicle->vehicle_type ?? null,
+    //             'number_plate'  => $vehicle->number_plate ?? null,
+
+    //             // Driver
+    //             'driver_id'     => $driver->id ?? null,
+    //             'driver_name'   => $driver->name ?? null,
+    //             'driver_image'  => $driver->image ?? null,
+    //             'driver_status' => $driver ? ($driver->id_verified ? 'verified' : 'not verified') : null,
+    //             'driver_rating' => '3',
+    //         ];
+    //     });
+
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => 'Rides found successfully.',
+    //         'data'    => $ridesData,
+    //     ], 200);
+    // }
+
+
+    // with is permanenet 
+
     public function searchRides(Request $request)
     {
         $user = Auth::guard('api')->user(); // may be null for guest
@@ -1050,17 +967,49 @@ class DriverHomeController extends Controller
             $query->where('destination', 'like', '%'.$request->destination.'%');
         }
 
+        /* =====================================================
+        📅 DATE + PERMANENT LOGIC (🔥 MAIN CHANGE)
+        ====================================================== */
         if ($request->ride_date) {
+
             try {
                 $rideDate = Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d');
-                $query->whereDate('ride_date', $rideDate) ->orWhere('is_permanent', 1);
+
+                $query->where(function ($q) use ($rideDate) {
+
+                    // ✅ Normal rides (date-based)
+                    $q->where(function ($q1) use ($rideDate) {
+                        $q1->where('is_permanent', 0)
+                        ->whereDate('ride_date', $rideDate);
+                    });
+
+                    // ✅ Permanent rides (always visible)
+                    $q->orWhere('is_permanent', 1);
+                });
+
             } catch (\Exception $e) {
                 return response()->json([
                     'status'  => false,
                     'message' => 'Invalid ride_date format. Please use DD-MM-YYYY.',
                 ], 422);
             }
+
+        } else {
+
+            // ✅ No date passed → show today's rides + permanent
+            $today = now()->format('Y-m-d');
+
+            $query->where(function ($q) use ($today) {
+
+                $q->where(function ($q1) use ($today) {
+                    $q1->where('is_permanent', 0)
+                    ->whereDate('ride_date', $today);
+                });
+
+                $q->orWhere('is_permanent', 1);
+            });
         }
+
 
         // ✅ Always apply seat filter
         // $query->where('number_of_seats', '>=', $numberOfSeats);
@@ -1106,11 +1055,13 @@ class DriverHomeController extends Controller
                 'destination'     => $ride->destination,
                 'number_of_seats' => $ride->number_of_seats,
                 'price'           => $totalPrice,
-                'ride_date'       => $ride->ride_date,
+                // 'ride_date'       => $ride->ride_date,
+                'ride_date' => $ride->is_permanent && $request->ride_date
+                    ? Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d')
+                    : $ride->ride_date,
                 'ride_time'       => $ride->ride_time,
                 'services'        => $ride->services_details,
                 'accept_parcel'   => $ride->accept_parcel,
-                'is_permanent'   => $ride->is_permanent ?? 0,
 
                 // Vehicle
                 'vehicle_id'    => $vehicle->id ?? null,
@@ -1126,7 +1077,7 @@ class DriverHomeController extends Controller
                 'driver_image'  => $driver->image ?? null,
                 'driver_status' => $driver ? ($driver->id_verified ? 'verified' : 'not verified') : null,
                 'driver_rating' => '3',
-                
+                'is_permanent' => $ride->is_permanent,
             ];
         });
 
@@ -1136,6 +1087,153 @@ class DriverHomeController extends Controller
             'data'    => $ridesData,
         ], 200);
     }
+
+
+    // public function searchParcelRides(Request $request)
+    // {
+    //     $user = Auth::guard('api')->user(); // user may be null
+
+    //     $validator = Validator::make($request->all(), [
+    //         'pickup_location' => 'nullable|string|max:255',
+    //         'destination'     => 'nullable|string|max:255',
+    //         'ride_date'       => 'nullable|date_format:d-m-Y|after_or_equal:today',
+    //         'number_of_seats' => 'nullable|integer|min:1',
+    //         'services'        => 'nullable|array',
+    //         'services.*'      => 'string|max:50',
+    //     ], [
+    //         'pickup_location.string'   => 'Pickup location must be a valid string.',
+    //         'pickup_location.max'      => 'Pickup location must not exceed 255 characters.',
+    //         'destination.string'       => 'Destination must be a valid string.',
+    //         'destination.max'          => 'Destination must not exceed 255 characters.',
+    //         'ride_date.date_format'    => 'Ride date must be in DD-MM-YYYY format.',
+    //         'ride_date.after_or_equal' => 'Ride date must be today or a future date.',
+    //         'number_of_seats.integer'  => 'Number of seats must be a valid number.',
+    //         'number_of_seats.min'      => 'Number of seats must be at least 1.',
+    //         'services.array'           => 'Services must be an array.',
+    //         'services.*.string'        => 'Each service must be a string.',
+    //         'services.*.max'           => 'Each service cannot exceed 50 characters.',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status'  => false,
+    //             'message' => $validator->errors()->first(),
+    //         ], 201);
+    //     }
+
+    //     // ✅ Default seats = 1 if not provided
+    //     $numberOfSeats = $request->number_of_seats ?? 1;
+
+    //     $query = \App\Models\Ride::query();
+
+    //     // ✅ Only rides that accept parcels
+    //     $query->where('accept_parcel', 1);
+
+    //     // ✅ Exclude rides of logged-in user (only if authenticated)
+    //     if ($user) {
+    //         $query->where('user_id', '!=', $user->id);
+
+    //         // ✅ Get list of users blocked by current user
+    //         $blockedUserIds = UserBlock::where('user_id', $user->id)
+    //             ->pluck('blocked_user_id')
+    //             ->toArray();
+
+    //         // ✅ Get list of users who blocked current user
+    //         $blockedByUserIds = UserBlock::where('blocked_user_id', $user->id)
+    //             ->pluck('user_id')
+    //             ->toArray();
+
+    //         // ✅ Combine both
+    //         $allBlockedIds = array_unique(array_merge($blockedUserIds, $blockedByUserIds));
+
+    //         // ✅ Exclude rides from or to blocked users
+    //         if (!empty($allBlockedIds)) {
+    //             $query->whereNotIn('user_id', $allBlockedIds);
+    //         }
+    //     }
+
+    //     if ($request->pickup_location) {
+    //         $query->where('pickup_location', 'like', '%'.$request->pickup_location.'%');
+    //     }
+
+    //     if ($request->destination) {
+    //         $query->where('destination', 'like', '%'.$request->destination.'%');
+    //     }
+
+    //     if ($request->ride_date) {
+    //         try {
+    //             $rideDate = Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d');
+    //             $query->whereDate('ride_date', $rideDate);
+    //         } catch (\Exception $e) {
+    //             return response()->json([
+    //                 'status'  => false,
+    //                 'message' => 'Invalid ride_date format. Please use DD-MM-YYYY.',
+    //             ], 201);
+    //         }
+    //     }
+
+    //     // ✅ Always apply seat filter
+    //     $query->where('number_of_seats', '>=', $numberOfSeats);
+
+    //     // ✅ Optional: Filter by services
+    //     if ($request->services && is_array($request->services)) {
+    //         foreach ($request->services as $service) {
+    //             $query->whereJsonContains('services', $service);
+    //         }
+    //     }
+
+    //     $rides = $query->orderBy('ride_date', 'asc')
+    //                 ->orderBy('ride_time', 'asc')
+    //                 ->get();
+
+    //     // Filter out rides where any booking has active_status = 2
+    //     $rides = $rides->filter(fn($ride) => $ride->rideBookings->every(fn($b) => $b->active_status != 2))
+    //                 ->values();
+
+    //     $ridesData = $rides->map(function ($ride) use ($request) {
+    //         $vehicle = Vehicle::find($ride->vehicle_id);
+    //         $driver  = $vehicle ? User::find($vehicle->user_id) : null;
+
+    //         $totalPrice = $request->number_of_seats 
+    //                     ? $ride->price * $request->number_of_seats 
+    //                     : $ride->price;
+
+    //         return [
+    //             'ride_id'         => $ride->id,
+    //             'pickup_location' => $ride->pickup_location,
+    //             'destination'     => $ride->destination,
+    //             'number_of_seats' => $ride->number_of_seats,
+    //             'price'           => $totalPrice,
+    //             'ride_date'       => $ride->ride_date,
+    //             'ride_time'       => $ride->ride_time,
+    //             'services'        => $ride->services_details,
+    //             'accept_parcel'   => $ride->accept_parcel,
+
+    //             // Vehicle
+    //             'vehicle_id'    => $vehicle->id ?? null,
+    //             'brand'         => $vehicle->brand ?? null,
+    //             'model'         => $vehicle->model ?? null,
+    //             'vehicle_image' => $vehicle->vehicle_image ?? null,
+    //             'vehicle_type'  => $vehicle->vehicle_type ?? null,
+    //             'number_plate'  => $vehicle->number_plate ?? null,
+
+    //             // Driver
+    //             'driver_id'     => $driver->id ?? null,
+    //             'driver_name'   => $driver->name ?? null,
+    //             'driver_image'  => $driver->image ?? null,
+    //             'driver_status' => $driver ? ($driver->id_verified ? 'verified' : 'not verified') : null,
+    //             'driver_rating' => '3',
+    //         ];
+    //     });
+
+    //     return response()->json([
+    //         'status'  => true,
+    //         'message' => 'Parcel rides found successfully.',
+    //         'data'    => $ridesData,
+    //     ], 200);
+    // }
+
+    // with is permanat 
 
 
     public function searchParcelRides(Request $request)
@@ -1210,15 +1308,43 @@ class DriverHomeController extends Controller
         }
 
         if ($request->ride_date) {
+
             try {
                 $rideDate = Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d');
-                $query->whereDate('ride_date', $rideDate);
+
+                $query->where(function ($q) use ($rideDate) {
+
+                    // ✅ Normal rides (date match)
+                    $q->where(function ($q1) use ($rideDate) {
+                        $q1->where('is_permanent', 0)
+                        ->whereDate('ride_date', $rideDate);
+                    });
+
+                    // ✅ Permanent rides (always visible)
+                    $q->orWhere('is_permanent', 1);
+                });
+
             } catch (\Exception $e) {
                 return response()->json([
                     'status'  => false,
                     'message' => 'Invalid ride_date format. Please use DD-MM-YYYY.',
                 ], 201);
             }
+
+        } else {
+
+            // ✅ No date → today + permanent
+            $today = now()->format('Y-m-d');
+
+            $query->where(function ($q) use ($today) {
+
+                $q->where(function ($q1) use ($today) {
+                    $q1->where('is_permanent', 0)
+                    ->whereDate('ride_date', $today);
+                });
+
+                $q->orWhere('is_permanent', 1);
+            });
         }
 
         // ✅ Always apply seat filter
@@ -1253,7 +1379,10 @@ class DriverHomeController extends Controller
                 'destination'     => $ride->destination,
                 'number_of_seats' => $ride->number_of_seats,
                 'price'           => $totalPrice,
-                'ride_date'       => $ride->ride_date,
+                // 'ride_date'       => $ride->ride_date,
+                'ride_date' => $ride->is_permanent && $request->ride_date
+                    ? Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d')
+                    : $ride->ride_date,
                 'ride_time'       => $ride->ride_time,
                 'services'        => $ride->services_details,
                 'accept_parcel'   => $ride->accept_parcel,
@@ -1272,6 +1401,7 @@ class DriverHomeController extends Controller
                 'driver_image'  => $driver->image ?? null,
                 'driver_status' => $driver ? ($driver->id_verified ? 'verified' : 'not verified') : null,
                 'driver_rating' => '3',
+                'is_permanent' => $ride->is_permanent,
             ];
         });
 
@@ -1355,11 +1485,15 @@ class DriverHomeController extends Controller
                     'destination'    => $ride->destination,
                     'number_of_seats'=> $ride->number_of_seats,
                     'price'          => $ride->price * $ride->number_of_seats,
-                    'ride_date'      => $ride->ride_date,
+                    // 'ride_date'      => $ride->ride_date,
+                    'ride_date' => $ride->is_permanent && $request->ride_date
+                    ? Carbon::createFromFormat('d-m-Y', $request->ride_date)->format('Y-m-d')
+                    : $ride->ride_date,
                     'ride_time'      => $ride->ride_time,
                     'services'       => $ride->services_details,
                     'accept_parcel'  => $ride->accept_parcel,
                     'id_verified'    => $driver->id_verified,
+                    
                 ];
 
                 $data[] = $rideData;
