@@ -1492,6 +1492,7 @@ class DriverHomeController extends Controller
                     'services'       => $ride->services_details,
                     'accept_parcel'  => $ride->accept_parcel,
                     'id_verified'    => $driver->id_verified,
+                    
                 ];
 
                 $data[] = $rideData;
