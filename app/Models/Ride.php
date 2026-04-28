@@ -22,6 +22,7 @@ class Ride extends Model
         'reaching_time',
         'services',
         'accept_parcel',
+        'is_permanent',
     ];
 
     /**
@@ -45,11 +46,12 @@ class Ride extends Model
         return $this->hasMany(RideBooking::class);
     }
     protected $casts = [
-    'services' => 'array',   // 👈 this tells Laravel to store/retrieve JSON
-    'accept_parcel' => 'boolean',
-    'ride_date' => 'date',
-    'ride_time' => 'datetime:H:i',
-  ];
+        'services' => 'array',   // 👈 this tells Laravel to store/retrieve JSON
+        'accept_parcel' => 'boolean',
+        'ride_date' => 'date',
+        'ride_time' => 'datetime:H:i',
+          'is_permanent' => 'boolean',
+    ];
 
       // ✅ Accessor for expanded service details
     public function getServicesDetailsAttribute()
