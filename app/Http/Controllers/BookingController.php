@@ -484,12 +484,6 @@ class BookingController extends Controller
         ],200);
     }
 
-<<<<<<< HEAD
-    // with notification correct 
-
-=======
->>>>>>> refs/remotes/origin/main
-
     public function updateBookingActiveStatus(Request $request)
     {
         $driver = Auth::guard('api')->user();
@@ -1124,10 +1118,6 @@ class BookingController extends Controller
         ]);
     }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> refs/remotes/origin/main
 
     public function getReceivedResponse(Request $request)
     {
