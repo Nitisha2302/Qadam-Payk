@@ -87,12 +87,6 @@ class DriverHomeController extends Controller
         ], 200);
     }
 
-<<<<<<< HEAD
-    
-    // with language 
-=======
->>>>>>> refs/remotes/origin/main
-
     public function getVehicles(Request $request)
     {
         // ✅ 1️⃣ Authenticate user
