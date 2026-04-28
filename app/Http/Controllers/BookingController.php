@@ -1606,6 +1606,7 @@ class BookingController extends Controller
                     'ride_date'       => $ride->ride_date,
                     'ride_time'       => $ride->ride_time,
                     'accept_parcel'   => $ride->accept_parcel,
+                     'is_permanent'   => $ride->is_permanent,
                     'services'            => $ride->services,
                     'number_of_seats' => $ride->number_of_seats,
                     'vehicle_id'      => $ride->vehicle_id,
